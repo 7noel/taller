@@ -73,10 +73,10 @@
 					<div class="form-group  form-group-sm">
 						{!! Form::label('is_provider','Proveedor', ['class'=>'col-sm-2 control-label']) !!}
 						<label class="radio-inline">
-							{!! Form::radio('is_provider', 'SI', null, ['id'=>'is_provider1']) !!} SI
+							{!! Form::radio('is_provider', '1', null, ['id'=>'is_provider1']) !!} SI
 						</label>
 						<label class="radio-inline">
-							{!! Form::radio('is_provider', 'NO', null, ['id'=>'is_provider2']) !!} NO
+							{!! Form::radio('is_provider', '0', null, ['id'=>'is_provider2']) !!} NO
 						</label>
 					</div>
 					

@@ -5,7 +5,7 @@
 	<div class="row">
 		<div class="col-md-10 col-md-offset-1">
 			<div class="panel panel-default">
-				<div class="panel-heading">{{ config('options.' . Request::route()->getAction()['as'] .'.panel') }}</div>
+				<div class="panel-heading panel-heading-custom">{{ config('options.' . Request::route()->getAction()['as'] .'.panel') }}</div>
 
 				<div class="panel-body">
 					@include('partials.messages')

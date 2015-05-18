@@ -22,7 +22,16 @@ class CreateProductsTable extends Migration {
 			$table->string('description');
 			$table->integer('sub_category_id')->unsigned();
 			$table->integer('unit_id')->unsigned();
-
+			$table->integer('purchase_currency')->unsigned();
+			$table->decimal('last_purchase', 15,4);
+			$table->decimal('profit_margin',10,4);
+			$table->integer('sale_currency')->unsigned();
+			$table->decimal('price', 15,4);
+			$table->decimal('set_price', 15,4);
+			$table->boolean('use_set_price');
+			
+			$table->foreign('purchase_currency')->references('id')->on('currencies');
+			$table->foreign('sale_currency')->references('id')->on('currencies');
 			$table->foreign('sub_category_id')->references('id')->on('sub_categories');
 			$table->foreign('unit_id')->references('id')->on('units');
 			$table->timestamps();
