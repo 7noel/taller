@@ -29,7 +29,7 @@ class Employee extends Model {
 	}
 	public function ubigeo()
 	{
-		return $this->hasOne('App\Modules\Base\Ubigeo');
+		return $this->hasOne('App\Modules\Base\Ubigeo','id','ubigeo_id');
 	}
 	public function scopeName($query, $name){
 		if (trim($name) != "") {
