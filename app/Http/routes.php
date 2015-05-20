@@ -33,11 +33,13 @@ Route::group(['prefix'=>'admin', 'middleware'=>['auth', 'permissions'], 'namespa
 	Route::resource('id_types','IdTypesController');
 	Route::resource('unit_types','UnitTypesController');
 	Route::resource('currencies','CurrenciesController');
+	Route::resource('document_types','DocumentTypesController');
 });
 
 Route::group(['prefix'=>'finances', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Finances'], function(){
 	Route::resource('exchanges','ExchangesController');
 	Route::resource('companies','CompaniesController');
+	Route::resource('payment_conditions','PaymentConditionsController');
 });
 
 /*Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'namespace'=>'AutoRepair'], function(){
@@ -48,9 +50,10 @@ Route::group(['prefix'=>'humanresources', 'middleware'=>['auth', 'permissions'],
 	Route::resource('employees','EmployeesController');
 });
 
-/*Route::group(['prefix'=>'logistics', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Logistics'], function(){
-
-});*/
+Route::group(['prefix'=>'logistics', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Logistics'], function(){
+	Route::resource('brands','BrandsController');
+	Route::resource('purchases','PurchasesController');
+});
 
 /*Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Sales'], function(){
 

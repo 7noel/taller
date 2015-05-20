@@ -14,8 +14,8 @@ class DatabaseSeeder extends Seeder {
 	{
 		Model::unguard();
 
-		$this->call('AdminTableSeeder');
 		$this->call('UbigeoTableSeeder');
+		$this->call('AdminTableSeeder');
 	}
 
 }

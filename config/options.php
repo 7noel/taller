@@ -15,6 +15,11 @@ return array(
 			'index' => ['panel'=>'Monedas', 'create'=>'Crear Moneda'],
 			'create' => ['panel'=>'Nueva Moneda: ', 'create'=>'Crear Moneda'],
 			'edit' => ['panel'=>'Editar Moneda: ', 'update'=>'Actualizar Moneda', 'delete'=>'Eliminar Moneda']
+		],
+		'document_types' => [
+			'index' => ['panel'=>'Tipos de Documento', 'create'=>'Crear Tipo de Documento'],
+			'create' => ['panel'=>'Nueva Tipo de Documento: ', 'create'=>'Crear Tipo de Documento'],
+			'edit' => ['panel'=>'Editar Tipo de Documento: ', 'update'=>'Actualizar Tipo de Documento', 'delete'=>'Eliminar Tipo de Documento']
 		]
 	],
 	'finances' => [
@@ -27,6 +32,11 @@ return array(
 			'index' => ['panel'=>'Empresas', 'create'=>'Crear Empresa'],
 			'create' => ['panel'=>'Nueva Empresa: ', 'create'=>'Crear Empresa'],
 			'edit' => ['panel'=>'Editar Empresa: ', 'update'=>'Actualizar Empresa', 'delete'=>'Eliminar Empresa']
+		],
+		'payment_conditions' => [
+			'index' => ['panel'=>'Condiciones de Pago', 'create'=>'Crear Condición de Pago'],
+			'create' => ['panel'=>'Nueva Condición de Pago: ', 'create'=>'Crear Condición de Pago'],
+			'edit' => ['panel'=>'Editar Condición de Pago: ', 'update'=>'Actualizar Condición de Pago', 'delete'=>'Eliminar Condición de Pago']
 		]
 	],
 	'autorepair' => [
@@ -39,6 +49,16 @@ return array(
 		]
 	],
 	'logistics' => [
+		'brands' => [
+			'index' => ['panel'=>'Marcas', 'create'=>'Crear Marca'],
+			'create' => ['panel'=>'Nueva Marca: ', 'create'=>'Crear Marca'],
+			'edit' => ['panel'=>'Editar Marca: ', 'update'=>'Actualizar Marca', 'delete'=>'Eliminar Marca']
+		],
+		'purchases' => [
+			'index' => ['panel'=>'Compras', 'create'=>'Crear Compra'],
+			'create' => ['panel'=>'Nueva Compra: ', 'create'=>'Crear Compra'],
+			'edit' => ['panel'=>'Editar Compra: ', 'update'=>'Actualizar Compra', 'delete'=>'Eliminar Compra']
+		]
 	],
 	'sales' => [
 	],
