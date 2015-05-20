@@ -10,5 +10,8 @@ class CurrencyRepo extends BaseRepo{
 	public function getModel(){
 		return new Currency;
 	}
-	
+	public function getList2($name='symbol', $id='id')
+	{
+		return [""=>"SELECCIONAR"] + Currency::lists($name, $id);
+	}
 }

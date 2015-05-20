@@ -9,6 +9,7 @@ use App\Modules\Base\UnitTypeRepo;
 use App\Modules\Storage\CategoryRepo;
 use App\Modules\Storage\SubCategoryRepo;
 use App\Modules\Storage\ProductRepo;
+use App\Modules\Base\CurrencyRepo;
 
 use App\Http\Requests\Logistics\FormProductRequest;
 use App\Modules\Storage\Stock;
@@ -20,13 +21,15 @@ class ProductsController extends Controller {
 	protected $subCategoryRepo;
 	protected $unitRepo;
 	protected $unitTypeRepo;
+	protected $currencyRepo;
 
-	public function __construct(ProductRepo $repo, SubCategoryRepo $subCategoryRepo, CategoryRepo $categoryRepo, UnitRepo $unitRepo, UnitTypeRepo $unitTypeRepo) {
+	public function __construct(ProductRepo $repo, SubCategoryRepo $subCategoryRepo, CategoryRepo $categoryRepo, UnitRepo $unitRepo, UnitTypeRepo $unitTypeRepo, CurrencyRepo $currencyRepo) {
 		$this->repo = $repo;
 		$this->categoryRepo = $categoryRepo;
 		$this->subCategoryRepo = $subCategoryRepo;
 		$this->unitRepo = $unitRepo;
 		$this->unitTypeRepo = $unitTypeRepo;
+		$this->currencyRepo = $currencyRepo;
 	}
 
 	public function index()
@@ -39,7 +42,8 @@ class ProductsController extends Controller {
 	{
 		$categories = $this->categoryRepo->getList();
 		$unit_types = $this->unitTypeRepo->getList();
-		return view('partials.create', compact('categories', 'unit_types'));
+		$currencies = $this->currencyRepo->getList2();
+		return view('partials.create', compact('categories', 'unit_types', 'currencies'));
 	}
 
 	public function store(FormProductRequest $request)
@@ -59,10 +63,11 @@ class ProductsController extends Controller {
 		//dd($model->unit->unit_type_id);
 		$categories = $this->categoryRepo->getList();
 		$unit_types = $this->unitTypeRepo->getList();
+		$currencies = $this->currencyRepo->getList2();
 
 		$sub_categories = $this->subCategoryRepo->getList2($model->sub_category->category_id);
 		$units = $this->unitRepo->getList2($model->unit->unit_type_id);
-		return view('partials.edit', compact('model', 'sub_categories', 'units', 'categories', 'unit_types'));
+		return view('partials.edit', compact('model', 'sub_categories', 'units', 'categories', 'unit_types', 'currencies'));
 	}
 
 	public function update($id, FormProductRequest $request)

@@ -7,7 +7,7 @@ class Product extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['intern_code', 'provider_code', 'manufacturer_code', 'name', 'description', 'sub_category_id', 'unit_id', 'purchase_currency', 'sale_currency', 'last_purchase', 'profit_mragin', 'price', 'set_price', 'use_set_price'];
+	protected $fillable = ['intern_code', 'provider_code', 'manufacturer_code', 'name', 'description', 'sub_category_id', 'unit_id', 'currency_id', 'last_purchase', 'profit_margin', 'price', 'set_price', 'use_set_price'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {
@@ -25,5 +25,9 @@ class Product extends Model {
 	public function stocks()
 	{
 		return $this->hasMany('App\Modules\Storage\Stock');
+	}
+	public function currency()
+	{
+		return $this->hasOne('App\Modules\Base\Currency','id','currency_id');
 	}
 }

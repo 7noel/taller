@@ -10,6 +10,10 @@ use App\Modules\Base\IdType;
 use App\Modules\Base\UnitType;
 use App\Modules\Storage\Unit;
 use App\Modules\Base\Currency;
+use App\Modules\Finances\Exchange;
+use App\Modules\Storage\Category;
+use App\Modules\Storage\SubCategory;
+use App\Modules\Storage\Warehouse;
 
 use Faker\Factory as Faker;
 
@@ -17,8 +21,6 @@ class AdminTableSeeder extends Seeder {
 
     public function run()
     {
-        //DB::table('users')->delete();
-
         User::create([
         	'name' => 'Noel',
         	'email' => 'noel.logan@gmail.com',
@@ -118,6 +120,35 @@ class AdminTableSeeder extends Seeder {
         Currency::create(['name' => 'NUEVOS SOLES', 'symbol' => 'S/.']);
         Currency::create(['name' => 'DOLARES AMERICANOS', 'symbol' => 'U$S']);
 
+        Exchange::create(['date' => date('Y-m-d'), 'currency_id' => 1, 'sales' => 3, 'purchase' => 3]);
+
+        Category::create(['name' => 'REPUESTOS']);
+
+        SubCategory::create(['name' => 'ACCESORIOS', 'category_id' => 1]);
+        SubCategory::create(['name' => 'ACEITES', 'category_id' => 1]);
+        SubCategory::create(['name' => 'CARROCERIA', 'category_id' => 1]);
+        SubCategory::create(['name' => 'CHASIS', 'category_id' => 1]);
+        SubCategory::create(['name' => 'CUERPO / AIRE ACONDICIONADO', 'category_id' => 1]);
+        SubCategory::create(['name' => 'DIRECCION', 'category_id' => 1]);
+        SubCategory::create(['name' => 'ELECTRICIDAD', 'category_id' => 1]);
+        SubCategory::create(['name' => 'ELECTRICO/ESCAPE/CALENT/SUMIN COMBU', 'category_id' => 1]);
+        SubCategory::create(['name' => 'EMBRAGUE', 'category_id' => 1]);
+        SubCategory::create(['name' => 'FLUIDO', 'category_id' => 1]);
+        SubCategory::create(['name' => 'FRENOS', 'category_id' => 1]);
+        SubCategory::create(['name' => 'INTERIOR / DEFENSAS', 'category_id' => 1]);
+        SubCategory::create(['name' => 'LLANTAS', 'category_id' => 1]);
+        SubCategory::create(['name' => 'LUBRICANTES', 'category_id' => 1]);
+        SubCategory::create(['name' => 'MATERIALES', 'category_id' => 1]);
+        SubCategory::create(['name' => 'MOTOR', 'category_id' => 1]);
+        SubCategory::create(['name' => 'PEGAMENTO', 'category_id' => 1]);
+        SubCategory::create(['name' => 'REFRIGERACION', 'category_id' => 1]);
+        SubCategory::create(['name' => 'SUSPENSION', 'category_id' => 1]);
+        SubCategory::create(['name' => 'TRANSMISION', 'category_id' => 1]);
+        SubCategory::create(['name' => 'TRANSMISION- AUTOMATICO', 'category_id' => 1]);
+        SubCategory::create(['name' => 'TRANSMISION-MANUAL', 'category_id' => 1]);
+        SubCategory::create(['name' => 'VARIOS', 'category_id' => 1]);
+
+        Warehouse::create(['name' => 'JAVIER PRADO', 'ubigeo_id' => 125114110, 'address' => 'AV. JAVIER PRADO ESTE']);
     }
 
 }
