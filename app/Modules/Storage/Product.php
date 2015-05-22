@@ -7,7 +7,7 @@ class Product extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['intern_code', 'provider_code', 'manufacturer_code', 'name', 'description', 'sub_category_id', 'unit_id', 'currency_id', 'last_purchase', 'profit_margin', 'price', 'set_price', 'use_set_price'];
+	protected $fillable = ['name', 'inter_code', 'provider_code', 'manufacturer_code', 'description', 'sub_category_id', 'unit_id', 'currency_id', 'last_purchase', 'profit_margin', 'price', 'set_price', 'use_set_price'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {

@@ -60,7 +60,6 @@ class ProductsController extends Controller {
 	public function edit($id)
 	{
 		$model = $this->repo->findOrFail($id);
-		//dd($model->unit->unit_type_id);
 		$categories = $this->categoryRepo->getList();
 		$unit_types = $this->unitTypeRepo->getList();
 		$currencies = $this->currencyRepo->getList2();
@@ -90,4 +89,24 @@ class ProductsController extends Controller {
 		return redirect()->route('storage.products.index');
 	}
 
+	public function ajaxAutocomplete($warehouse_id)
+	{
+		$term = \Input::get('term');
+		$models = $this->repo->autocomplete($term,$warehouse_id);
+		$result=[];
+		foreach ($models as $model) {
+			$result[]=[
+				'value' => $model->product->name,
+				'id' => $model,
+				'label' => $model->product->name
+			];
+		}
+		return \Response::json($result);
+	}
+	public function ajaxGetData($warehouse_id,$product_id)
+	{
+		$term = \Input::get('term');
+		$result = $this->repo->ajaxGetData($warehouse_id,$product_id);
+		return \Response::json($result);
+	}
 }

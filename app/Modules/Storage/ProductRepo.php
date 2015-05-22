@@ -41,4 +41,15 @@ class ProductRepo extends BaseRepo{
 		}
 		return $model;
 	}
+	public function autocomplete($term, $warehouse_id)
+	{
+		//return Product::where('name','like',"%$term%")->orWhere('intern_code','like',"%$term%")->orWhere('provider_code','like',"%$term%")->orWhere('manufacturer_code','like',"%$term%")->with('stocks','currency')->get();
+		$stockRepo = new StockRepo;
+		return $stockRepo->autocomplete($term, $warehouse_id);
+	}
+	public function ajaxGetData($warehouse_id, $product_id)
+	{
+		$stockRepo = new StockRepo;
+		return $stockRepo->ajaxGetData($warehouse_id, $product_id);
+	}
 }

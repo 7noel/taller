@@ -66,5 +66,18 @@ class CompaniesController extends Controller {
 		if (\Request::ajax()) {	return $model; }
 		return redirect()->route('finances.companies.index');
 	}
+	public function ajaxAutocomplete()
+	{
+		$term = \Input::get('term');
+		$models = $this->repo->autocomplete($term);
 
+		foreach ($models as $model) {
+			$result[]=[
+				'value' => $model->company_name,
+				'id' => $model->id,
+				'label' => $model->id_type->symbol.' '.$model->doc.' '.$model->company_name
+			];
+		}
+		return \Response::json($result);
+	}
 }

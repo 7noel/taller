@@ -12,7 +12,7 @@ class CompanyRepo extends BaseRepo{
 	}
 	public function autocomplete($term)
 	{
-		return Company::where('name','like',"%$term%")->get();
+		return Company::where('company_name','like',"%$term%")->orWhere('doc','like',"%$term%")->with('id_type')->get();
 	}
 	
 }

@@ -7,7 +7,7 @@ class Purchase extends Model {
 
 	use SoftDeletes;
 
-	protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at'];
+	protected $fillable = ['date', 'document_type_id', 'series', 'number', 'dispatch_note_date', 'dispatch_note_series', 'dispatch_note_number', 'company_id', 'payment_condition_id', 'due_date', 'currency_id', 'subtotal', 'igv', 'total'];
 
 	public function document_type()
 	{

@@ -32,6 +32,16 @@ $(document).ready(function(){
 		//$('#lstDistrito').focus();
 	});
 
+	$('#txtcompany').autocomplete({
+		source: "/finances/companies/autocomplete",
+		minLength: 1,
+		select: function(event, ui){
+			var cod=ui.item.id;
+			$('#company_id').val(cod);
+		}
+	});
+
+
 	//carga unidades
 	$('#lstUnitTypes').change(function(){ loadUnits(); });
 	//carga subcategorias
@@ -56,7 +66,7 @@ $(document).ready(function(){
 	$('form:first *:input[type!=hidden]:first').focus();
 
 	//asignar valor por defecto de fecha
-	if ($('#date').val()=='') { $('#date').val(new Date.today().toString('yyyy-MM-dd')); };
+	//****if ($('#date').val()=='') { $('#date').val(new Date.today().toString('yyyy-MM-dd')); };
 	//if ($('#birth').val()=='') { $('#birth').val(new Date.today().toString('yyyy-MM-dd')); };
 	//formatea fechas
 	if (!($('.message-errors').length)) {
@@ -70,13 +80,25 @@ $(document).ready(function(){
 	}
 
 	//Alista datepicker
-	$.fn.datepicker.dates['es'] = {
-		days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
-		daysShort: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
-		daysMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"],
-		months: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
-		monthsShort: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+	$.datepicker.regional['es'] = {
+		closeText: 'Cerrar',
+		prevText: '<Ant',
+		nextText: 'Sig>',
+		currentText: 'Hoy',
+		monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+		monthNamesShort: ['Ene','Feb','Mar','Abr', 'May','Jun','Jul','Ago','Sep', 'Oct','Nov','Dic'],
+		dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+		dayNamesShort: ['Dom','Lun','Mar','Mié','Juv','Vie','Sáb'],
+		dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','Sá'],
+		weekHeader: 'Sm',
+		dateFormat: 'dd/mm/yy',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: ''
 	};
+	$.datepicker.setDefaults($.datepicker.regional['es']);
+
 	$('#date').datepicker({ format: "dd/mm/yyyy", language: 'es', autoclose: true });
 	$('#birth').datepicker({ format: "dd/mm/yyyy", language: 'es', autoclose: true });
 });
@@ -186,4 +208,8 @@ function toDate2 (fecha) {
 		(+dateArray[6])
 	); 
 	return dateObject;
+}
+function myRound(value, places) {
+	var multiplier = Math.pow(10, places);
+	return (Math.round(value * multiplier) / multiplier);
 }

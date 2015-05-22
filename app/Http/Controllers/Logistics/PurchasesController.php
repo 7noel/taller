@@ -9,6 +9,7 @@ use App\Modules\Base\DocumentTypeRepo;
 use App\Modules\Base\CurrencyRepo;
 use App\Modules\Finances\CompanyRepo;
 use App\Modules\Finances\PaymentConditionRepo;
+use App\Modules\Storage\WarehouseRepo;
 
 class PurchasesController extends Controller {
 
@@ -17,13 +18,15 @@ class PurchasesController extends Controller {
 	protected $currencyRepo;
 	protected $companyRepo;
 	protected $paymentConditionRepo;
+	protected $warehouseRepo;
 
-	public function __construct(PurchaseRepo $repo, DocumentTypeRepo $documentTypeRepo, CurrencyRepo $currencyRepo, CompanyRepo $companyRepo, PaymentConditionRepo $paymentConditionRepo) {
+	public function __construct(PurchaseRepo $repo, DocumentTypeRepo $documentTypeRepo, CurrencyRepo $currencyRepo, CompanyRepo $companyRepo, PaymentConditionRepo $paymentConditionRepo, WarehouseRepo $warehouseRepo) {
 		$this->repo = $repo;
 		$this->documentTypeRepo = $documentTypeRepo;
 		$this->currencyRepo = $currencyRepo;
 		$this->companyRepo = $companyRepo;
 		$this->paymentConditionRepo = $paymentConditionRepo;
+		$this->warehouseRepo = $warehouseRepo;
 	}
 
 	public function index()
@@ -37,7 +40,8 @@ class PurchasesController extends Controller {
 		$document_types = $this->documentTypeRepo->getList();
 		$currencies = $this->currencyRepo->getList2();
 		$payment_conditions = $this->paymentConditionRepo->getList();
-		return view('partials.create', compact('document_types', 'currencies', 'payment_conditions'));
+		$warehouses = $this->warehouseRepo->getList('id','id');
+		return view('logistics.purchases.create', compact('document_types', 'currencies', 'payment_conditions', 'warehouses'));
 	}
 
 	public function store()

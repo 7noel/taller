@@ -7,21 +7,7 @@ class Employee extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = [
-		'name',
-		'paternal_surname',
-		'maternal_surname',
-		'full_name',
-		'id_type_id',
-		'doc',
-		'gender',
-		'address',
-		'ubigeo_id',
-		'phone',
-		'mobile',
-		'email_personal',
-		'email_company'
-	];
+	protected $fillable = ['name', 'paternal_surname', 'maternal_surname', 'full_name', 'id_type_id', 'doc', 'gender', 'address', 'ubigeo_id', 'phone', 'mobile', 'email_personal', 'email_company'];
 
 	public function id_type()
 	{

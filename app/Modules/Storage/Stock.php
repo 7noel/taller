@@ -7,7 +7,7 @@ class Stock extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['warehouse_id', 'product_id', 'stock', 'avarege_value'];
+	protected $fillable = ['warehouse_id', 'product_id', 'stock', 'currency_id', 'avarege_value'];
 
 	public function warehouse()
 	{
