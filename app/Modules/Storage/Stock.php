@@ -17,4 +17,8 @@ class Stock extends Model {
 	{
 		return $this->belongsTo('App\Modules\Storage\Product');
 	}
+	public function purchase_details()
+	{
+		return $this->hasMany('App\Modules\Logistics\PurchaseDetail');
+	}
 }

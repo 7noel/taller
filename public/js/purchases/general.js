@@ -123,6 +123,7 @@ function editDetail (row) {
 		$('#txtdiscount').val(d);
 		$('#stock').text(data.stock.toFixed(2));
 		$('#price').text(p);
+		$('#txtquantity').focus();
 	});
 
 }

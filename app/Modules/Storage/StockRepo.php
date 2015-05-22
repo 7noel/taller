@@ -20,8 +20,8 @@ class StockRepo extends BaseRepo{
 		$toDelete = array_diff($old, $new);
 		$toSave = array_diff($new, $old);
 		if (!empty($toDelete)) {
-			Stock::where('product_id', 16)->whereIn('warehouse_id',$toDelete)->delete();
-			Stock::where('product_id', 16)->where('stock', 0)->whereIn('warehouse_id',$toDelete)->delete();
+			//Stock::where('product_id', 16)->whereIn('warehouse_id',$toDelete)->delete();
+			Stock::where('product_id', $product_id)->where('stock', 0)->whereIn('warehouse_id',$toDelete)->delete();
 		}
 		foreach ($data as $key => $value) {
 			if (in_array($value['warehouse_id'], $toSave)) {

@@ -25,6 +25,10 @@ class Purchase extends Model {
 	{
 		return $this->hasOne('App\Modules\Finances\Company','id','company_id');
 	}
+	public function purchase_details()
+	{
+		return $this->hasMany('App\Modules\Logistics\PurchaseDetail');
+	}
 	public function scopeDate($query, $name){
 		if (trim($name) != "") {
 			$query->where('date', 'LIKE', "%$name%");

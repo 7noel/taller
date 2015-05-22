@@ -37,7 +37,8 @@ class ProductRepo extends BaseRepo{
 		$model = parent::save($data, $id);
 		if (isset($data['stocks'])) {
 			$stockRepo= new StockRepo;
-			$stockRepo->savefull($data['stocks'], $data['id']);
+			$stockRepo->syncMany($data['stocks'], ['key'=>'product_id', 'value'=>$data['id']], 'warehouse_id');
+			//$stockRepo->savefull($data['stocks'], $data['id']);
 		}
 		return $model;
 	}

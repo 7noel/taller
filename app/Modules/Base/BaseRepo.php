@@ -91,4 +91,35 @@ abstract class BaseRepo{
 	{
 		return $data;
 	}
+	public function syncMany($allData,$k1,$k2)
+	{
+		//dd($allData);
+		$new_ids = [];
+		foreach ($allData as $key => $data) {
+			$new_ids[] = $data["$k2"];
+		}
+		$old_ids = $this->model->where($k1['key'],$k1['value'])->lists($k2);
+		if (!isset($old_ids)) { $old_ids=[]; }
+
+		$toDelete = array_diff($old_ids, $new_ids);
+		$toSave = array_diff($new_ids, $old_ids);
+		$toEdit = array_intersect($old_ids, $new_ids);
+		/*var_dump($toDelete);
+		var_dump($toSave);
+		var_dump($toEdit);
+		exit();*/
+		if (!empty($toDelete)) {
+			$this->model->where($k1['key'], $k1['value'])->whereIn($k2,$toDelete)->delete();
+		}
+		foreach ($allData as $key => $data) {
+			if (in_array($data[$k2], $toSave)) {
+				$this->save($data);
+			} else if (in_array($data[$k2], $toEdit)) {
+				$model = $this->model->where($k1['key'],$k1['value'])->where($k2, $data["$k2"])->first();
+				$model->fill($data);
+				$model->save();
+			}
+		}
+		return true;
+	}
 }
