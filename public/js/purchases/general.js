@@ -49,10 +49,10 @@ function resetAutocomplete () {
 			select: function(event, ui){
 				var data = ui.item.id;
 				$('#code').text(data.intern_code);
-				$('#stock').text(data.stock.toFixed(2));
+				$('#stock').text(parseFloat(data.stock).toFixed(2));
 				$('#unit').text(data.unit_symbol);
 				$('#price').text(parseFloat(data.price).toFixed(2));
-				var detail = {stock_id:data.stock_id, name:data.name, product_id:data.product_id, intern_code: data.intern_code, provider_code: data.provider_code,manufacturer_code:data.manufacturer_code, warehouse_id:data.warehouse_id, unit_id:data.unit_id, unit_symbol:data.unit_symbol, stock:data.stock, price:data.price };
+				var detail = {stock_id:data.stock_id, name:data.name, product_id:data.product_id, intern_code: data.intern_code, provider_code: data.provider_code,manufacturer_code:data.manufacturer_code, warehouse_id:data.warehouse_id, unit_id:data.unit_id, unit_symbol:data.unit_symbol, stock:parseFloat(data.stock).toFixed(2), price:parseFloat(data.price).toFixed(2) };
 				$('#row_data').data('detail',detail);
 				$('#txtquantity').focus();
 			}
@@ -76,23 +76,33 @@ function addDetail () {
 	data.quantity = parseFloat($('#txtquantity').val()).toFixed(2);
 	data.discount = parseFloat($('#txtdiscount').val()).toFixed(2);
 	data.items = parseFloat($('#items').val());
-	data.vbruto = data.price*data.quantity;
-	data.vventa = data.vbruto*(100+data.discount)/100;
-	var table = [{class:'text-center', value:data.warehouse_id},
-		{class:'text-center', value:data.intern_code},
-		{class:'text-left', value:data.name},
-		{class:'text-right', value:data.quantity+' '+data.unit_symbol},
-		{class:'text-right', value:data.price},
-		{class:'text-right', value:data.vbruto},
-		{class:'text-right', value:data.discount},
-		{class:'text-right', value:data.vventa}
+	data.vbruto = (data.price*data.quantity).toFixed(2);
+	data.vventa = (data.vbruto*(100-data.discount)/100).toFixed(2);
+	data.items = 1 + data.items;
+	var table = [
+		{ class:'text-center', value:data.warehouse_id },
+		{ class:'text-center', value:data.intern_code },
+		{ class:'text-left', value:data.name },
+		{ class:'text-right', value:data.quantity + ' ' + data.unit_symbol },
+		{ class:'text-right', value:data.price },
+		{ class:'text-right', value:data.vbruto },
+		{ class:'text-right', value:data.discount },
+		{ class:'text-right', value:data.vventa }
+	];
+	var name_detail = "purchase_details";
+	var inputs = [
+		{ name:name_detail+'['+data.items+'][product_id]', value:data.product_id },
+		{ name:name_detail+'['+data.items+'][warehouse_id]', value:data.warehouse_id },
+		{ name:name_detail+'['+data.items+'][stock_id]', value:data.stock_id },
+		{ name:name_detail+'['+data.items+'][unit_id]', value:data.unit_id },
+		{ name:name_detail+'['+data.items+'][quantity]', value:data.quantity },
+		{ name:name_detail+'['+data.items+'][discount]', value:data.discount }
 	];
 	if (data.warehouse_id>0 && data.stock_id>0 && data.quantity>0) {
 		tds = generateTds(table);
-		btns = generateBtns();
+		btns = generateBtns(inputs);
 		$('#tblDetails').append("<tr>"+tds+btns+"</tr>");
-		items = 1+items;
-		$('#items').val(items);
+		$('#items').val(data.items);
 		$('#txtproduct').val('');
 		$('#stock_id').val('');
 		$('#txtquantity').val('');

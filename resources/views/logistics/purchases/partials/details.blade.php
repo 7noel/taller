@@ -29,7 +29,7 @@
 		</td>
 	</tr>
 </table>
-<input type="hidden" id="items" value="1">
+<input type="hidden" id="items" value="´{{ 0 }}">
 <table class="table table-condensed" id="tblDetails">
 	<tr>
 		<th class="text-center">ALM</th>
@@ -42,18 +42,20 @@
 		<th class="text-right">V. VENTA</th>
 		<th class="text-left"></th>
 	</tr>
+	@foreach($purchase_details as $detail)
 	<tr>
-		<td class="text-center">1</td>
-		<td class="text-center">654985</td>
-		<td class="text-left">REPUESTO 1 DE MASAKI</td>
-		<td class="text-right"><label>56.00</label> <span>UND</span></td>
-		<td class="text-right">34.55</td>
-		<td class="text-right">1934.80</td>
-		<td class="text-right">15.00</td>
-		<td class="text-right">1644.58</td>
+		<td class="text-center">{{ $detail->warehouse_id }}</td>
+		<td class="text-center">{{ $detail->product->intern_code }}</td>
+		<td class="text-left">{{ $detail->product->name }}</td>
+		<td class="text-right">{{ $detail->quantity.' '.$detail->product->unit->symbol }}</td>
+		<td class="text-right">{{ $detail->price }}</td>
+		<td class="text-right">{{ $detail->vbruto }}</td>
+		<td class="text-right">{{ $detail->discount }}</td>
+		<td class="text-right">{{ $detail->vventa }}</td>
 		<td>
 			<a href="#" class="btn-edit-detail btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
 			<a href="#" class="btn-delete-detail btn btn-danger btn-xs"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Eliminar</a>
 		</td>
 	</tr>
+	@endforeach
 </table>

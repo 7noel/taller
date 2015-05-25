@@ -41,7 +41,8 @@ class PurchasesController extends Controller {
 		$currencies = $this->currencyRepo->getList2();
 		$payment_conditions = $this->paymentConditionRepo->getList();
 		$warehouses = $this->warehouseRepo->getList('id','id');
-		return view('logistics.purchases.create', compact('document_types', 'currencies', 'payment_conditions', 'warehouses'));
+		$purchase_details = '';
+		return view('logistics.purchases.create', compact('document_types', 'currencies', 'payment_conditions', 'warehouses','purchase_details'));
 	}
 
 	public function store()

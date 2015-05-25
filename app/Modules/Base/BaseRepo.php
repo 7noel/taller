@@ -93,7 +93,6 @@ abstract class BaseRepo{
 	}
 	public function syncMany($allData,$k1,$k2)
 	{
-		//dd($allData);
 		$new_ids = [];
 		foreach ($allData as $key => $data) {
 			$new_ids[] = $data["$k2"];
@@ -104,10 +103,6 @@ abstract class BaseRepo{
 		$toDelete = array_diff($old_ids, $new_ids);
 		$toSave = array_diff($new_ids, $old_ids);
 		$toEdit = array_intersect($old_ids, $new_ids);
-		/*var_dump($toDelete);
-		var_dump($toSave);
-		var_dump($toEdit);
-		exit();*/
 		if (!empty($toDelete)) {
 			$this->model->where($k1['key'], $k1['value'])->whereIn($k2,$toDelete)->delete();
 		}
