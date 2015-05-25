@@ -213,3 +213,20 @@ function myRound(value, places) {
 	var multiplier = Math.pow(10, places);
 	return (Math.round(value * multiplier) / multiplier);
 }
+function arrayToHidden (dato, name, item) {
+	var data = "";
+	$.each(dato, function(index, value){
+		//data = data + "<input type=\"hidden\" name=\""+name+"["+item+"]["+index+"]\" value=\""+value+"\" class=\"data-"+index"\">";
+	});
+	return data;
+}
+function generateTds (table) {
+	var data = "";
+	$.each(table, function(index,Obj){
+		data = data+"<td class=\""+Obj.class+"\">"+Obj.value+"</td>";
+	});
+	return data;
+}
+function generateBtns () {
+	return "<td><a href=\"#\" class=\"btn-edit-detail btn btn-primary btn-xs\"><span class=\"glyphicon glyphicon-pencil\" aria-hidden=\"true\"></span> Editar</a> <a href=\"#\" class=\"btn-delete-detail btn btn-danger btn-xs\"><span class=\"glyphicon glyphicon-trash\" aria-hidden=\"true\"></span> Eliminar</a></td>";
+}

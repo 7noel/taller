@@ -6,6 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Masaki</title>
 	{!! Html::style('css/app.css') !!}
+	{!! Html::style('css/autocomplete.css') !!}
 
 	<!-- Fonts -->
 	<link href='//fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>

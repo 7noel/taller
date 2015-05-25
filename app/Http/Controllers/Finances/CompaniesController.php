@@ -70,7 +70,7 @@ class CompaniesController extends Controller {
 	{
 		$term = \Input::get('term');
 		$models = $this->repo->autocomplete($term);
-
+		$result = [];
 		foreach ($models as $model) {
 			$result[]=[
 				'value' => $model->company_name,

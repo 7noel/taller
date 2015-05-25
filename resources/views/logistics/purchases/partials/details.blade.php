@@ -11,11 +11,9 @@
 		<th class="col-md-1">total</th>
 		<th></th>
 	</tr>
-	<tr>
+	<tr id='row_data'>
 		<td class="col-md-1">
 			{!! Form::select('warehouse_id',$warehouses , null, ['class'=>'form-control input-sm', 'id'=>'listWarehouses']) !!}
-			<input type="hidden" id="warehouse_id">
-			<input type="hidden" id="product_id">
 		</td>
 		<td class="col-md-1"><label id="code"></label></td>
 		<td class="col-md-2"><input type="text" class="form-control input-sm" id="txtproduct"></td>
@@ -31,7 +29,7 @@
 		</td>
 	</tr>
 </table>
-<input type="hidden" id="items" val="1">
+<input type="hidden" id="items" value="1">
 <table class="table table-condensed" id="tblDetails">
 	<tr>
 		<th class="text-center">ALM</th>

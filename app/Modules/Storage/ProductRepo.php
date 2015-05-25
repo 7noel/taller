@@ -48,6 +48,32 @@ class ProductRepo extends BaseRepo{
 		$stockRepo = new StockRepo;
 		return $stockRepo->autocomplete($term, $warehouse_id);
 	}
+	public function autocomplete2($term, $warehouse_id)
+	{
+		return Product::where(function ($query) use($term){
+			$query->where('name','like',"%$term%")
+				->orWhere('intern_code','like',"%$term%")
+				->orWhere('provider_code','like',"%$term%")
+				->orWhere('manufacturer_code','like',"%$term%");
+			})
+			->whereHas('stocks', function ($q) use ($warehouse_id){
+				$q->where('warehouse_id',$warehouse_id);
+			})
+			->with(['stocks' => function ($q) use ($warehouse_id){
+					$q->where('warehouse_id',$warehouse_id);
+				},'unit'
+			])->get();
+
+
+		/*return Stock::where('warehouse_id', $warehouse_id)
+			->whereHas('product', function ($q) use ($term){
+				$q->where('name','like',"%$term%")
+					->orWhere('intern_code','like',"%$term%")
+					->orWhere('provider_code','like',"%$term%")
+					->orWhere('manufacturer_code','like',"%$term%");
+			})
+			->with('product','product.unit')->get();*/
+	}
 	public function ajaxGetData($warehouse_id, $product_id)
 	{
 		$stockRepo = new StockRepo;

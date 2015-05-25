@@ -18,7 +18,7 @@ class CreateStocksTable extends Migration {
 
 			$table->integer('warehouse_id')->unsigned();
 			$table->integer('product_id')->unsigned();
-			$table->integer('stock');
+			$table->decimal('stock',15,4);
 			$table->integer('currency_id')->unsigned()->default(1);
 			$table->decimal('avarage_value');
 

@@ -92,13 +92,15 @@ class ProductsController extends Controller {
 	public function ajaxAutocomplete($warehouse_id)
 	{
 		$term = \Input::get('term');
+		ini_set('memory_limit','1024M');
 		$models = $this->repo->autocomplete($term,$warehouse_id);
 		$result=[];
+		//dd($models);
 		foreach ($models as $model) {
 			$result[]=[
-				'value' => $model->product->name,
+				'value' => $model->name,
 				'id' => $model,
-				'label' => $model->product->name
+				'label' => $model->intern_code.'  '.$model->name
 			];
 		}
 		return \Response::json($result);

@@ -4,9 +4,18 @@ $(document).ready(function(){
 	//para el autocomplete de los productos
 	$('#txtproduct').autocomplete({ });
 	$('#listWarehouses').change(function(){
+		/*if ($('#listWarehouses').val()>0) {
+			resetAutocomplete();
+		} else{
+			$('#txtproduct').autocomplete("destroy");
+		};*/
 		resetAutocomplete();
 	});
-
+	$( "#txtproduct" ).focus(function() {
+		if ($('#listWarehouses').val()=='') {
+			$('#listWarehouses').focus();
+		};
+	});
 	$('#txtquantity, #txtdiscount').change(function(){
 		calcTotal();
 	});
@@ -32,21 +41,23 @@ $(document).ready(function(){
 function resetAutocomplete () {
 	var warehouse_id = $('#listWarehouses').val();
 	var page = "/storage/products/autocomplete/"+warehouse_id;
-	$('#txtproduct').autocomplete("destroy");
-	$('#txtproduct').autocomplete({
-		source: page,
-		minLength: 1,
-		select: function(event, ui){
-			var price = parseFloat(ui.item.id.product.price);
-			$('#warehouse_id').val(ui.item.id.warehouse_id);
-			$('#product_id').val(ui.item.id.id);
-			$('#code').text(ui.item.id.id);
-			$('#stock').text(ui.item.id.stock.toFixed(2));
-			$('#unit').text(ui.item.id.product.unit.symbol);
-			$('#price').text(price.toFixed(2));
-			$('#txtquantity').focus();
-		}
-	});
+	if (warehouse_id > 0) {
+		$('#txtproduct').autocomplete("destroy");
+		$('#txtproduct').autocomplete({
+			source: page,
+			minLength: 4,
+			select: function(event, ui){
+				var data = ui.item.id;
+				$('#code').text(data.intern_code);
+				$('#stock').text(data.stock.toFixed(2));
+				$('#unit').text(data.unit_symbol);
+				$('#price').text(parseFloat(data.price).toFixed(2));
+				var detail = {stock_id:data.stock_id, name:data.name, product_id:data.product_id, intern_code: data.intern_code, provider_code: data.provider_code,manufacturer_code:data.manufacturer_code, warehouse_id:data.warehouse_id, unit_id:data.unit_id, unit_symbol:data.unit_symbol, stock:data.stock, price:data.price };
+				$('#row_data').data('detail',detail);
+				$('#txtquantity').focus();
+			}
+		});		
+	};
 }
 function calcTotal () {
 	var q = parseFloat($('#txtquantity').val());
@@ -61,26 +72,29 @@ function calcTotal () {
 
 }
 function addDetail () {
-	var w = parseFloat($('#warehouse_id').val());
-	var c = parseFloat($('#product_id').val());
-	var n = $('#txtproduct').val();
-	var q = parseFloat($('#txtquantity').val());
-	var u = $('#unit').text();
-	var d = parseFloat($('#txtdiscount').val());
-	var p = parseFloat($('#price').text());
-	var items = parseFloat($('#items').val());
-	var vbruto = p*q;
-	var vventa = vbruto*(100+d)/100;
-	console.log('almacen: '+w);
-	console.log('codigo: '+c);
-	console.log('cantidad: '+q);
-	if (w>0 && c>0 && q>0) {
-		$('#tblDetails').append("<tr><td class=\"text-center\">"+w+"</td><td class=\"text-center\">"+c+"</td><td>"+n+"</td><td class=\"text-right\"><label>"+q.toFixed(2)+" <label> <span>"+u+"</span></td><td class=\"text-right\">"+p.toFixed(2)+"</td><td class=\"text-right\">"+vbruto.toFixed(2)+"</td><td class=\"text-right\">"+d.toFixed(2)+"</td><td class=\"text-right\">"+vventa.toFixed(2)+"</td> <td><a href=\"#\" class=\"btn-edit-detail btn btn-primary btn-xs\"><span class=\"glyphicon glyphicon-pencil\" aria-hidden=\"true\"></span> Editar</a> <a href=\"#\" class=\"btn-delete-detail btn btn-danger btn-xs\"><span class=\"glyphicon glyphicon-trash\" aria-hidden=\"true\"></span> Eliminar</a><input type='hidden' name='stocks["+items+"][warehouse_id]' value='"+w+"'><input type='hidden' name='stocks["+items+"][stock]' value='"+q+"'></td><tr>");
-		
+	var data = $('#row_data').data('detail');
+	data.quantity = parseFloat($('#txtquantity').val()).toFixed(2);
+	data.discount = parseFloat($('#txtdiscount').val()).toFixed(2);
+	data.items = parseFloat($('#items').val());
+	data.vbruto = data.price*data.quantity;
+	data.vventa = data.vbruto*(100+data.discount)/100;
+	var table = [{class:'text-center', value:data.warehouse_id},
+		{class:'text-center', value:data.intern_code},
+		{class:'text-left', value:data.name},
+		{class:'text-right', value:data.quantity+' '+data.unit_symbol},
+		{class:'text-right', value:data.price},
+		{class:'text-right', value:data.vbruto},
+		{class:'text-right', value:data.discount},
+		{class:'text-right', value:data.vventa}
+	];
+	if (data.warehouse_id>0 && data.stock_id>0 && data.quantity>0) {
+		tds = generateTds(table);
+		btns = generateBtns();
+		$('#tblDetails').append("<tr>"+tds+btns+"</tr>");
 		items = 1+items;
 		$('#items').val(items);
 		$('#txtproduct').val('');
-		$('#product_id').val('');
+		$('#stock_id').val('');
 		$('#txtquantity').val('');
 		$('#txtdiscount').val('');
 		$('#code').text('');
@@ -88,6 +102,22 @@ function addDetail () {
 		$('#price').text('');
 		$('#txtproduct').focus();
 	};
+	
+	console.log(table);/*
+	if (w>0 && c>0 && q>0) {
+		$('#tblDetails').append("<tr><td class=\"text-center\">"+w+"</td><td class=\"text-center\">"+c+"</td><td>"+n+"</td><td class=\"text-right\"><label>"+q.toFixed(2)+" <label> <span>"+u+"</span></td><td class=\"text-right\">"+p.toFixed(2)+"</td><td class=\"text-right\">"+vbruto.toFixed(2)+"</td><td class=\"text-right\">"+d.toFixed(2)+"</td><td class=\"text-right\">"+vventa.toFixed(2)+"</td> <td><a href=\"#\" class=\"btn-edit-detail btn btn-primary btn-xs\"><span class=\"glyphicon glyphicon-pencil\" aria-hidden=\"true\"></span> Editar</a> <a href=\"#\" class=\"btn-delete-detail btn btn-danger btn-xs\"><span class=\"glyphicon glyphicon-trash\" aria-hidden=\"true\"></span> Eliminar</a><input type='hidden' name='stocks["+items+"][warehouse_id]' value='"+w+"'><input type='hidden' name='stocks["+items+"][stock]' value='"+q+"'></td><tr>");
+		
+		items = 1+items;
+		$('#items').val(items);
+		$('#txtproduct').val('');
+		$('#stock_id').val('');
+		$('#txtquantity').val('');
+		$('#txtdiscount').val('');
+		$('#code').text('');
+		$('#stock').text('');
+		$('#price').text('');
+		$('#txtproduct').focus();
+	};*/
 }
 function deleteDetail (e, row) {
 	if (confirm("Seguro que desea eliminar el Registro?")) {

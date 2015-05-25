@@ -14,6 +14,7 @@ use App\Modules\Finances\Exchange;
 use App\Modules\Storage\Category;
 use App\Modules\Storage\SubCategory;
 use App\Modules\Storage\Warehouse;
+use App\Modules\Logistics\Brand;
 
 use Faker\Factory as Faker;
 
@@ -97,6 +98,7 @@ class AdminTableSeeder extends Seeder {
         UnitType::create(['name' => 'LONGITUD']);
         UnitType::create(['name' => 'VOLUMEN']);
         UnitType::create(['name' => 'MASA']);
+        UnitType::create(['name' => 'UNIDAD']);
 
         Unit::create(['name' => 'CENTIMETRO', 'symbol' => 'cm', 'unit_type_id' => 1, 'value' => 1]);
         Unit::create(['name' => 'METRO', 'symbol' => 'mt', 'unit_type_id' => 1, 'value' => 100]);
@@ -116,6 +118,7 @@ class AdminTableSeeder extends Seeder {
         Unit::create(['name' => 'TONELADA', 'symbol' => 'ton', 'unit_type_id' => 3, 'value' => 1000000]);
         Unit::create(['name' => 'ONZA', 'symbol' => 'oz', 'unit_type_id' => 3, 'value' => 28.349]);
         Unit::create(['name' => 'LIBRA', 'symbol' => 'lb', 'unit_type_id' => 3, 'value' => 453.59]);
+        Unit::create(['name' => 'UNIDAD', 'symbol' => 'und', 'unit_type_id' => 4, 'value' => 1]);
 
         Currency::create(['name' => 'NUEVOS SOLES', 'symbol' => 'S/.']);
         Currency::create(['name' => 'DOLARES AMERICANOS', 'symbol' => 'U$S']);
@@ -128,27 +131,63 @@ class AdminTableSeeder extends Seeder {
         SubCategory::create(['name' => 'ACEITES', 'category_id' => 1]);
         SubCategory::create(['name' => 'CARROCERIA', 'category_id' => 1]);
         SubCategory::create(['name' => 'CHASIS', 'category_id' => 1]);
-        SubCategory::create(['name' => 'CUERPO / AIRE ACONDICIONADO', 'category_id' => 1]);
+        SubCategory::create(['name' => 'CUERPO / AIRE ACONDICIONADO', 'category_id' => 1]);//5
         SubCategory::create(['name' => 'DIRECCION', 'category_id' => 1]);
         SubCategory::create(['name' => 'ELECTRICIDAD', 'category_id' => 1]);
         SubCategory::create(['name' => 'ELECTRICO/ESCAPE/CALENT/SUMIN COMBU', 'category_id' => 1]);
         SubCategory::create(['name' => 'EMBRAGUE', 'category_id' => 1]);
-        SubCategory::create(['name' => 'FLUIDO', 'category_id' => 1]);
+        SubCategory::create(['name' => 'FLUIDO', 'category_id' => 1]);//10
         SubCategory::create(['name' => 'FRENOS', 'category_id' => 1]);
         SubCategory::create(['name' => 'INTERIOR / DEFENSAS', 'category_id' => 1]);
         SubCategory::create(['name' => 'LLANTAS', 'category_id' => 1]);
         SubCategory::create(['name' => 'LUBRICANTES', 'category_id' => 1]);
-        SubCategory::create(['name' => 'MATERIALES', 'category_id' => 1]);
+        SubCategory::create(['name' => 'MATERIALES', 'category_id' => 1]);//15
         SubCategory::create(['name' => 'MOTOR', 'category_id' => 1]);
         SubCategory::create(['name' => 'PEGAMENTO', 'category_id' => 1]);
         SubCategory::create(['name' => 'REFRIGERACION', 'category_id' => 1]);
         SubCategory::create(['name' => 'SUSPENSION', 'category_id' => 1]);
-        SubCategory::create(['name' => 'TRANSMISION', 'category_id' => 1]);
+        SubCategory::create(['name' => 'TRANSMISION', 'category_id' => 1]);//20
         SubCategory::create(['name' => 'TRANSMISION- AUTOMATICO', 'category_id' => 1]);
         SubCategory::create(['name' => 'TRANSMISION-MANUAL', 'category_id' => 1]);
         SubCategory::create(['name' => 'VARIOS', 'category_id' => 1]);
 
-        Warehouse::create(['name' => 'JAVIER PRADO', 'ubigeo_id' => 125114110, 'address' => 'AV. JAVIER PRADO ESTE']);
+        Warehouse::create(['name' => 'ALMACEN JAVIER PRADO', 'ubigeo_id' => 125114110, 'address' => 'AV.JAVIER PRADO ESTE 5446']);
+        Warehouse::create(['name' => 'ALMACEN ATE', 'ubigeo_id' => 12441413, 'address' => 'AV. SEPARADORA INDUSTRIAL 781 ATE']);
+        Warehouse::create(['name' => 'ALMACEN CUAS', 'ubigeo_id' => 125114110, 'address' => 'AV.JAVIER PRADO ESTE 5446']);
+        Warehouse::create(['name' => 'LABORATORIO 1 LA MOLINA', 'ubigeo_id' => 125114110, 'address' => 'AV.JAVIER PRADO ESTE 5446']);
+        Warehouse::create(['name' => 'LABORATORIO 2 ATE', 'ubigeo_id' => 12441413, 'address' => 'AV. SEPARADORA INDUSTRIAL 781 ATE']);
+        Warehouse::create(['name' => 'JAD TRANSPORTES Y CONSTRUCCIONES SAC', 'ubigeo_id' => 18132411, 'address' => 'CALLE LAMBDA 205 CALLAO, ALTURA CUADRA 50 Y 51 DE LA COLONIAL']);
+        Warehouse::create(['name' => 'ALMACEN ALTERNATIVO', 'ubigeo_id' => 125114110, 'address' => 'AV. SEPARADORA INDUSTRIAL 781 ATE']);
+
+        Brand::create(['name' => 'NINGUNO', 'is_car' => '0']);
+        Brand::create(['name' => 'HONDA', 'is_car' => '1']);
+        Brand::create(['name' => '3M', 'is_car' => '0']);
+        Brand::create(['name' => 'ABRO', 'is_car' => '0']);
+        Brand::create(['name' => 'ALTERNATIVA', 'is_car' => '0']);//5
+        Brand::create(['name' => 'BASF', 'is_car' => '0']);
+        Brand::create(['name' => 'BOSCH', 'is_car' => '0']);
+        Brand::create(['name' => 'CAPSA', 'is_car' => '0']);
+        Brand::create(['name' => 'CHEVRON', 'is_car' => '0']);
+        Brand::create(['name' => 'CONCEPT', 'is_car' => '0']);//10
+        Brand::create(['name' => 'DURACELL', 'is_car' => '0']);
+        Brand::create(['name' => 'ETNA', 'is_car' => '0']);
+        Brand::create(['name' => 'FACTA', 'is_car' => '0']);
+        Brand::create(['name' => 'FAST', 'is_car' => '0']);
+        Brand::create(['name' => 'GARMIN', 'is_car' => '0']);//15
+        Brand::create(['name' => 'GLASURIT', 'is_car' => '0']);
+        Brand::create(['name' => 'GORILLA', 'is_car' => '0']);
+        Brand::create(['name' => 'HELLA', 'is_car' => '0']);
+        Brand::create(['name' => 'LG', 'is_car' => '0']);
+        Brand::create(['name' => 'MAC', 'is_car' => '0']);//20
+        Brand::create(['name' => 'MICHELIN', 'is_car' => '0']);
+        Brand::create(['name' => 'MITSUBISHI', 'is_car' => '0']);
+        Brand::create(['name' => 'NISSAN', 'is_car' => '0']);
+        Brand::create(['name' => 'PRESTIGE', 'is_car' => '0']);
+        Brand::create(['name' => 'PROTEMAX', 'is_car' => '0']);//25
+        Brand::create(['name' => 'SHELL', 'is_car' => '0']);
+        Brand::create(['name' => 'TOYOTA', 'is_car' => '0']);
+        Brand::create(['name' => 'WURTH', 'is_car' => '0']);
+        Brand::create(['name' => 'YOKOHAMA', 'is_car' => '0']);
     }
 
 }
