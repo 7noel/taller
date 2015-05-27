@@ -8,7 +8,7 @@ use App\Modules\Base\IdTypeRepo;
 use App\Modules\HumanResources\EmployeeRepo;
 use App\Modules\Base\UbigeoRepo;
 
-use App\Http\Requests\FormEmployeeRequest;
+use App\Http\Requests\HumanResources\FormEmployeeRequest;
 
 class EmployeesController extends Controller {
 

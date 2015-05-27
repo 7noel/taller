@@ -1,4 +1,4 @@
-					<table class="table table-hover">
+					<table class="table table-hover table-condensed">
 						<tr>
 							<th>#</th>
 							<th>Tipo de Unidad</th>

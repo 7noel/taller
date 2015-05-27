@@ -29,17 +29,17 @@
 		</td>
 	</tr>
 </table>
-<input type="hidden" id="items" value="´{{ 0 }}">
+<input type="hidden" id="items" value="´{{ $items }}">
 <table class="table table-condensed" id="tblDetails">
 	<tr>
 		<th class="text-center">ALM</th>
 		<th class="text-center">CODIGO</th>
 		<th class="text-left">DESCRIPCION</th>
 		<th class="text-right">CANTIDAD</th>
-		<th class="text-right">P. UNIT</th>
-		<th class="text-right">V. BRUTO</th>
+		<th class="text-right">P.UNIT</th>
+		<th class="text-right">V.BRUTO</th>
 		<th class="text-right">DESC(%)</th>
-		<th class="text-right">V. VENTA</th>
+		<th class="text-right">V.VENTA</th>
 		<th class="text-left"></th>
 	</tr>
 	@foreach($purchase_details as $detail)

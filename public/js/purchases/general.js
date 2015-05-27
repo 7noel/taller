@@ -101,7 +101,7 @@ function addDetail () {
 	if (data.warehouse_id>0 && data.stock_id>0 && data.quantity>0) {
 		tds = generateTds(table);
 		btns = generateBtns(inputs);
-		$('#tblDetails').append("<tr>"+tds+btns+"</tr>");
+		$('#tblDetails').append("<tr data-id=\""+data.product_id+"\">"+tds+btns+"</tr>");
 		$('#items').val(data.items);
 		$('#txtproduct').val('');
 		$('#stock_id').val('');
@@ -110,24 +110,12 @@ function addDetail () {
 		$('#code').text('');
 		$('#stock').text('');
 		$('#price').text('');
+		$('#total').text('');
+		$('#unit').text('');
 		$('#txtproduct').focus();
 	};
 	
-	console.log(table);/*
-	if (w>0 && c>0 && q>0) {
-		$('#tblDetails').append("<tr><td class=\"text-center\">"+w+"</td><td class=\"text-center\">"+c+"</td><td>"+n+"</td><td class=\"text-right\"><label>"+q.toFixed(2)+" <label> <span>"+u+"</span></td><td class=\"text-right\">"+p.toFixed(2)+"</td><td class=\"text-right\">"+vbruto.toFixed(2)+"</td><td class=\"text-right\">"+d.toFixed(2)+"</td><td class=\"text-right\">"+vventa.toFixed(2)+"</td> <td><a href=\"#\" class=\"btn-edit-detail btn btn-primary btn-xs\"><span class=\"glyphicon glyphicon-pencil\" aria-hidden=\"true\"></span> Editar</a> <a href=\"#\" class=\"btn-delete-detail btn btn-danger btn-xs\"><span class=\"glyphicon glyphicon-trash\" aria-hidden=\"true\"></span> Eliminar</a><input type='hidden' name='stocks["+items+"][warehouse_id]' value='"+w+"'><input type='hidden' name='stocks["+items+"][stock]' value='"+q+"'></td><tr>");
-		
-		items = 1+items;
-		$('#items').val(items);
-		$('#txtproduct').val('');
-		$('#stock_id').val('');
-		$('#txtquantity').val('');
-		$('#txtdiscount').val('');
-		$('#code').text('');
-		$('#stock').text('');
-		$('#price').text('');
-		$('#txtproduct').focus();
-	};*/
+	console.log(table);
 }
 function deleteDetail (e, row) {
 	if (confirm("Seguro que desea eliminar el Registro?")) {

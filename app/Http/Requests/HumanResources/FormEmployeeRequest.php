@@ -1,4 +1,4 @@
-<?php namespace App\Http\Requests;
+<?php namespace App\Http\Requests\HumanResources;
 
 use App\Http\Requests\Request;
 

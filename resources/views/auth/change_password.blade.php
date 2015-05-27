@@ -5,18 +5,9 @@
 	<div class="row">
 		<div class="col-md-8 col-md-offset-2">
 			<div class="panel panel-default">
-				<div class="panel-heading">Cambiar contraseña</div>
+				<div class="panel-heading panel-heading-custom">Cambiar contraseña</div>
 				<div class="panel-body">
-					@if (count($errors) > 0)
-						<div class="alert alert-danger">
-							<p>Por favor corrige los errores:</p>
-							<ul>
-								@foreach ($errors->all() as $error)
-									<li>{{ $error }}</li>
-								@endforeach
-							</ul>
-						</div>
-					@endif
+					@include('partials.messages')
 
 					<form class="form-horizontal" role="form" method="POST" action="{{ url('/guard/update_password') }}">
 						<input type="hidden" name="_token" value="{{ csrf_token() }}">
