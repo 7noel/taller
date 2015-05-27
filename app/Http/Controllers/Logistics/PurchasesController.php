@@ -60,7 +60,13 @@ class PurchasesController extends Controller {
 	public function edit($id)
 	{
 		$model = $this->repo->findOrFail($id);
-		return view('partials.edit', compact('model'));
+		$document_types = $this->documentTypeRepo->getList();
+		$currencies = $this->currencyRepo->getList2();
+		$payment_conditions = $this->paymentConditionRepo->getList();
+		$warehouses = $this->warehouseRepo->getList('id','id');
+		$items = 0;
+		$purchase_details = [];
+		return view('logistics.purchases.edit', compact('model','document_types', 'currencies', 'payment_conditions', 'warehouses','items','purchase_details'));
 	}
 
 	public function update($id)

@@ -66,7 +66,7 @@ $(document).ready(function(){
 	$('form:first *:input[type!=hidden]:first').focus();
 
 	//asignar valor por defecto de fecha
-	//****if ($('#date').val()=='') { $('#date').val(new Date.today().toString('yyyy-MM-dd')); };
+	//if ($('#date').val()=='') { $('#date').val(new Date.today().toString('yyyy-MM-dd')); };
 	//if ($('#birth').val()=='') { $('#birth').val(new Date.today().toString('yyyy-MM-dd')); };
 	//formatea fechas
 	if (!($('.message-errors').length)) {

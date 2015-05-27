@@ -29,7 +29,7 @@
 		</td>
 	</tr>
 </table>
-<input type="hidden" id="items" value="´{{ $items }}">
+<input type="hidden" id="items" value="{{ $items }}">
 <table class="table table-condensed" id="tblDetails">
 	<tr>
 		<th class="text-center">ALM</th>
@@ -49,9 +49,9 @@
 		<td class="text-left">{{ $detail->product->name }}</td>
 		<td class="text-right">{{ $detail->quantity.' '.$detail->product->unit->symbol }}</td>
 		<td class="text-right">{{ $detail->price }}</td>
-		<td class="text-right">{{ $detail->vbruto }}</td>
+		<td class="text-right">{{ ($detail->price * $detail->quantity) }}</td>
 		<td class="text-right">{{ $detail->discount }}</td>
-		<td class="text-right">{{ $detail->vventa }}</td>
+		<td class="text-right">{{ $detail->total }}</td>
 		<td>
 			<a href="#" class="btn-edit-detail btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
 			<a href="#" class="btn-delete-detail btn btn-danger btn-xs"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Eliminar</a>

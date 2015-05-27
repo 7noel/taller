@@ -108,6 +108,7 @@ abstract class BaseRepo{
 		}
 		foreach ($allData as $key => $data) {
 			if (in_array($data[$k2], $toSave)) {
+				$data[$k1['key']] = $k1['value'];
 				$this->save($data);
 			} else if (in_array($data[$k2], $toEdit)) {
 				$model = $this->model->where($k1['key'],$k1['value'])->where($k2, $data["$k2"])->first();

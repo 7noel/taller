@@ -15,6 +15,8 @@ use App\Modules\Storage\Category;
 use App\Modules\Storage\SubCategory;
 use App\Modules\Storage\Warehouse;
 use App\Modules\Logistics\Brand;
+use App\Modules\Base\DocumentType;
+use App\Modules\Finances\PaymentCondition;
 
 use Faker\Factory as Faker;
 
@@ -188,6 +190,15 @@ class AdminTableSeeder extends Seeder {
         Brand::create(['name' => 'TOYOTA', 'is_car' => '0']);
         Brand::create(['name' => 'WURTH', 'is_car' => '0']);
         Brand::create(['name' => 'YOKOHAMA', 'is_car' => '0']);
+
+        DocumentType::create(['name' => 'FACTURA', 'to_sales' => '1', 'to_purchases' => '1']);
+        DocumentType::create(['name' => 'BOLETA', 'to_sales' => '1', 'to_purchases' => '1']);
+        DocumentType::create(['name' => 'NOTA DE CREDITO', 'to_sales' => '1', 'to_purchases' => '1']);
+        DocumentType::create(['name' => 'NOTA DE DEBITO', 'to_sales' => '1', 'to_purchases' => '1']);
+
+        PaymentCondition::create(['name' => 'CONTADO', 'to_sales' => '1', 'to_purchases' => '1']);
+        PaymentCondition::create(['name' => 'CRÉDITO', 'to_sales' => '1', 'to_purchases' => '1']);
+        
     }
 
 }
