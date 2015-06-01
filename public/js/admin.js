@@ -69,16 +69,19 @@ $(document).ready(function(){
 	//if ($('#date').val()=='') { $('#date').val(new Date.today().toString('yyyy-MM-dd')); };
 	//if ($('#birth').val()=='') { $('#birth').val(new Date.today().toString('yyyy-MM-dd')); };
 	//formatea fechas
-	if (!($('.message-errors').length)) {
-		$.each($(".date"),function(index,contenido){
+	
+	var elements = $(".date");
+	$.each(elements,function(index,contenido){
+		if (!validarFormatoFecha(contenido.innerHTML)) {
 			if (contenido.tagName=='INPUT') {
-				if(contenido.value!=''){ $(this).val(new Date.parse(contenido.value).toString('dd/MM/yyyy')); };
+				if(contenido.value!=''){ $(this).val( moment(trim(contenido.value),"YYYY-MM-DD").format("DD/MM/YYYY") ); };
 			} else{
-				if(contenido.innerHTML!=''){ $(this).text(new Date.parse(contenido.innerHTML).toString('dd/MM/yyyy')); };
+				if(trim(contenido.innerHTML)!=''){ $(this).text( moment(contenido.innerHTML,"YYYY-MM-DD").format("DD/MM/YYYY") ); };
 			};
-		});
-	}
+		};
+	});
 
+	
 	//Alista datepicker
 	$.datepicker.regional['es'] = {
 		closeText: 'Cerrar',
@@ -186,29 +189,6 @@ function cargaModelos(){
 		});
 	}
 }
-function toDate1 (fecha) {
-	var reggie = /(\d{4})-(\d{2})-(\d{2})/;
-	var dateArray = reggie.exec(fecha);
-	var dateObject = new Date(
-		(+dateArray[1]),
-		(+dateArray[2])-1, // Careful, month starts at 0!
-		(+dateArray[3])
-	); 
-	return dateObject;
-}
-function toDate2 (fecha) {
-	var reggie = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/;
-	var dateArray = reggie.exec(fecha);
-	var dateObject = new Date(
-		(+dateArray[1]),
-		(+dateArray[2])-1, // Careful, month starts at 0!
-		(+dateArray[3])
-		(+dateArray[4]),
-		(+dateArray[5]),
-		(+dateArray[6])
-	); 
-	return dateObject;
-}
 function myRound(value, places) {
 	var multiplier = Math.pow(10, places);
 	return (Math.round(value * multiplier) / multiplier);
@@ -233,4 +213,16 @@ function generateBtns (inputs) {
 		data = data + "<input type=\"hidden\" name=\""+Obj.name+"\" value=\""+Obj.value+"\">";
 	});
 	return "<td>"+data+"<a href=\"#\" class=\"btn-edit-detail btn btn-primary btn-xs\"><span class=\"glyphicon glyphicon-pencil\" aria-hidden=\"true\"></span> Editar</a> <a href=\"#\" class=\"btn-delete-detail btn btn-danger btn-xs\"><span class=\"glyphicon glyphicon-trash\" aria-hidden=\"true\"></span> Eliminar</a></td>";
+}
+function trim(cadena){
+	cadena=cadena.replace(/^\s+/,'').replace(/\s+$/,'');
+	return(cadena);
+}
+function validarFormatoFecha(campo) {
+	var RegExPattern = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
+	if ((campo.match(RegExPattern)) && (campo!='')) {
+		return true;
+	} else {
+		return false;
+	}
 }

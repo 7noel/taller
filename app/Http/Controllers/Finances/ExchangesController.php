@@ -36,7 +36,7 @@ class ExchangesController extends Controller {
 	public function store(FormExchangeRequest $request)
 	{
 		$this->repo->save(\Request::all());
-		return \Redirect::route('admin.exchanges.index');
+		return \Redirect::route('finances.exchanges.index');
 	}
 
 	public function show($id)
@@ -54,14 +54,14 @@ class ExchangesController extends Controller {
 	public function update($id, FormExchangeRequest $request)
 	{
 		$this->repo->save(\Request::all(), $id);
-		return \Redirect::route('admin.exchanges.index');
+		return \Redirect::route('finances.exchanges.index');
 	}
 
 	public function destroy($id)
 	{
 		$model = $this->repo->destroy($id);
 		if (\Request::ajax()) {	return $model; }
-		return redirect()->route('admin.exchanges.index');
+		return redirect()->route('finances.exchanges.index');
 	}
 
 }

@@ -2,8 +2,8 @@
 						<tr>
 							<th>#</th>
 							<th>Nombre</th>
-							<th>subcategoria</th>
-							<th>unidad</th>
+							<th>Sub Categoría</th>
+							<th>Unidad</th>
 							<th>Acciones</th>
 						</tr>
 						@foreach($models as $model)
