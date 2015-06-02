@@ -1,11 +1,11 @@
 $(document).ready(function(){
 	//MAYUSCULAS
 	$(".delete").submit(function(e){
-	    if (!confirm("Seguro que desea eliminar el Registro?"))
+		if ( !confirm("Seguro que desea eliminar el Registro?") )
 		{
 			e.preventDefault();
 			return;
-		} 
+		}
 	});
 	$('.uppercase').change(function(){
 		var cadena=$(this).val();
@@ -18,7 +18,7 @@ $(document).ready(function(){
 	$('#lstDepartamento').change(function(){
 		cargaProvincias();
 		var depa=$('#lstDepartamento').val();
-		if (depa=='') {$('#lstProvincia').html("");};
+		if (depa==='') {$('#lstProvincia').html("");}
 		$('#lstDistrito').html("");
 		//$('#lstProvincia').focus();
 	});
@@ -28,7 +28,7 @@ $(document).ready(function(){
 		//alert('pp');
 		cargaDistritos();
 		var prov=$('#lstProvincia').val();
-		if (prov=='') {$('#lstDistrito').html("");};
+		if (prov==='') {$('#lstDistrito').html("");}
 		//$('#lstDistrito').focus();
 	});
 
@@ -45,12 +45,12 @@ $(document).ready(function(){
 	//carga unidades
 	$('#lstUnitTypes').change(function(){ loadUnits(); });
 	//carga subcategorias
-	$('#lstCategories').change(function(){ 
-		loadSubCategories(); 
+	$('#lstCategories').change(function(){
+		loadSubCategories();
 	});
 
 	//pasar elementos entre dos selectores multiples
-	$('.pasar').click(function() { return !$('#origen option:selected').remove().appendTo('#destino'); });  
+	$('.pasar').click(function() { return !$('#origen option:selected').remove().appendTo('#destino'); });
 	$('.quitar').click(function() { return !$('#destino option:selected').remove().appendTo('#origen'); });
 	$('.pasartodos').click(function() { $('#origen option:visible').each(function() { $(this).remove().appendTo('#destino'); }); });
 	$('.quitartodos').click(function() { $('#destino option:visible').each(function() { $(this).remove().appendTo('#origen'); }); });
@@ -59,8 +59,8 @@ $(document).ready(function(){
 		var clasegrupo = $('#groups').val();
 		$('.groupx').hide();
 		$('.group_'+clasegrupo).show();
-		if (clasegrupo=="") {$('.groupx').show();};
-	})
+		if (clasegrupo==="") {$('.groupx').show();}
+	});
 
 	//focus al primer input
 	$('form:first *:input[type!=hidden]:first').focus();
@@ -74,11 +74,11 @@ $(document).ready(function(){
 	$.each(elements,function(index,contenido){
 		if (!validarFormatoFecha(contenido.innerHTML)) {
 			if (contenido.tagName=='INPUT') {
-				if(contenido.value!=''){ $(this).val( moment(trim(contenido.value),"YYYY-MM-DD").format("DD/MM/YYYY") ); };
+				if(contenido.value!==''){ $(this).val( moment(trim(contenido.value),"YYYY-MM-DD").format("DD/MM/YYYY") ); }
 			} else{
-				if(trim(contenido.innerHTML)!=''){ $(this).text( moment(contenido.innerHTML,"YYYY-MM-DD").format("DD/MM/YYYY") ); };
-			};
-		};
+				if(trim(contenido.innerHTML)!==''){ $(this).text( moment(contenido.innerHTML,"YYYY-MM-DD").format("DD/MM/YYYY") ); }
+			}
+		}
 	});
 
 	
@@ -110,7 +110,7 @@ $(document).ready(function(){
 function cargaProvincias(){
 	var idDepartamento = $('#lstDepartamento option:selected').val();
 	var page ="/listarProvincias/" + idDepartamento;
-	if(idDepartamento != ''){
+	if(idDepartamento !== ''){
 		$.get(page, function(data){
 			$('#lstProvincia').empty();
 			$('#lstProvincia').append("<option value=''>SELECCIONAR</option>");
@@ -127,7 +127,7 @@ function cargaDistritos(){
 	var idDepartamento = $('#lstDepartamento option:selected').val();
 	var rel=$('#lstProvincia option:selected').val();
 	var page = "/listarDistritos/" + idDepartamento + "/" +rel;
-	if(rel !=''){
+	if(rel !==''){
 		$.get(page, function(data){
 			console.log(data);
 			$('#lstDistrito').empty();
@@ -143,7 +143,7 @@ function cargaDistritos(){
 function loadUnits(){
 	var unit_type_id = $('#lstUnitTypes option:selected').val();
 	var page = "/listUnits/" + unit_type_id;
-	if(unit_type_id !=''){
+	if(unit_type_id !==''){
 		$.get(page, function(data){
 			$('#lstUnit').empty();
 			$('#lstUnit').append("<option value=''>SELECCIONAR</option>");
@@ -154,13 +154,13 @@ function loadUnits(){
 		});
 	} else {
 		$('#lstUnit').html("");
-	};
+	}
 }
 /*cargar subcategorias*/
 function loadSubCategories(){
 	var category_id = $('#lstCategories option:selected').val();
 	var page = "/listSubCategories/" + category_id;
-	if(category_id !=''){
+	if(category_id !==''){
 		$.get(page, function(data){
 			$('#lstSubCategories').empty();
 			$('#lstSubCategories').append("<option value=''>SELECCIONAR</option>");
@@ -171,13 +171,13 @@ function loadSubCategories(){
 		});
 	} else {
 		$('#lstSubCategories').html("");
-	};
+	}
 }
 /*cargar modelos*/
 function cargaModelos(){
 	var id = $('#brand_id option:selected').val();
 	var page = "/listarModelos/" + id;
-	if(id !=''){
+	if(id !==''){
 		$.get(page, function(data){
 			console.log(data);
 			$('#model_id').empty();
@@ -220,7 +220,7 @@ function trim(cadena){
 }
 function validarFormatoFecha(campo) {
 	var RegExPattern = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
-	if ((campo.match(RegExPattern)) && (campo!='')) {
+	if ((campo.match(RegExPattern)) && (campo!=='')) {
 		return true;
 	} else {
 		return false;

@@ -20,7 +20,7 @@ class ExchangesController extends Controller {
 		$this->repo = $repo;
 		$this->currencyRepo = $currencyRepo;
 	}
-
+	
 	public function index()
 	{
 		$models = $this->repo->index('name', \Request::get('name'));
@@ -34,6 +34,7 @@ class ExchangesController extends Controller {
 	}
 
 	public function store(FormExchangeRequest $request)
+	 
 	{
 		$this->repo->save(\Request::all());
 		return \Redirect::route('finances.exchanges.index');

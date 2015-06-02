@@ -3,7 +3,7 @@ $(document).ready(function(){
 		if (!confirm("Seguro que desea eliminar el Registro?")) {
 			e.preventDefault();
 			return;
-		};
+		}
 		
 		e.preventDefault();
 		var row = $(this).parents('tr');
@@ -23,18 +23,18 @@ $(document).ready(function(){
 		}).fail(function(){
 			alert('El registro no fue eliminado');
 			row.show();
-		})
-	})
+		});
+	});
 
 	$('#tableStocks').on('click','.btn-delete-stock',function(e){
 		if (!confirm("Seguro que desea eliminar el Registro?")) {
 			e.preventDefault();
 			return;
-		};
+		}
 		e.preventDefault();
 		var row = $(this).parents('tr');
 		row.fadeOut();
 		row.remove();
-	})
+	});
 
-})
+});

@@ -12,9 +12,9 @@ $(document).ready(function(){
 		resetAutocomplete();
 	});
 	$( "#txtproduct" ).focus(function() {
-		if ($('#listWarehouses').val()=='') {
+		if ($('#listWarehouses').val()==='') {
 			$('#listWarehouses').focus();
-		};
+		}
 	});
 	$('#txtquantity, #txtdiscount').change(function(){
 		calcTotal();
@@ -36,7 +36,7 @@ $(document).ready(function(){
 	$('#btnCancelProduct').click(function(e){
 		cancelDetail();
 	});
-})
+});
 
 function resetAutocomplete () {
 	var warehouse_id = $('#listWarehouses').val();
@@ -56,16 +56,16 @@ function resetAutocomplete () {
 				$('#row_data').data('detail',detail);
 				$('#txtquantity').focus();
 			}
-		});		
-	};
+		});
+	}
 }
 function calcTotal () {
 	var q = parseFloat($('#txtquantity').val());
 	var d = parseFloat($('#txtdiscount').val());
 	var p = parseFloat($('#price').text());
-	if (!(q>0)) {q=1; $('#txtquantity').val('1.00');};
-	if (!(d>=0)) {d=0; $('#txtdiscount').val('0.00');};
-	if (!(p>=0)) {p=0; $('#price').text('0.00');};
+	if (!(q>0)) {q=1; $('#txtquantity').val('1.00');}
+	if (!(d>=0)) {d=0; $('#txtdiscount').val('0.00');}
+	if (!(p>=0)) {p=0; $('#price').text('0.00');}
 
 	var t = p*q*(100-d)/100;
 	$('#total').text(t.toFixed(2));
@@ -113,7 +113,7 @@ function addDetail () {
 		$('#total').text('');
 		$('#unit').text('');
 		$('#txtproduct').focus();
-	};
+	}
 	
 	console.log(table);
 }
@@ -122,7 +122,7 @@ function deleteDetail (e, row) {
 		e.preventDefault();
 		row.fadeOut();
 		row.remove();
-	};
+	}
 }
 function editDetail (row) {
 	$('#btnAddProduct').hide();
