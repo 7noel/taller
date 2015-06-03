@@ -11,10 +11,10 @@
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
-						{!! Form::label('is_car','Opciones:', ['class'=>'col-sm-2 control-label']) !!}
+						{!! Form::label('model_id','Modelo', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-10">
-							<label class="checkbox-inline">
-								{!! Form::checkbox('is_car', '1') !!} Vehículo
-							</label>
+							<div class="form-inline">
+							{!! Form::select('model_id',$models,null,['class'=>'form-control']) !!}
+							</div>
 						</div>
 					</div>

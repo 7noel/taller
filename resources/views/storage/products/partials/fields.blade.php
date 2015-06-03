@@ -9,7 +9,7 @@
 						<div class="col-sm-10">
 							<div class="form-inline">
 							{!! Form::select('category_id', $categories, ((isset($model->sub_category_id)) ? $model->sub_category->category_id : null),['class'=>'form-control', 'id'=>'lstCategories']); !!}
-							{!! Form::select('sub_category_id', ((isset($sub_categories)) ? $sub_categories : [''=>'SELECCIONAR']), null,['class'=>'form-control', 'id'=>'lstSubCategories']); !!}
+							{!! Form::select('sub_category_id', ((isset($sub_categories)) ? $sub_categories : [''=>'Seleccionar']), null,['class'=>'form-control', 'id'=>'lstSubCategories']); !!}
 							</div>
 						</div>
 					</div>
@@ -18,7 +18,7 @@
 						<div class="col-sm-10">
 							<div class="form-inline">
 							{!! Form::select('unit_type_id', $unit_types, ((isset($model->unit_id)) ? $model->unit->unit_type_id : null),['class'=>'form-control', 'id'=>'lstUnitTypes']); !!}
-							{!! Form::select('unit_id', ((isset($units)) ? $units : [''=>'SELECCIONAR']), null,['class'=>'form-control', 'id'=>'lstUnit']); !!}
+							{!! Form::select('unit_id', ((isset($units)) ? $units : [''=>'Seleccionar']), null,['class'=>'form-control', 'id'=>'lstUnit']); !!}
 							</div>
 						</div>
 					</div>

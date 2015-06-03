@@ -38,7 +38,7 @@ abstract class BaseRepo{
 
 	public function getList($name='name', $id='id')
 	{
-		return [""=>"SELECCIONAR"] + $this->model->lists($name, $id);
+		return [""=>"Seleccionar"] + $this->model->lists($name, $id);
 	}
 	public function all_with_deleted()
 	{

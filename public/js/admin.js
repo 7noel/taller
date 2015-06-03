@@ -1,5 +1,4 @@
-$(document).ready(function(){
-	//MAYUSCULAS
+$(document).ready(function () {
 	$(".delete").submit(function(e){
 		if ( !confirm("Seguro que desea eliminar el Registro?") )
 		{
@@ -113,7 +112,7 @@ function cargaProvincias(){
 	if(idDepartamento !== ''){
 		$.get(page, function(data){
 			$('#lstProvincia').empty();
-			$('#lstProvincia').append("<option value=''>SELECCIONAR</option>");
+			$('#lstProvincia').append("<option value=''>Seleccionar</option>");
 			$.each(data, function (index, ProvinciaObj) {
 				$('#lstProvincia').append("<option value='"+ProvinciaObj.provincia+"'>"+ProvinciaObj.provincia+"</option>");
 			});
@@ -131,7 +130,7 @@ function cargaDistritos(){
 		$.get(page, function(data){
 			console.log(data);
 			$('#lstDistrito').empty();
-			$('#lstDistrito').append("<option value=''>SELECCIONAR</option>");
+			$('#lstDistrito').append("<option value=''>Seleccionar</option>");
 			$.each(data, function (index, DistritoObj) {
 				$('#lstDistrito').append("<option value='"+DistritoObj.id+"'>"+DistritoObj.distrito+"</option>");
 			});
@@ -146,7 +145,7 @@ function loadUnits(){
 	if(unit_type_id !==''){
 		$.get(page, function(data){
 			$('#lstUnit').empty();
-			$('#lstUnit').append("<option value=''>SELECCIONAR</option>");
+			$('#lstUnit').append("<option value=''>Seleccionar</option>");
 			$.each(data, function (index, Obj) {
 				$('#lstUnit').append("<option value='"+Obj.id+"'>"+Obj.name+"</option>");
 			});
@@ -163,7 +162,7 @@ function loadSubCategories(){
 	if(category_id !==''){
 		$.get(page, function(data){
 			$('#lstSubCategories').empty();
-			$('#lstSubCategories').append("<option value=''>SELECCIONAR</option>");
+			$('#lstSubCategories').append("<option value=''>Seleccionar</option>");
 			$.each(data, function (index, Obj) {
 				$('#lstSubCategories').append("<option value='"+Obj.id+"'>"+Obj.name+"</option>");
 			});
@@ -181,7 +180,7 @@ function cargaModelos(){
 		$.get(page, function(data){
 			console.log(data);
 			$('#model_id').empty();
-			$('#model_id').append("<option value=''>SELECCIONAR</option>");
+			$('#model_id').append("<option value=''>Seleccionar</option>");
 			$.each(data, function (index, ModelObj) {
 				$('#model_id').append("<option value='"+ModelObj.id+"'>"+ModelObj.name+"</option>");
 			});

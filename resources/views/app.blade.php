@@ -67,12 +67,10 @@
 							<li><a href="#">Facturación</a></li>
 							<li><a href="#">Ordenes de Compra</a></li>
 							<li class="divider"></li>
-							<li><a href="#">Marcas</a></li>
-							<li><a href="#">Modelos</a></li>
-							<li><a href="#">Versiones</a></li>
-							<li><a href="#">Lista de Vehículos</a></li>
-							<li><a href="#">Colores Interiores</a></li>
-							<li><a href="#">Colores Exteriores</a></li>
+							<li><a href="{{ route('sales.models.index') }}">Modelos</a></li>
+							<li><a href="{{ route('sales.versions.index') }}">Versiones</a></li>
+							<li><a href="{{ route('sales.catalog_cars.index') }}">Catálogo de Vehículos</a></li>
+							<li><a href="{{ route('sales.colors.index') }}">Colores</a></li>
 						</ul>
 					</li>
 					<li class="dropdown">

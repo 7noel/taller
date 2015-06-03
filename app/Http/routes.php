@@ -58,9 +58,12 @@ Route::group(['prefix'=>'logistics', 'middleware'=>['auth', 'permissions'], 'nam
 	Route::resource('purchases','PurchasesController');
 });
 
-/*Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Sales'], function(){
-
-});*/
+Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Sales'], function(){
+	Route::resource('models','ModelsController');
+	Route::resource('versions','VersionsController');
+	Route::resource('catalog_cars','CatalogCarsController');
+	Route::resource('colors','ColorsController');
+});
 Route::group(['prefix'=>'storage', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Storage'], function(){
 	Route::resource('units','UnitsController');
 	Route::resource('warehouses','WarehousesController');

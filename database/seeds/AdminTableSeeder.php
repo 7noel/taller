@@ -17,6 +17,10 @@ use App\Modules\Storage\Warehouse;
 use App\Modules\Logistics\Brand;
 use App\Modules\Base\DocumentType;
 use App\Modules\Finances\PaymentCondition;
+use App\Modules\Sales\Model as Modelx;
+use App\Modules\Sales\Version;
+use App\Modules\Sales\CatalogCar;
+use App\Modules\Sales\Color;
 
 use Faker\Factory as Faker;
 
@@ -198,7 +202,19 @@ class AdminTableSeeder extends Seeder {
 
         PaymentCondition::create(['name' => 'CONTADO', 'to_sales' => '1', 'to_purchases' => '1']);
         PaymentCondition::create(['name' => 'CRÉDITO', 'to_sales' => '1', 'to_purchases' => '1']);
+
+        Modelx::create(['name' => 'ACCORD SEDAN', 'brand_id' => '2']);
+        Modelx::create(['name' => 'ACCORD COUPE', 'brand_id' => '2']);
+        Modelx::create(['name' => 'CIVIC SEDAN', 'brand_id' => '2']);
+        Modelx::create(['name' => 'CIVIC COUPE', 'brand_id' => '2']);
+        Modelx::create(['name' => 'CR-V', 'brand_id' => '2']);
+        Modelx::create(['name' => 'FIT', 'brand_id' => '2']);
+        Modelx::create(['name' => 'ODYSSEY', 'brand_id' => '2']);
+        Modelx::create(['name' => 'PILOT', 'brand_id' => '2']);
+
+        Color::create(['name' => 'NEGRO', 'in' => '1', 'out' => '1']);
+        Color::create(['name' => 'AZUL', 'in' => '1', 'out' => '1']);
+        Color::create(['name' => 'BEIGE', 'in' => '1', 'out' => '1']);
         
     }
-
 }

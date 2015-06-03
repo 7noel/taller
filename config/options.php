@@ -61,6 +61,26 @@ return array(
 		]
 	],
 	'sales' => [
+		'models' => [
+			'index'  => ['panel'=>'Modelos', 'create'=>'Crear Modelo'],
+			'create' => ['panel'=>'Nuevo Modelo: ', 'create'=>'Crear Modelo'],
+			'edit'   => ['panel'=>'Editar Modelo: ', 'update'=>'Actualizar Modelo', 'delete'=>'Eliminar Modelo']
+		],
+		'versions' => [
+			'index'  => ['panel'=>'Versiones', 'create'=>'Crear Versión'],
+			'create' => ['panel'=>'Nuevo Versión: ', 'create'=>'Crear Versión'],
+			'edit'   => ['panel'=>'Editar Versión: ', 'update'=>'Actualizar Versión', 'delete'=>'Eliminar Versión']
+		],
+		'colors' => [
+			'index'  => ['panel'=>'Colores', 'create'=>'Crear Color'],
+			'create' => ['panel'=>'Nuevo Color: ', 'create'=>'Crear Color'],
+			'edit'   => ['panel'=>'Editar Color: ', 'update'=>'Actualizar Color', 'delete'=>'Eliminar Color']
+		],
+		'catalog_cars' => [
+			'index'  => ['panel'=>'Vehículos', 'create'=>'Crear Vehículo'],
+			'create' => ['panel'=>'Nuevo Vehículo: ', 'create'=>'Crear Vehículo'],
+			'edit'   => ['panel'=>'Editar Vehículo: ', 'update'=>'Actualizar Vehículo', 'delete'=>'Eliminar Vehículo']
+		]
 	],
 	'guard' => [
 		'users' => [
