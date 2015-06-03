@@ -5,16 +5,13 @@
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
-						{!! Form::label('description','Descripcion', ['class'=>'col-sm-2 control-label']) !!}
+						{!! Form::label('','Opciones:', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-10">
-						{!! Form::text('description', null, ['class'=>'form-control']) !!}
-						</div>
-					</div>
-					<div class="form-group  form-group-sm">
-						{!! Form::label('brand_id','Marca', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
-							<div class="form-inline">
-							{!! Form::select('brand_id',$brands,null,['class'=>'form-control']) !!}
-							</div>
+							<label class="checkbox-inline">
+								{!! Form::checkbox('in', '1') !!} interior
+							</label>
+							<label class="checkbox-inline">
+								{!! Form::checkbox('out', '1') !!} exterior
+							</label>
 						</div>
 					</div>

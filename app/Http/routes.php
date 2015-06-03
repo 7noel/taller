@@ -59,7 +59,7 @@ Route::group(['prefix'=>'logistics', 'middleware'=>['auth', 'permissions'], 'nam
 });
 
 Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Sales'], function(){
-	Route::resource('models','ModelsController');
+	Route::resource('modelos','ModelosController');
 	Route::resource('versions','VersionsController');
 	Route::resource('catalog_cars','CatalogCarsController');
 	Route::resource('colors','ColorsController');

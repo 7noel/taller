@@ -17,8 +17,8 @@ class CreateVersionsTable extends Migration {
 			$table->increments('id');
 			$table->string('name');
 			$table->string('description');
-			$table->integer('model_id')->unsigned();
-			$table->foreign('model_id')->references('id')->on('models');
+			$table->integer('modelo_id')->unsigned();
+			$table->foreign('modelo_id')->references('id')->on('modelos');
 			$table->timestamps();
 			$table->softDeletes();
 		});

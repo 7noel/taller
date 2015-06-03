@@ -61,7 +61,7 @@ return array(
 		]
 	],
 	'sales' => [
-		'models' => [
+		'modelos' => [
 			'index'  => ['panel'=>'Modelos', 'create'=>'Crear Modelo'],
 			'create' => ['panel'=>'Nuevo Modelo: ', 'create'=>'Crear Modelo'],
 			'edit'   => ['panel'=>'Editar Modelo: ', 'update'=>'Actualizar Modelo', 'delete'=>'Eliminar Modelo']
@@ -77,7 +77,7 @@ return array(
 			'edit'   => ['panel'=>'Editar Color: ', 'update'=>'Actualizar Color', 'delete'=>'Eliminar Color']
 		],
 		'catalog_cars' => [
-			'index'  => ['panel'=>'Vehículos', 'create'=>'Crear Vehículo'],
+			'index'  => ['panel'=>'Catálogo de Vehículos', 'create'=>'Crear Vehículo'],
 			'create' => ['panel'=>'Nuevo Vehículo: ', 'create'=>'Crear Vehículo'],
 			'edit'   => ['panel'=>'Editar Vehículo: ', 'update'=>'Actualizar Vehículo', 'delete'=>'Eliminar Vehículo']
 		]

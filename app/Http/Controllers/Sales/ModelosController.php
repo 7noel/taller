@@ -5,14 +5,14 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use App\Modules\Logistics\BrandRepo;
-use App\Modules\Sales\ModelRepo;
+use App\Modules\Sales\ModeloRepo;
 
-class ModelsController extends Controller {
+class ModelosController extends Controller {
 
 	protected $repo;
 	protected $brandRepo;
 
-	public function __construct(ModelRepo $repo, BrandRepo $brandRepo) {
+	public function __construct(ModeloRepo $repo, BrandRepo $brandRepo) {
 		$this->repo = $repo;
 		$this->brandRepo = $brandRepo;
 	}
@@ -32,7 +32,7 @@ class ModelsController extends Controller {
 	public function store()
 	{
 		$this->repo->save(\Request::all());
-		return \Redirect::route('sales.models.index');
+		return \Redirect::route('sales.modelos.index');
 	}
 
 	public function show($id)
@@ -50,13 +50,13 @@ class ModelsController extends Controller {
 	public function update($id)
 	{
 		$this->repo->save(\Request::all(), $id);
-		return \Redirect::route('sales.models.index');
+		return \Redirect::route('sales.modelos.index');
 	}
 
 	public function destroy($id)
 	{
 		$model = $this->repo->destroy($id);
 		if (\Request::ajax()) {	return $model; }
-		return redirect()->route('sales.models.index');
+		return redirect()->route('sales.modelos.index');
 	}
 }

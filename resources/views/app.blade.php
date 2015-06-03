@@ -67,7 +67,7 @@
 							<li><a href="#">Facturación</a></li>
 							<li><a href="#">Ordenes de Compra</a></li>
 							<li class="divider"></li>
-							<li><a href="{{ route('sales.models.index') }}">Modelos</a></li>
+							<li><a href="{{ route('sales.modelos.index') }}">Modelos</a></li>
 							<li><a href="{{ route('sales.versions.index') }}">Versiones</a></li>
 							<li><a href="{{ route('sales.catalog_cars.index') }}">Catálogo de Vehículos</a></li>
 							<li><a href="{{ route('sales.colors.index') }}">Colores</a></li>

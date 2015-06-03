@@ -4,17 +4,14 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
-use App\Modules\Sales\ModeloRepo;
-use App\Modules\Sales\VersionRepo;
+use App\Modules\Sales\ColorRepo;
 
-class VersionsController extends Controller {
+class ColorsController extends Controller {
 
 	protected $repo;
-	protected $modeloRepo;
 
-	public function __construct(VersionRepo $repo, ModeloRepo $modeloRepo) {
+	public function __construct(ColorRepo $repo) {
 		$this->repo = $repo;
-		$this->modeloRepo = $modeloRepo;
 	}
 
 	public function index()
@@ -25,14 +22,13 @@ class VersionsController extends Controller {
 
 	public function create()
 	{
-		$modelos = $this->modeloRepo->getList();
-		return view('partials.create', compact('modelos'));
+		return view('partials.create');
 	}
 
 	public function store()
 	{
 		$this->repo->save(\Request::all());
-		return \Redirect::route('sales.versions.index');
+		return \Redirect::route('sales.colors.index');
 	}
 
 	public function show($id)
@@ -43,20 +39,19 @@ class VersionsController extends Controller {
 	public function edit($id)
 	{
 		$model = $this->repo->findOrFail($id);
-		$modelos = $this->modeloRepo->getList();
-		return view('partials.edit', compact('model', 'modelos'));
+		return view('partials.edit', compact('model'));
 	}
 
 	public function update($id)
 	{
 		$this->repo->save(\Request::all(), $id);
-		return \Redirect::route('sales.versions.index');
+		return \Redirect::route('sales.colors.index');
 	}
 
 	public function destroy($id)
 	{
 		$model = $this->repo->destroy($id);
 		if (\Request::ajax()) {	return $model; }
-		return redirect()->route('sales.versions.index');
+		return redirect()->route('sales.colors.index');
 	}
 }

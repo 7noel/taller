@@ -4,17 +4,17 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
-use App\Modules\Sales\ModeloRepo;
+use App\Modules\Sales\CatalogCarRepo;
 use App\Modules\Sales\VersionRepo;
 
-class VersionsController extends Controller {
+class CatalogCarsController extends Controller {
 
 	protected $repo;
-	protected $modeloRepo;
+	protected $versionRepo;
 
-	public function __construct(VersionRepo $repo, ModeloRepo $modeloRepo) {
+	public function __construct(CatalogCarRepo $repo, VersionRepo $versionRepo) {
 		$this->repo = $repo;
-		$this->modeloRepo = $modeloRepo;
+		$this->versionRepo = $versionRepo;
 	}
 
 	public function index()
@@ -25,14 +25,14 @@ class VersionsController extends Controller {
 
 	public function create()
 	{
-		$modelos = $this->modeloRepo->getList();
-		return view('partials.create', compact('modelos'));
+		$versions = $this->versionRepo->getList();
+		return view('partials.create', compact('versions'));
 	}
 
 	public function store()
 	{
 		$this->repo->save(\Request::all());
-		return \Redirect::route('sales.versions.index');
+		return \Redirect::route('sales.catalog_cars.index');
 	}
 
 	public function show($id)
@@ -43,20 +43,20 @@ class VersionsController extends Controller {
 	public function edit($id)
 	{
 		$model = $this->repo->findOrFail($id);
-		$modelos = $this->modeloRepo->getList();
-		return view('partials.edit', compact('model', 'modelos'));
+		$versions = $this->versionRepo->getList();
+		return view('partials.edit', compact('model', 'versions'));
 	}
 
 	public function update($id)
 	{
 		$this->repo->save(\Request::all(), $id);
-		return \Redirect::route('sales.versions.index');
+		return \Redirect::route('sales.catalog_cars.index');
 	}
 
 	public function destroy($id)
 	{
 		$model = $this->repo->destroy($id);
 		if (\Request::ajax()) {	return $model; }
-		return redirect()->route('sales.versions.index');
+		return redirect()->route('sales.catalog_cars.index');
 	}
 }
