@@ -63,6 +63,8 @@ Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespa
 	Route::resource('versions','VersionsController');
 	Route::resource('catalog_cars','CatalogCarsController');
 	Route::resource('colors','ColorsController');
+	Route::resource('features','FeaturesController');
+	Route::resource('feature_groups','FeatureGroupsController');
 });
 Route::group(['prefix'=>'storage', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Storage'], function(){
 	Route::resource('units','UnitsController');

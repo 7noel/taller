@@ -16,4 +16,17 @@ class VersionRepo extends BaseRepo{
 			return Version::with('modelo')->orderBy('id', 'DESC')->paginate();
 		}
 	}
+	public function getList($name='name', $id='id')
+	{
+		$versions = Version::with('modelo')->get();
+		$list = [""=>"Seleccionar"];
+		foreach ($versions as $key => $version) {
+			if ($version->modelo->id == 5) {
+				$list[$version->id] = $version->modelo->name." ".$version->name;
+			} else {
+				$list[$version->id] = $version->modelo->name." / ".$version->name;
+			}
+		}
+		return $list;
+	}
 }

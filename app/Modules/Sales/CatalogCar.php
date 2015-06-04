@@ -7,7 +7,7 @@ class CatalogCar extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['manufacture_year', 'model_year', 'version_id'];
+	protected $fillable = ['manufacture_year', 'model_year', 'version_id', 'cylinder', 'transmission', 'seats', 'fuel'];
 
 	public function scopeYear($query, $name){
 		if (trim($name) != "") {
@@ -18,5 +18,10 @@ class CatalogCar extends Model {
 	public function version()
 	{
 		return $this->belongsto('App\Modules\Sales\Version');
+	}
+
+	public function features()
+	{
+		return $this->hasMany('App\Modules\Sales\Feature');
 	}
 }

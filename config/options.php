@@ -80,6 +80,16 @@ return array(
 			'index'  => ['panel'=>'Catálogo de Vehículos', 'create'=>'Crear Vehículo'],
 			'create' => ['panel'=>'Nuevo Vehículo: ', 'create'=>'Crear Vehículo'],
 			'edit'   => ['panel'=>'Editar Vehículo: ', 'update'=>'Actualizar Vehículo', 'delete'=>'Eliminar Vehículo']
+		],
+		'features' => [
+			'index'  => ['panel'=>'Especificaciones', 'create'=>'Crear Especificación'],
+			'create' => ['panel'=>'Nuevo Especificación: ', 'create'=>'Crear Especificación'],
+			'edit'   => ['panel'=>'Editar Especificación: ', 'update'=>'Actualizar Especificación', 'delete'=>'Eliminar Especificación']
+		],
+		'feature_groups' => [
+			'index'  => ['panel'=>'Grupo de Especificaciones', 'create'=>'Crear Grupo'],
+			'create' => ['panel'=>'Nuevo Grupo: ', 'create'=>'Crear Grupo'],
+			'edit'   => ['panel'=>'Editar Grupo: ', 'update'=>'Actualizar Grupo', 'delete'=>'Eliminar Grupo']
 		]
 	],
 	'guard' => [

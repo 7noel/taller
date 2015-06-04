@@ -6,15 +6,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Modules\Sales\CatalogCarRepo;
 use App\Modules\Sales\VersionRepo;
+use App\Modules\Sales\FeatureGroupRepo;
 
 class CatalogCarsController extends Controller {
 
 	protected $repo;
 	protected $versionRepo;
+	protected $featureGroupRepo;
 
-	public function __construct(CatalogCarRepo $repo, VersionRepo $versionRepo) {
+	public function __construct(CatalogCarRepo $repo, VersionRepo $versionRepo, FeatureGroupRepo $featureGroupRepo) {
 		$this->repo = $repo;
 		$this->versionRepo = $versionRepo;
+		$this->featureGroupRepo = $featureGroupRepo;
 	}
 
 	public function index()
@@ -26,7 +29,8 @@ class CatalogCarsController extends Controller {
 	public function create()
 	{
 		$versions = $this->versionRepo->getList();
-		return view('partials.create', compact('versions'));
+		$groups = $this->featureGroupRepo->all();
+		return view('sales.catalog_cars.create', compact('versions', 'groups'));
 	}
 
 	public function store()
