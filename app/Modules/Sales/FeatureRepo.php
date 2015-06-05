@@ -32,7 +32,7 @@ class FeatureRepo extends BaseRepo{
 				}
 				
 			} else {
-				if (isset($data['name'])) {
+				if (trim($data['name']) != '') {
 					Feature::create($data);
 				}
 			}

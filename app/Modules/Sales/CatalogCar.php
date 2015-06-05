@@ -24,4 +24,9 @@ class CatalogCar extends Model {
 	{
 		return $this->hasMany('App\Modules\Sales\Feature');
 	}
+
+	public function car_quotes()
+	{
+		return $this->hasMany('App\Modules\Sales\CarQuote');
+	}
 }

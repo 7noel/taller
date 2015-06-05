@@ -47,6 +47,10 @@ $(document).ready(function () {
 	$('#lstCategories').change(function(){
 		loadSubCategories();
 	});
+	//carga año de vehiculos para cotizar
+	$('#lstVersions').change(function(){
+		loadYears();
+	});
 
 	//pasar elementos entre dos selectores multiples
 	$('.pasar').click(function() { return !$('#origen option:selected').remove().appendTo('#destino'); });
@@ -223,5 +227,21 @@ function validarFormatoFecha(campo) {
 		return true;
 	} else {
 		return false;
+	}
+}
+function loadYears () {
+	var version_id = $('#lstVersions option:selected').val();
+	var page = "/listCars/" + version_id;
+	if(version_id !==''){
+		$.get(page, function(data){
+			$('#lstYears').empty();
+			$('#lstYears').append("<option value=''>Seleccionar</option>");
+			$.each(data, function (index, Obj) {
+				$('#lstYears').append("<option value='"+Obj.id+"'>"+Obj.manufacture_year+" / "+Obj.model_year+"</option>");
+			});
+			
+		});
+	} else {
+		$('#lstYears').html("");
 	}
 }

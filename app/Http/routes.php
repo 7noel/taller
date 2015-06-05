@@ -30,6 +30,7 @@ Route::group(['middleware'=>['auth']], function(){
 	Route::get('finances/companies/autocomplete', ['as' => 'companiesAutocomplete','uses' => 'Finances\CompaniesController@ajaxAutocomplete']);
 	Route::get('storage/products/autocomplete/{warehouse_id}', ['as' => 'productsAutocomplete','uses' => 'Storage\ProductsController@ajaxAutocomplete']);
 	Route::get('storage/products/ajaxGetData/{warehouse_id}/{product_id}', ['as' => 'ajaxGetData','uses' => 'Storage\ProductsController@ajaxGetData']);
+	Route::get('listCars/{version_id}', ['as' => 'ajaxCars','uses' => 'Sales\CatalogCarsController@ajaxList']);
 });
 
 Route::group(['prefix'=>'admin', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Admin'], function(){
@@ -65,6 +66,7 @@ Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespa
 	Route::resource('colors','ColorsController');
 	Route::resource('features','FeaturesController');
 	Route::resource('feature_groups','FeatureGroupsController');
+	Route::resource('car_quotes','CarQuotesController');
 });
 Route::group(['prefix'=>'storage', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Storage'], function(){
 	Route::resource('units','UnitsController');

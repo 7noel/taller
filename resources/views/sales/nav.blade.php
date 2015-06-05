@@ -6,6 +6,7 @@
 							<li><a href="#">Facturación</a></li>
 							<li><a href="#">Ordenes de Compra</a></li>
 							<li class="divider"></li>
+							<li><a href="{{ route('sales.car_quotes.index') }}">Cotización</a></li>
 							<li><a href="{{ route('sales.catalog_cars.index') }}">Catálogo de Vehículos</a></li>
 							<li><a href="{{ route('sales.modelos.index') }}">Modelos</a></li>
 							<li><a href="{{ route('sales.versions.index') }}">Versiones</a></li>

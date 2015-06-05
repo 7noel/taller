@@ -64,4 +64,10 @@ class CatalogCarsController extends Controller {
 		if (\Request::ajax()) {	return $model; }
 		return redirect()->route('sales.catalog_cars.index');
 	}
+
+	public function ajaxList($version_id)
+	{
+		$ajax = $this->repo->ajaxList($version_id);
+		return \Response::json($ajax);
+	}
 }

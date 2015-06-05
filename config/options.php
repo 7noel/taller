@@ -90,6 +90,11 @@ return array(
 			'index'  => ['panel'=>'Grupo de Especificaciones', 'create'=>'Crear Grupo'],
 			'create' => ['panel'=>'Nuevo Grupo: ', 'create'=>'Crear Grupo'],
 			'edit'   => ['panel'=>'Editar Grupo: ', 'update'=>'Actualizar Grupo', 'delete'=>'Eliminar Grupo']
+		],
+		'car_quotes' => [
+			'index'  => ['panel'=>'Cotizaciones de Vehículos', 'create'=>'Crear Cotización'],
+			'create' => ['panel'=>'Nuevo Cotización: ', 'create'=>'Crear Cotización'],
+			'edit'   => ['panel'=>'Editar Cotización: ', 'update'=>'Actualizar Cotización', 'delete'=>'Eliminar Cotización']
 		]
 	],
 	'guard' => [
