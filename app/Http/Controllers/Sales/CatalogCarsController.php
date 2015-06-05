@@ -48,7 +48,8 @@ class CatalogCarsController extends Controller {
 	{
 		$model = $this->repo->findOrFail($id);
 		$versions = $this->versionRepo->getList();
-		return view('partials.edit', compact('model', 'versions'));
+		$groups = $this->featureGroupRepo->all();
+		return view('sales.catalog_cars.edit', compact('model', 'versions', 'groups'));
 	}
 
 	public function update($id)

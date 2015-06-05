@@ -12,10 +12,10 @@
 							<li role="presentation" class="active"><a href="#home" id="home-tab" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Compra</a></li>
 							<li role="presentation"><a href="#features" role="tab" id="features-tab" data-toggle="tab" aria-controls="features">Características</a></li>
 						</ul>
+						{!! Form::open(['route'=> str_replace('create', 'store', Request::route()->getAction()['as']) , 'method'=>'POST', 'class'=>'form-horizontal']) !!}
 						<div id="myTabContent" class="tab-content">
 							<div role="tabpanel" class="tab-pane fade in active" id="home" aria-labelledBy="home-tab">
 								@include('partials.messages')
-								{!! Form::open(['route'=> str_replace('create', 'store', Request::route()->getAction()['as']) , 'method'=>'POST', 'class'=>'form-horizontal']) !!}
 								@include( str_replace('create', 'partials.fields', Request::route()->getAction()['as']) )
 							</div>
 							<div role="tabpanel" class="tab-pane fade" id="features" aria-labelledBy="features-tab">
@@ -38,6 +38,6 @@
 
 @section('scripts')
 
-{!! Html::script('js/purchases/general.js') !!}
+{!! Html::script('js/sales/general.js') !!}
 
 @endsection

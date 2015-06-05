@@ -7,6 +7,7 @@
 	<title>Masaki</title>
 	{!! Html::style('css/app.css') !!}
 	{!! Html::style('css/autocomplete.css') !!}
+	{!! Html::style('css/others.css') !!}
 
 	<!-- Fonts -->
 	<link href='//fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
@@ -18,7 +19,8 @@
 		<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
 		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 	<![endif]-->
-	<link rel="icon" type="image/jpeg" href="/img/honda.jpg" />
+	<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
 </head>
 <body>
 	<nav class="navbar navbar-inverse">
@@ -34,109 +36,46 @@
 			</div>
 
 			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
 				@if( !Auth::guest() )
+
 				<ul class="nav navbar-nav">
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Seguridad<span class="caret"></span></a>
-						<ul class="dropdown-menu" role="menu">
-							<li><a href="{{ route('guard.users.index') }}">Unuarios</a></li>
-							<li class="divider"></li>
-							<li><a href="{{ route('guard.roles.index') }}">Roles</a></li>
-							<li><a href="{{ route('guard.permission_groups.index') }}">Grupos</a></li>
-							<li><a href="{{ route('guard.permissions.index') }}">Permisos</a></li>
-						</ul>
-					</li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Almacén<span class="caret"></span></a>
-						<ul class="dropdown-menu" role="menu">
-							<li><a href="{{ route('storage.warehouses.index') }}">Almacenes</a></li>
-							<li><a href="{{ route('storage.products.index') }}">Productos</a></li>
-							<li><a href="{{ route('storage.products.index') }}">Movimientos</a></li>
-							<li class="divider"></li>
-							<li><a href="{{ route('storage.categories.index') }}">Categoías</a></li>
-							<li><a href="{{ route('storage.sub_categories.index') }}">Sub Categorías</a></li>
-							<li><a href="{{ route('admin.unit_types.index') }}">Tipos de Unidad</a></li>
-							<li><a href="{{ route('storage.units.index') }}">Unidades</a></li>
-						</ul>
-					</li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Ventas<span class="caret"></span></a>
-						<ul class="dropdown-menu" role="menu">
-							<li><a href="#">Notas de Pedido de Vehículo</a></li>
-							<li><a href="#">Notas de Pedido de Accesorios</a></li>
-							<li><a href="#">Facturación</a></li>
-							<li><a href="#">Ordenes de Compra</a></li>
-							<li class="divider"></li>
-							<li><a href="{{ route('sales.catalog_cars.index') }}">Catálogo de Vehículos</a></li>
-							<li><a href="{{ route('sales.modelos.index') }}">Modelos</a></li>
-							<li><a href="{{ route('sales.versions.index') }}">Versiones</a></li>
-							<li><a href="{{ route('sales.colors.index') }}">Colores</a></li>
-							<li><a href="{{ route('sales.features.index') }}">Especificaciones</a></li>
-							<li><a href="{{ route('sales.feature_groups.index') }}">Grupo de Especificaciones</a></li>
-						</ul>
-					</li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">PostVenta<span class="caret"></span></a>
-						<ul class="dropdown-menu" role="menu">
-							<li><a href="#">Ordenes de Trabajo</a></li>
-							<li><a href="#">Facturación</a></li>
-							<li><a href="#">Ordenes de Servicio</a></li>
-							<li class="divider"></li>
-							<li><a href="#">Tipos de Ordenes</a></li>
-						</ul>
-					</li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Finanzas<span class="caret"></span></a>
-						<ul class="dropdown-menu" role="menu">
-							<li><a href="#">Cuentas por Cobrar</a></li>
-							<li><a href="#">Cuentas por Pagar</a></li>
-							<li><a href="#">Facturación Total</a></li>
-							<li class="divider"></li>
-							<li><a href="{{ route('admin.currencies.index') }}">Monedas</a></li>
-							<li><a href="{{ route('finances.exchanges.index') }}">Tipo de Cambio</a></li>
-							<li><a href="{{ route('finances.companies.index') }}">Empresas</a></li>
-							<li><a href="{{ route('admin.document_types.index') }}">Documentos</a></li>
-							<li><a href="{{ route('finances.payment_conditions.index') }}">Condiciones de Pago</a></li>
-						</ul>
-					</li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Recursos Humanos<span class="caret"></span></a>
-						<ul class="dropdown-menu" role="menu">
-							<li class="divider"></li>
-							<li><a href="{{ route('humanresources.employees.index') }}">Empleados</a></li>
-							<li><a href="#">Planilla</a></li>
-							<li><a href="{{ route('admin.id_types.index') }}">Documentos</a></li>
-						</ul>
-					</li>
-					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Logistica<span class="caret"></span></a>
-						<ul class="dropdown-menu" role="menu">
-							<li><a href="#">Ordenes de Compra</a></li>
-							<li><a href="{{ route('logistics.purchases.index') }}">Compras</a></li>
-							<li><a href="#">algo</a></li>
-							<li class="divider"></li>
-							<li><a href="{{ route('logistics.brands.index') }}">Marca</a></li>
-						</ul>
-					</li>
+					@include('guard.nav')
+					@include('storage.nav')
+					@include('sales.nav')
+					@include('autorepair.nav')
+					@include('finances.nav')
+					@include('humanresources.nav')
+					@include('logistics.nav')
 				</ul>
+
 				@endif
 
 				<ul class="nav navbar-nav navbar-right">
-					@if (Auth::guest())
-						<li><a href="{{ url('/auth/login') }}">Login</a></li>
-						@if(1==0)
-						<li><a href="{{ url('/auth/register') }}">Register</a></li>
-						@endif
-					@else
-						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ Auth::user()->name }} <span class="caret"></span></a>
-							<ul class="dropdown-menu" role="menu">
-								<li><a href="{{ url('/guard/change_password') }}">Cambiar Contraseña</a></li>
-								<li class="divider"></li>
-								<li><a href="{{ url('/auth/logout') }}">Salir</a></li>
-							</ul>
-						</li>
+
+				@if (Auth::guest())
+
+					<li><a href="{{ url('/auth/login') }}">Login</a></li>
+
+					@if(1==0)
+
+					<li><a href="{{ url('/auth/register') }}">Register</a></li>
+					
 					@endif
+
+				@else
+
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ Auth::user()->name }} <span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+							<li><a href="{{ url('/guard/change_password') }}">Cambiar Contraseña</a></li>
+							<li class="divider"></li>
+							<li><a href="{{ url('/auth/logout') }}">Salir</a></li>
+						</ul>
+					</li>
+
+				@endif
+
 				</ul>
 			</div>
 		</div>

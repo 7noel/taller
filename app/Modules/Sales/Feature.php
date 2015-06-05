@@ -7,7 +7,7 @@ class Feature extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['name', 'value', 'feature_group_id'];
+	protected $fillable = ['name', 'value', 'feature_group_id', 'catalog_car_id'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {
