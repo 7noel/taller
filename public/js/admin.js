@@ -51,6 +51,9 @@ $(document).ready(function () {
 	$('#lstVersions').change(function(){
 		loadYears();
 	});
+	$('#lstYears').change(function(){
+		loadPriceCar();
+	});
 
 	//pasar elementos entre dos selectores multiples
 	$('.pasar').click(function() { return !$('#origen option:selected').remove().appendTo('#destino'); });
@@ -182,7 +185,6 @@ function cargaModelos(){
 	var page = "/listarModelos/" + id;
 	if(id !==''){
 		$.get(page, function(data){
-			console.log(data);
 			$('#model_id').empty();
 			$('#model_id').append("<option value=''>Seleccionar</option>");
 			$.each(data, function (index, ModelObj) {
@@ -243,5 +245,23 @@ function loadYears () {
 		});
 	} else {
 		$('#lstYears').html("");
+	}
+}
+function loadPriceCar () {
+	var catalog_car_id = $('#lstYears option:selected').val();
+	var page = "/ajaxGetCar/" + catalog_car_id;
+	if(catalog_car_id !==''){
+		$.get(page, function(data){
+			console.log(data);
+			$('#price').val(data.price);
+			$('#set_price').val(data.price);
+			if (! ($('#currency_id').val() == data.currency_id)) {
+				$('#currency_id').val(data.currency_id);
+				$('.currency').text(data.currency.symbol);
+			}
+		});
+	} else {
+		$('#price').val('');
+		$('#set_price').val('');
 	}
 }

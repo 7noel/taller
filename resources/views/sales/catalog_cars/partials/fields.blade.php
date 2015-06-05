@@ -11,6 +11,14 @@
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
+						{!! Form::label('version_id','Modelo / Versión', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-10">
+							<div class="form-inline">
+							{!! Form::select('version_id',$versions,null,['class'=>'form-control']) !!}
+							</div>
+						</div>
+					</div>
+					<div class="form-group  form-group-sm">
 						{!! Form::label('cylinder','Cilindrada', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-10">
 						{!! Form::text('cylinder', null, ['class'=>'form-control']) !!}
@@ -34,11 +42,13 @@
 						{!! Form::text('fuel', null, ['class'=>'form-control']) !!}
 						</div>
 					</div>
-					<div class="form-group  form-group-sm">
-						{!! Form::label('version_id','Modelo / Versión', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
-							<div class="form-inline">
-							{!! Form::select('version_id',$versions,null,['class'=>'form-control']) !!}
-							</div>
+					<div class="form-group form-group-sm">
+						{!! Form::label('price','Precio', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-3">
+								<div class="input-group">
+									<div class="input-group-addon">US$</div>
+									<input type="hidden" name='currency_id' value='2'>
+									{!! Form::text('price', null, ['class'=>'form-control']) !!}
+								</div>
 						</div>
 					</div>

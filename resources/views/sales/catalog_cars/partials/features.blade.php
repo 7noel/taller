@@ -3,6 +3,7 @@
 @foreach($groups as $group)
 <div data-group="{{$group->id}}">
 	<button type="button" class="btn btn-success btn-xs btnAddFeature" aria-label="Left Align"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button> <span class="list-group-item-heading">{{ $group->name }}</span>
+	@if(isset($model))
 	@foreach($model->features->where('feature_group_id', $group->id) as $feature)
 
 		<?php $i++; ?>
@@ -15,6 +16,7 @@
 		</div>
 
 	@endforeach
+	@endif
 </div>
 <br>
 @endforeach

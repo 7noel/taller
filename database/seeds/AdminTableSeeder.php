@@ -128,7 +128,7 @@ class AdminTableSeeder extends Seeder {
         Unit::create(['name' => 'UNIDAD', 'symbol' => 'und', 'unit_type_id' => 4, 'value' => 1]);
 
         Currency::create(['name' => 'NUEVOS SOLES', 'symbol' => 'S/.']);
-        Currency::create(['name' => 'DOLARES AMERICANOS', 'symbol' => 'U$S']);
+        Currency::create(['name' => 'DOLARES AMERICANOS', 'symbol' => 'US$']);
 
         Exchange::create(['date' => date('Y-m-d'), 'currency_id' => 1, 'sales' => 3, 'purchase' => 3]);
 

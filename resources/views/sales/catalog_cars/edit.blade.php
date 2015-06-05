@@ -9,7 +9,7 @@
 				<div class="panel-heading panel-heading-custom">{{ config('options.' . Request::route()->getAction()['as'] .'.panel') . $model->version->modelo->name.' '.$model->version->name.' '.$model->manufacture_year.'/'.$model->model_year }}</div>
 					<div class="panel-body">
 						<ul id="myTab" class="nav nav-tabs" role="tablist">
-							<li role="presentation" class="active"><a href="#home" id="home-tab" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Compra</a></li>
+							<li role="presentation" class="active"><a href="#home" id="home-tab" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Vehículo</a></li>
 							<li role="presentation"><a href="#features" role="tab" id="features-tab" data-toggle="tab" aria-controls="features">Características</a></li>
 						</ul>
 						{!! Form::model($model, ['route'=>[ str_replace('edit', 'update', Request::route()->getAction()['as']) , $model], 'method'=>'PUT', 'class'=>'form-horizontal']) !!}

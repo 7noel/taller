@@ -6,15 +6,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Modules\Sales\CarQuoteRepo;
 use App\Modules\Sales\CatalogCarRepo;
+use App\Modules\Base\CurrencyRepo;
 
 class CarQuotesController extends Controller {
 
 	protected $repo;
 	protected $carRepo;
+	protected $currencyRepo;
 
-	public function __construct(CarQuoteRepo $repo, CatalogCarRepo $carRepo) {
+	public function __construct(CarQuoteRepo $repo, CatalogCarRepo $carRepo, CurrencyRepo $currencyRepo) {
 		$this->repo = $repo;
 		$this->carRepo = $carRepo;
+		$this->currencyRepo = $currencyRepo;
 	}
 
 	public function index()
@@ -26,7 +29,8 @@ class CarQuotesController extends Controller {
 	public function create()
 	{
 		$versions = $this->carRepo->getListVersions();
-		return view('partials.create', compact('versions'));
+		$currencies = $this->currencyRepo->getList2();
+		return view('partials.create', compact('versions', 'currencies'));
 	}
 
 	public function store()
@@ -44,7 +48,8 @@ class CarQuotesController extends Controller {
 	{
 		$model = $this->repo->findOrFail($id);
 		$cars = $this->carRepo->getListVersions();
-		return view('partials.edit', compact('model', 'cars'));
+		$currencies = $this->currencyRepo->getList2();
+		return view('partials.edit', compact('model', 'cars', 'currencies'));
 	}
 
 	public function update($id)

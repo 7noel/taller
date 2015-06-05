@@ -7,17 +7,20 @@ use Illuminate\Http\Request;
 use App\Modules\Sales\CatalogCarRepo;
 use App\Modules\Sales\VersionRepo;
 use App\Modules\Sales\FeatureGroupRepo;
+use App\Modules\Base\CurrencyRepo;
 
 class CatalogCarsController extends Controller {
 
 	protected $repo;
 	protected $versionRepo;
 	protected $featureGroupRepo;
+	protected $currencyRepo;
 
-	public function __construct(CatalogCarRepo $repo, VersionRepo $versionRepo, FeatureGroupRepo $featureGroupRepo) {
+	public function __construct(CatalogCarRepo $repo, VersionRepo $versionRepo, FeatureGroupRepo $featureGroupRepo, CurrencyRepo $currencyRepo) {
 		$this->repo = $repo;
 		$this->versionRepo = $versionRepo;
 		$this->featureGroupRepo = $featureGroupRepo;
+		$this->currencyRepo = $currencyRepo;
 	}
 
 	public function index()
@@ -30,7 +33,8 @@ class CatalogCarsController extends Controller {
 	{
 		$versions = $this->versionRepo->getList();
 		$groups = $this->featureGroupRepo->all();
-		return view('sales.catalog_cars.create', compact('versions', 'groups'));
+		$currencies = $this->currencyRepo->getList2();
+		return view('sales.catalog_cars.create', compact('versions', 'groups', 'currencies'));
 	}
 
 	public function store()
@@ -49,7 +53,8 @@ class CatalogCarsController extends Controller {
 		$model = $this->repo->findOrFail($id);
 		$versions = $this->versionRepo->getList();
 		$groups = $this->featureGroupRepo->all();
-		return view('sales.catalog_cars.edit', compact('model', 'versions', 'groups'));
+		$currencies = $this->currencyRepo->getList2();
+		return view('sales.catalog_cars.edit', compact('model', 'versions', 'groups', 'currencies'));
 	}
 
 	public function update($id)
@@ -69,5 +74,10 @@ class CatalogCarsController extends Controller {
 	{
 		$ajax = $this->repo->ajaxList($version_id);
 		return \Response::json($ajax);
+	}
+	public function ajaxGetCar($catalog_car_id)
+	{
+		$model = $this->repo->getmodel();
+		return \Response::json($model->with('currency')->findOrFail($catalog_car_id));
 	}
 }
