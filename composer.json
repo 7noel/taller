@@ -11,7 +11,7 @@
 	"require-dev": {
 		"fzaninotto/faker": "v1.3.0",
 		"barryvdh/laravel-debugbar": "1.*",
-        "thujohn/pdf": "dev-master",
+        "barryvdh/laravel-dompdf": "0.5.*",
 		"phpunit/phpunit": "~4.0",
 		"phpspec/phpspec": "~2.1"
 	},

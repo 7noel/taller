@@ -13,7 +13,9 @@
 
 					{!! Form::model($model, ['route'=>[ str_replace('edit', 'update', Request::route()->getAction()['as']) , $model], 'method'=>'PUT', 'class'=>'form-horizontal']) !!}
 
+					@if(Request::url() != URL::previous())
 					<input type="hidden" name="last_page" value="{{ URL::previous() }}">
+					@endif
 					
 					@include( str_replace('edit', 'partials.fields', Request::route()->getAction()['as']) )
 					<div class="form-group">

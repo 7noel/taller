@@ -153,7 +153,7 @@ return [
 		 * Otros
 		 */
 		'Barryvdh\Debugbar\ServiceProvider',
-		'Thujohn\Pdf\PdfServiceProvider',
+		'Barryvdh\DomPDF\ServiceProvider',
 		/**
 		*   ***MI APP PROVIDERS ***
 		*/
@@ -215,7 +215,7 @@ return [
 		 */
 		'Debugbar' => 'Barryvdh\Debugbar\Facade',
 		'Carbon' => 'Carbon\Carbon',
-		'PDF' => 'Thujohn\Pdf\PdfFacade',
+		'PDF' => 'Barryvdh\DomPDF\Facade',
 
 	],
 

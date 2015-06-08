@@ -39,7 +39,7 @@ class CompaniesController extends Controller {
 	{
 		$data = \Request::all();
 		$this->repo->save($data);
-		if ($data['last_page'] != '') {
+		if (isset($data['last_page']) && $data['last_page'] != '') {
 			return \Redirect::to($data['last_page']);
 		}
 		return \Redirect::route('finances.companies.index');
@@ -65,7 +65,7 @@ class CompaniesController extends Controller {
 	{
 		$data = \Request::all();
 		$this->repo->save($data, $id);
-		if ($data['last_page'] != '') {
+		if (isset($data['last_page']) && $data['last_page'] != '') {
 			return \Redirect::to($data['last_page']);
 		}
 		return \Redirect::route('finances.companies.index');
