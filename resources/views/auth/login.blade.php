@@ -43,6 +43,7 @@
 								<a class="btn btn-link" href="{{ url('/password/email') }}">¿Olvidaste tu Contraseña?</a>
 							</div>
 						</div>
+
 					</form>
 				</div>
 			</div>

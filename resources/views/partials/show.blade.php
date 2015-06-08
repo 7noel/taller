@@ -10,21 +10,17 @@
 
 				<div class="panel-body">
 					@include('partials.messages')
-
-					{!! Form::model($model, ['route'=>[ str_replace('edit', 'update', Request::route()->getAction()['as']) , $model], 'method'=>'PUT', 'class'=>'form-horizontal']) !!}
-
-					<input type="hidden" name="last_page" value="{{ URL::previous() }}">
+					{!! Form::model($model, ['route' => str_replace('show', 'index', Request::route()->getAction()['as']), 'class'=>'form-horizontal']) !!}
 					
-					@include( str_replace('edit', 'partials.fields', Request::route()->getAction()['as']) )
+					@include( str_replace('show', 'partials.fields', Request::route()->getAction()['as']) )
 					<div class="form-group">
 						<div class="col-sm-offset-2 col-sm-10">
-							<button type="submit" class="btn btn-primary">{{ config('options.' . Request::route()->getAction()['as'] .'.update') }}</button>
+							<a href="{{ URL::previous() }}" class="btn btn-primary">Regresar</a>
 						</div>
 					</div>
 					{!! Form::close() !!}
 				</div>
 			</div>
-			@include('partials.delete')
 		</div>
 	</div>
 </div>

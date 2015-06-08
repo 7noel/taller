@@ -23,4 +23,8 @@ class WarehouseRepo extends BaseRepo{
 		$ajax = Warehouse::select('id','name')->get();
 		return $ajax;
 	}
+	public function getList($name='name', $id='id')
+	{
+		return [""=>"Alm"] + $this->model->lists($name, $id);
+	}
 }

@@ -8,8 +8,8 @@
 							<li class="divider"></li>
 							<li><a href="{{ route('sales.car_quotes.index') }}">Cotización</a></li>
 							<li><a href="{{ route('sales.catalog_cars.index') }}">Catálogo de Vehículos</a></li>
-							<li><a href="{{ route('sales.modelos.index') }}">Modelos</a></li>
 							<li><a href="{{ route('sales.versions.index') }}">Versiones</a></li>
+							<li><a href="{{ route('sales.modelos.index') }}">Modelos</a></li>
 							<li><a href="{{ route('sales.colors.index') }}">Colores</a></li>
 							<li><a href="{{ route('sales.features.index') }}">Especificaciones</a></li>
 							<li><a href="{{ route('sales.feature_groups.index') }}">Grupo de Especificaciones</a></li>

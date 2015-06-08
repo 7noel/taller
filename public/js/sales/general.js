@@ -3,6 +3,16 @@ $(document).ready(function(){
 		var div = $(this).parent();
 		addFeature(div);
 	});
+	$('.edit').click(function(e){
+		e.preventDefault();
+		company_id = $('#company_id').val();
+		if (company_id > 0) {
+			var url = $(this).attr('href').replace(':_ID', company_id);
+			window.location = url;
+		} else{
+			$('#txtcompany').focus();
+		}
+	});
 });
 function addFeature (div) {
 	var group = div.data('group');

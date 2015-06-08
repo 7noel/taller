@@ -1,3 +1,14 @@
+body {
+  background: #c3c3c3 url('/img/fondo-Honda31.jpg') no-repeat  center center;
+  background-size: auto;
+}
+.panel > .panel-heading-custom {
+    background-image: none;
+    background-color: black;
+    color: white;
+    border-color: black;
+}
+
 .feature .name{
 	width: 40em;
 	padding: 0 10px;

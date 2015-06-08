@@ -6231,24 +6231,3 @@ label,
 .checkbox label {
   font-weight: 300;
 }
-.container-nav-horizontal{
-  float: left;
-}
-.container-nav-horizontal .nav-stacked{
-  width: 100%;
-}
-@media (max-width: 1000px) {
-  .container-nav-horizontal{
-      display: none;
-  }
-}
-.inline{
-  display: inline;
-}
-.panel-default > .panel-heading-custom {
-    background: #222222; color: #fff;
-}
-/*body{
-  background: url("/img/honda-logo.jpg") no-repeat center center fixed;
-  background-size: cover;
-}*/

@@ -37,13 +37,20 @@ class CompaniesController extends Controller {
 
 	public function store(FormCompanyRequest $request)
 	{
-		$this->repo->save(\Request::all());
+		$data = \Request::all();
+		$this->repo->save($data);
+		if ($data['last_page'] != '') {
+			return \Redirect::to($data['last_page']);
+		}
 		return \Redirect::route('finances.companies.index');
 	}
 
 	public function show($id)
 	{
-		//
+		$id_types = $this->idTypeRepo->getList('symbol');
+		$model = $this->repo->findOrFail($id);
+		$ubigeo = $this->ubigeoRepo->listUbigeo($model->ubigeo_id);
+		return view('partials.show', compact('model', 'id_types', 'ubigeo'));
 	}
 
 	public function edit($id)
@@ -56,7 +63,11 @@ class CompaniesController extends Controller {
 
 	public function update($id, FormCompanyRequest $request)
 	{
-		$this->repo->save(\Request::all(), $id);
+		$data = \Request::all();
+		$this->repo->save($data, $id);
+		if ($data['last_page'] != '') {
+			return \Redirect::to($data['last_page']);
+		}
 		return \Redirect::route('finances.companies.index');
 	}
 

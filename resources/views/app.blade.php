@@ -8,10 +8,10 @@
 	{!! Html::style('css/app.css') !!}
 	{!! Html::style('css/autocomplete.css') !!}
 	{!! Html::style('css/others.css') !!}
+	{!! Html::style('//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css') !!}
 
 	<!-- Fonts -->
-	<link href='//fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	{!! Html::style('//fonts.googleapis.com/css?family=Roboto:400,300') !!}
 
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -80,14 +80,22 @@
 			</div>
 		</div>
 	</nav>
+
 	@yield('content')
 	<!-- Scripts -->
-	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js"></script>
-	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	{!! Html::script('//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js') !!}
+	{!! Html::script('//code.jquery.com/ui/1.11.4/jquery-ui.js') !!}
+	{!! Html::script('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js') !!}
+	<script>
+	/*$(function () {
+		$('[data-toggle="tooltip"]').tooltip()
+	})*/
+	</script>
 	{!! Html::script('js/moment.js') !!}
 	{!! Html::script('js/admin.js') !!}
 	{!! Html::script('js/delete.js') !!}
+
+	{!! Html::script('js/sales/general.js') !!}
 	
 	{!! Html::script('js/modal.js') !!}
 	@yield('scripts')

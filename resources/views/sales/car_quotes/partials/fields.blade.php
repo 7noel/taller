@@ -4,11 +4,14 @@
 							<div class="input-group">
 								{!! Form::hidden('company_id', null, ['id'=>'company_id']) !!}
 								{!! Form::text('company', null, ['class'=>'form-control', 'id'=>'txtcompany']) !!}
-								<a href="#" type="button" class="btn btn-info btn-xs input-group-addon" aria-label="Left Align">
+								<a href="{{ route('finances.companies.show',':_ID') }}" class="btn btn-info btn-xs input-group-addon edit" aria-label="Left Align">
 									<span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
 								</a>
-								<a href="#" type="button" class="btn btn-success btn-xs input-group-addon" aria-label="Left Align">
-									<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+								<a href="{{ route('finances.companies.edit',':_ID') }}" class="btn btn-primary btn-xs input-group-addon edit" aria-label="Left Align">
+									<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+								</a>
+								<a href="{{ route('finances.companies.create') }}" class="btn btn-success btn-xs input-group-addon" aria-label="Left Align">
+									<div href="#"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></div>
 								</a>
 							</div>
 						</div>

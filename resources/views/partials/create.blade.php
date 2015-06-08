@@ -9,8 +9,10 @@
 
 				<div class="panel-body">
 					@include('partials.messages')
-
+					
 					{!! Form::open(['route'=> str_replace('create', 'store', Request::route()->getAction()['as']) , 'method'=>'POST', 'class'=>'form-horizontal']) !!}
+
+					<input type="hidden" name="last_page" value="{{ URL::previous() }}">
 
 					@include( str_replace('create', 'partials.fields', Request::route()->getAction()['as']) )
 					<div class="form-group">
