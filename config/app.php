@@ -154,6 +154,7 @@ return [
 		 */
 		'Barryvdh\Debugbar\ServiceProvider',
 		'Barryvdh\DomPDF\ServiceProvider',
+		'Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider',
 		/**
 		*   ***MI APP PROVIDERS ***
 		*/
