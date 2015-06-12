@@ -25,6 +25,6 @@ class WarehouseRepo extends BaseRepo{
 	}
 	public function getList($name='name', $id='id')
 	{
-		return [""=>"Alm"] + $this->model->lists($name, $id);
+		return [""=>"Alm"] + $this->model->lists($name, $id)->toArray();
 	}
 }

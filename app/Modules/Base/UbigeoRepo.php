@@ -11,16 +11,16 @@ class UbigeoRepo extends BaseRepo{
 	}
 	public function listDepartamentos()
 	{
-		return Ubigeo::groupBy('departamento')->lists('departamento','departamento');
+		return Ubigeo::groupBy('departamento')->lists('departamento','departamento')->toArray();
 	}
 	public function listProvincias($departamento='LIMA')
 	{
-		$provincias = Ubigeo::where('departamento','=',$departamento)->groupBy('provincia')->lists('provincia','provincia');
+		$provincias = Ubigeo::where('departamento','=',$departamento)->groupBy('provincia')->lists('provincia','provincia')->toArray();
 		return $provincias;
 	}
 	public function listDistritos($provincia='LIMA')
 	{
-		$distritos = Ubigeo::where('provincia','=',$provincia)->groupBy('distrito')->lists('distrito','id');
+		$distritos = Ubigeo::where('provincia','=',$provincia)->groupBy('distrito')->lists('distrito','id')->toArray();
 		return $distritos;
 	}
 	public function listUbigeo($id=0)
@@ -41,9 +41,9 @@ class UbigeoRepo extends BaseRepo{
 			$ubigeo['provincia'] = $this->listProvincias($ubi->departamento);
 			$ubigeo['distrito'] = $this->listDistritos($ubi->provincia);
 		}
-		$ubigeo['departamento'] = ['' => 'SELECCIONAR'] + $ubigeo['departamento'];
-		$ubigeo['provincia'] = ['' => 'SELECCIONAR'] + $ubigeo['provincia'];
-		$ubigeo['distrito'] = ['' => 'SELECCIONAR'] + $ubigeo['distrito'];
+		$ubigeo['departamento'] = ['' => 'Seleccionar'] + $ubigeo['departamento'];
+		$ubigeo['provincia'] = ['' => 'Seleccionar'] + $ubigeo['provincia'];
+		$ubigeo['distrito'] = ['' => 'Seleccionar'] + $ubigeo['distrito'];
 		return $ubigeo;
 	}
 	public function ajaxProvincias($departamento)

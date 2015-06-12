@@ -42,7 +42,7 @@ class ProductsController extends Controller {
 	{
 		$categories = $this->categoryRepo->getList();
 		$unit_types = $this->unitTypeRepo->getList();
-		$currencies = $this->currencyRepo->getList2();
+		$currencies = $this->currencyRepo->getList('symbol');
 		return view('partials.create', compact('categories', 'unit_types', 'currencies'));
 	}
 
@@ -62,7 +62,7 @@ class ProductsController extends Controller {
 		$model = $this->repo->findOrFail($id);
 		$categories = $this->categoryRepo->getList();
 		$unit_types = $this->unitTypeRepo->getList();
-		$currencies = $this->currencyRepo->getList2();
+		$currencies = $this->currencyRepo->getList('symbol');
 
 		$sub_categories = $this->subCategoryRepo->getList2($model->sub_category->category_id);
 		$units = $this->unitRepo->getList2($model->unit->unit_type_id);
@@ -71,13 +71,9 @@ class ProductsController extends Controller {
 
 	public function update($id, FormProductRequest $request)
 	{
-		$a=[1,2,3];
-		$b=[2,3];
-		//dd(array_diff($b, $a));
 		$data = $request->all();
 		$data['id']=$id;
 		$data = $this->repo->prepareData($data);
-		//dd($data);
 		$this->repo->save($data,$id);
 		return \Redirect::route('storage.products.index');
 	}
@@ -95,7 +91,6 @@ class ProductsController extends Controller {
 		ini_set('memory_limit','1024M');
 		$models = $this->repo->autocomplete($term,$warehouse_id);
 		$result=[];
-		//dd($models);
 		foreach ($models as $model) {
 			$result[]=[
 				'value' => $model->name,

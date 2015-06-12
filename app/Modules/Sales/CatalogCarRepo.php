@@ -32,7 +32,6 @@ class CatalogCarRepo extends BaseRepo{
 	public function ajaxList($version_id)
 	{
 		$ajax = CatalogCar::select('id','manufacture_year','model_year')->where('version_id','=',$version_id)->get();
-		//$ajax = CatalogCar::where('version_id','=',$version_id)->get();
 		return $ajax;
 	}
 }

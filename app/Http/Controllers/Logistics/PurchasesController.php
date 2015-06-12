@@ -38,7 +38,7 @@ class PurchasesController extends Controller {
 	public function create()
 	{
 		$document_types = $this->documentTypeRepo->getList();
-		$currencies = $this->currencyRepo->getList2();
+		$currencies = $this->currencyRepo->getList();
 		$payment_conditions = $this->paymentConditionRepo->getList();
 		$warehouses = $this->warehouseRepo->getList('id','id');
 		$items = 0;
@@ -61,7 +61,7 @@ class PurchasesController extends Controller {
 	{
 		$model = $this->repo->findOrFail($id);
 		$document_types = $this->documentTypeRepo->getList();
-		$currencies = $this->currencyRepo->getList2();
+		$currencies = $this->currencyRepo->getList();
 		$payment_conditions = $this->paymentConditionRepo->getList();
 		$warehouses = $this->warehouseRepo->getList('id','id');
 		$items = 0;

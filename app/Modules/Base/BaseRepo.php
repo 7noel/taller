@@ -11,7 +11,7 @@ abstract class BaseRepo{
 	}
 	public function newModel()
 	{
-		$model = new $this->model();
+		$model = $this->getModel();
 		return $model;
 	}
 
@@ -38,7 +38,7 @@ abstract class BaseRepo{
 
 	public function getList($name='name', $id='id')
 	{
-		return [""=>"Seleccionar"] + $this->model->lists($name, $id);
+		return $list = [""=>'Seleccionar'] + $this->model->lists($name, $id)->toArray();
 	}
 	public function all_with_deleted()
 	{

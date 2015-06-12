@@ -20,7 +20,7 @@ class SubCategoryRepo extends BaseRepo{
 	}
 	public function getList2($category_id)
 	{
-		return [''=>'SELECCIONAR'] + SubCategory::where('category_id',$category_id)->lists('name', 'id');
+		return [''=>'SELECCIONAR'] + SubCategory::where('category_id',$category_id)->lists('name', 'id')->toArray();
 	}
 	public function ajaxList($category_id)
 	{

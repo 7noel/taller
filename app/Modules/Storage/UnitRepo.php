@@ -24,7 +24,7 @@ class UnitRepo extends BaseRepo{
 	}
 	public function getList2($unit_type)
 	{
-		return [''=>'SELECCIONAR'] + Unit::where('unit_type_id',$unit_type)->lists('name', 'id');
+		return [''=>'SELECCIONAR'] + Unit::where('unit_type_id',$unit_type)->lists('name', 'id')->toArray();
 	}
 	public function ajaxList($unit_type_id)
 	{

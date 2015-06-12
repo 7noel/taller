@@ -20,10 +20,10 @@ class ColorRepo extends BaseRepo{
 	}
 	public function getListIn($name='name', $id='id')
 	{
-		return [""=>"Seleccionar"] + Color::where('in',true)->lists($name, $id);
+		return [""=>"Seleccionar"] + Color::where('in',true)->lists($name, $id)->toArray();
 	}
 	public function getListOut($name='name', $id='id')
 	{
-		return [""=>"Seleccionar"] + Color::where('out',true)->lists($name, $id);
+		return [""=>"Seleccionar"] + Color::where('out',true)->lists($name, $id)->toArray();
 	}
 }
