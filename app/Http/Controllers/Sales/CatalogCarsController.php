@@ -33,7 +33,6 @@ class CatalogCarsController extends Controller {
 	{
 		$versions = $this->versionRepo->getList();
 		$groups = $this->featureGroupRepo->all();
-		$currencies = $this->currencyRepo->getList2();
 		return view('sales.catalog_cars.create', compact('versions', 'groups', 'currencies'));
 	}
 
@@ -53,7 +52,6 @@ class CatalogCarsController extends Controller {
 		$model = $this->repo->findOrFail($id);
 		$versions = $this->versionRepo->getList();
 		$groups = $this->featureGroupRepo->all();
-		$currencies = $this->currencyRepo->getList2();
 		return view('sales.catalog_cars.edit', compact('model', 'versions', 'groups', 'currencies'));
 	}
 
