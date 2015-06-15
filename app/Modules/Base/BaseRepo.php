@@ -9,11 +9,6 @@ abstract class BaseRepo{
 	public function __construct() {
 		$this->model = $this->getModel();
 	}
-	public function newModel()
-	{
-		$model = $this->getModel();
-		return $model;
-	}
 
 	abstract public function getModel();
 	
@@ -117,5 +112,18 @@ abstract class BaseRepo{
 			}
 		}
 		return true;
+	}
+
+	public function saveFile($folder = '', $file, $nameOld = '')
+	{
+		
+		$name = $file->getClientOriginalName();
+		if ($nameOld == '') {
+			$nameOld = $name;
+		}
+		if (\Storage::exists($folder.'/'.$nameOld)) {
+			\Storage::delete($folder.'/'.$nameOld);
+		}
+		\Storage::disk('local')->put('img/'.$name,  \File::get($file));
 	}
 }

@@ -11,11 +11,19 @@ class CatalogCarRepo extends BaseRepo{
 	}
 	public function save($data, $id=0)
 	{
+		/*if ($id>0) {
+			$nameOld = CatalogCar::find($id)->image;
+		}*/
+		$nameOld = ($id>0) ? CatalogCar::find($id)->image : '' ;
 		$model = parent::save($data, $id);
 		if (isset($data['features'])) {
 			$featureRepo= new FeatureRepo;
 			$featureRepo->saveMany($data['features'], ['key'=>'catalog_car_id', 'value'=>$model->id]);
 		}
+		if (isset($data['image'])) {
+			$this->saveFile('img', $data['image'], $nameOld);
+		}
+
 		return $model;
 	}
 
@@ -33,5 +41,16 @@ class CatalogCarRepo extends BaseRepo{
 	{
 		$ajax = CatalogCar::select('id','manufacture_year','model_year')->where('version_id','=',$version_id)->get();
 		return $ajax;
+	}
+
+	public function prepareData($data)
+	{
+		if (isset($data['image'])) {
+			$data['image'] = $data['image']->getClientOriginalName();
+		} else {
+			unset($data['image']);
+		}
+		
+		return $data;
 	}
 }
