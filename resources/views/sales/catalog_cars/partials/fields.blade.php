@@ -55,6 +55,16 @@
 					<div class="form-group  form-group-sm">
 						{!! Form::label('image','Foto', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-10">
-						{!! Form::file('image', ['class'=>'form-control', 'accept'=>'image/*']) !!}
+						{!! Form::file('image', ['class'=>'form-control', 'accept'=>'image/*', 'id'=>'file_img_preview']) !!}
+						</div>
+					</div>
+					<div class="form-group  form-group-sm">
+						{!! Form::label('image',' ', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-10">
+							@if(isset($model->image) and $model->image!='')
+							<img id="img_preview" src="{{ '/storage/img/'.$model->image }}" alt=""  class="col-sm-10">
+							@else
+							<img id="img_preview" src="" alt=""  class="col-sm-10">
+							@endif
 						</div>
 					</div>

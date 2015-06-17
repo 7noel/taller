@@ -68,6 +68,7 @@ Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespa
 	Route::resource('colors','ColorsController');
 	Route::resource('features','FeaturesController');
 	Route::resource('feature_groups','FeatureGroupsController');
+	Route::get('car_quotes/pdf/{id}', ['as' => 'pdf_quote', 'uses' => 'CarQuotesController@pdf']);
 	Route::resource('car_quotes','CarQuotesController');
 });
 Route::group(['prefix'=>'storage', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Storage'], function(){

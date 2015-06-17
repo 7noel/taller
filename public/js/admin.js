@@ -54,7 +54,10 @@ $(document).ready(function () {
 	$('#lstYears').change(function(){
 		loadPriceCar();
 	});
-
+	//cargar vista previa imagen
+	$("#file_img_preview").change(function(){
+		mostrarImagen(this);
+	});
 	//pasar elementos entre dos selectores multiples
 	$('.pasar').click(function() { return !$('#origen option:selected').remove().appendTo('#destino'); });
 	$('.quitar').click(function() { return !$('#destino option:selected').remove().appendTo('#origen'); });
@@ -263,5 +266,14 @@ function loadPriceCar () {
 	} else {
 		$('#price').val('');
 		$('#set_price').val('');
+	}
+}
+function mostrarImagen(input) {
+	if (input.files && input.files[0]) {
+		var reader = new FileReader();
+		reader.onload = function (e) {
+			$('#img_preview').attr('src', e.target.result);
+		}
+		reader.readAsDataURL(input.files[0]);
 	}
 }

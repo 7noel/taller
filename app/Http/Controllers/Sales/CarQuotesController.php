@@ -29,7 +29,7 @@ class CarQuotesController extends Controller {
 	public function create()
 	{
 		$versions = $this->carRepo->getListVersions();
-		$currencies = $this->currencyRepo->getList2();
+		$currencies = $this->currencyRepo->getList();
 		return view('partials.create', compact('versions', 'currencies'));
 	}
 
@@ -48,7 +48,7 @@ class CarQuotesController extends Controller {
 	{
 		$model = $this->repo->findOrFail($id);
 		$cars = $this->carRepo->getListVersions();
-		$currencies = $this->currencyRepo->getList2();
+		$currencies = $this->currencyRepo->getList();
 		return view('partials.edit', compact('model', 'cars', 'currencies'));
 	}
 
@@ -63,5 +63,18 @@ class CarQuotesController extends Controller {
 		$model = $this->repo->destroy($id);
 		if (\Request::ajax()) {	return $model; }
 		return redirect()->route('sales.car_quotes.index');
+	}
+
+	/**
+	 * CREA UN PDF EN EL NAVEGADOR
+	 * @param  [integer] $id [Es el id de la cotizacion]
+	 * @return [pdf]     [Retorna un pdf]
+	 */
+	public function pdf($id)
+	{
+		$quote = $this->repo->findOrFail($id);
+		$pdf = \PDF::loadView('pdfs.car_quote', compact('quote'));
+
+		return $pdf->stream();
 	}
 }

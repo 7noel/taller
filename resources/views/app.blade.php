@@ -86,17 +86,10 @@
 	{!! Html::script('//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js') !!}
 	{!! Html::script('//code.jquery.com/ui/1.11.4/jquery-ui.js') !!}
 	{!! Html::script('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js') !!}
-	<script>
-	/*$(function () {
-		$('[data-toggle="tooltip"]').tooltip()
-	})*/
-	</script>
 	{!! Html::script('js/moment.js') !!}
+
 	{!! Html::script('js/admin.js') !!}
 	{!! Html::script('js/delete.js') !!}
-
-	{!! Html::script('js/sales/general.js') !!}
-	
 	{!! Html::script('js/modal.js') !!}
 	@yield('scripts')
 </body>
