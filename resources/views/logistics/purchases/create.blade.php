@@ -38,6 +38,6 @@
 
 @section('scripts')
 
-{!! Html::script('js/purchases/general.js') !!}
+@include( str_replace('create', 'scripts', Request::route()->getAction()['as']) )
 
 @endsection

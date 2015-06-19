@@ -1,0 +1,1 @@
+{!! Html::script('js/finances/companies.js') !!}

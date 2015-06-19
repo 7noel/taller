@@ -39,6 +39,6 @@
 
 @section('scripts')
 
-{!! Html::script('js/sales/general.js') !!}
+@include( str_replace('edit', 'scripts', Request::route()->getAction()['as']) )
 
 @endsection

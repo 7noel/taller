@@ -5,7 +5,7 @@ $(document).ready(function(){
 	});
 	$('.edit').click(function(e){
 		e.preventDefault();
-		company_id = $('#company_id').val();
+		company_id = parseFloat($('#company_id').val());
 		if (company_id > 0) {
 			var url = $(this).attr('href').replace(':_ID', company_id);
 			window.location = url;

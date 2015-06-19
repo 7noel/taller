@@ -90,7 +90,7 @@
 
 	{!! Html::script('js/admin.js') !!}
 	{!! Html::script('js/delete.js') !!}
-	{!! Html::script('js/modal.js') !!}
+
 	@yield('scripts')
 </body>
 </html>

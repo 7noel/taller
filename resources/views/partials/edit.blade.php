@@ -34,6 +34,6 @@
 
 @section('scripts')
 
-
+@include( str_replace('edit', 'scripts', Request::route()->getAction()['as']) )
 
 @endsection
