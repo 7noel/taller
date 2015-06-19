@@ -1,4 +1,4 @@
-<br>
+					<br>
 					<div class="form-group  form-group-sm">
 						{!! Form::label('manufacture_year','Año Fabricación', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
