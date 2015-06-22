@@ -1,0 +1,46 @@
+body{
+	font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+	font-size: 12px;
+}
+
+.logo{
+	display: inline-block;
+}
+.date{
+	display: inline-block;
+	position:absolute;
+	right: 0;
+}
+.greeting p span{
+	color: red;
+	font-weight: bold;
+}
+.features-primary{
+	display: inline-block;
+	width: 300px;
+}
+.features-primary strong{
+	display: inline-block;
+	width: 150px;
+}
+.image-car{
+	display: inline-block;
+	position: absolute;
+	width: 400px;
+	right: 0;
+}
+.image-car img{
+	width: 100%;
+	height: 100%;
+}
+.features-1{
+	background-color: none;
+}
+.features-1-left{
+	display: inline-block;
+	width:350px;
+}
+.features-1-right{
+	display: inline-block;
+	width:349px;
+}

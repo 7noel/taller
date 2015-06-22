@@ -7,17 +7,20 @@ use Illuminate\Http\Request;
 use App\Modules\Sales\CarQuoteRepo;
 use App\Modules\Sales\CatalogCarRepo;
 use App\Modules\Base\CurrencyRepo;
+use App\Modules\Sales\FeatureGroupRepo;
 
 class CarQuotesController extends Controller {
 
 	protected $repo;
 	protected $carRepo;
 	protected $currencyRepo;
+	protected $featureGroupRepo;
 
-	public function __construct(CarQuoteRepo $repo, CatalogCarRepo $carRepo, CurrencyRepo $currencyRepo) {
+	public function __construct(CarQuoteRepo $repo, CatalogCarRepo $carRepo, CurrencyRepo $currencyRepo, FeatureGroupRepo $featureGroupRepo) {
 		$this->repo = $repo;
 		$this->carRepo = $carRepo;
 		$this->currencyRepo = $currencyRepo;
+		$this->featureGroupRepo = $featureGroupRepo;
 	}
 
 	public function index()
@@ -47,9 +50,9 @@ class CarQuotesController extends Controller {
 	public function edit($id)
 	{
 		$model = $this->repo->findOrFail($id);
-		$cars = $this->carRepo->getListVersions();
-		$currencies = $this->currencyRepo->getList();
-		return view('partials.edit', compact('model', 'cars', 'currencies'));
+		$versions = $this->carRepo->getListVersions();
+		$years = $this->carRepo->getListYears($model->catalog_car->version_id);
+		return view('partials.edit', compact('model', 'versions', 'years'));
 	}
 
 	public function update($id)
@@ -73,7 +76,9 @@ class CarQuotesController extends Controller {
 	public function pdf($id)
 	{
 		$quote = $this->repo->findOrFail($id);
-		$pdf = \PDF::loadView('pdfs.car_quote', compact('quote'));
+		$groups = $this->featureGroupRepo->byCatalogCar($quote->catalog_car_id);
+		//return view('pdfs.car_quote', compact('quote', 'groups'));
+		$pdf = \PDF::loadView('pdfs.car_quote', compact('quote', 'groups'));
 
 		return $pdf->stream();
 	}

@@ -10,7 +10,7 @@
 					<div class="form-group form-group-sm div_ruc">
 						{!! Form::label('company_name','Razón Social', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-4">
-						{!! Form::text('company_name', null, ['class'=>'form-control', 'required']) !!}
+						{!! Form::text('company_name', null, ['class'=>'form-control']) !!}
 						</div>
 						{!! Form::label('brand_name','Nombre Comercial', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-4">
@@ -20,13 +20,13 @@
 					<div class="form-group form-group-sm div_dni">
 						{!! Form::label('name','Nombre Completo', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
-							{!! Form::text('paternal_surname', null, ['class'=>'form-control', 'placeholder'=>'Apellido Paterno', 'required']) !!}
+							{!! Form::text('paternal_surname', null, ['class'=>'form-control', 'placeholder'=>'Apellido Paterno']) !!}
 						</div>
 						<div class="col-sm-3">
-							{!! Form::text('maternal_surname', null, ['class'=>'form-control', 'placeholder'=>'Apellido Materno', 'required']) !!}
+							{!! Form::text('maternal_surname', null, ['class'=>'form-control', 'placeholder'=>'Apellido Materno']) !!}
 						</div>
 						<div class="col-sm-3">
-							{!! Form::text('name', null, ['class'=>'form-control', 'placeholder'=>'Nombre', 'required']) !!}
+							{!! Form::text('name', null, ['class'=>'form-control', 'placeholder'=>'Nombre']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">

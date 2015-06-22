@@ -3,7 +3,7 @@
 						<div class="col-sm-10">
 							<div class="input-group">
 								{!! Form::hidden('company_id', null, ['id'=>'company_id']) !!}
-								{!! Form::text('company', null, ['class'=>'form-control', 'id'=>'txtcompany', 'required']) !!}
+								{!! Form::text('company', ((isset($model->company_id)) ? $model->company->company_name : null), ['class'=>'form-control', 'id'=>'txtcompany', 'required']) !!}
 								<a href="{{ route('finances.companies.show',':_ID') }}" class="btn btn-info btn-xs input-group-addon edit" aria-label="Left Align">
 									<span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
 								</a>
@@ -19,7 +19,7 @@
 					<div class="form-group  form-group-sm">
 						{!! Form::label('version_id','Modelo/Version', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
-							{!! Form::select('version_id',$versions,null,['class'=>'form-control', 'id'=>'lstVersions', 'required']) !!}
+							{!! Form::select('version_id',$versions, ((isset($model->catalog_car_id)) ? $model->catalog_car->version_id : null),['class'=>'form-control', 'id'=>'lstVersions', 'required']) !!}
 						</div>
 						{!! Form::label('catalog_car_id','Fabricación/Modelo', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">

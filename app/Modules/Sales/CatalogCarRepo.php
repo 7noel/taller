@@ -43,6 +43,16 @@ class CatalogCarRepo extends BaseRepo{
 		return $ajax;
 	}
 
+	public function getListYears($version_id)
+	{
+		$cars = CatalogCar::where('version_id',$version_id)->get();
+		$data[''] = 'Seleccionar';
+		foreach ($cars as $key => $car) {
+			$data[$car->id] = $car->manufacture_year.' / '.$car->model_year;
+		}
+		return $data;
+	}
+
 	public function prepareData($data)
 	{
 		if (isset($data['image'])) {

@@ -2,6 +2,7 @@
 
 use App\Modules\Base\BaseRepo;
 use App\Modules\Sales\FeatureGroup;
+use App\Modules\Sales\Feature;
 
 class FeatureGroupRepo extends BaseRepo{
 
@@ -17,5 +18,11 @@ class FeatureGroupRepo extends BaseRepo{
 				"in"=>"INTERIOR",
 				"out"=>"EXTERIOR"
 			];
+	}
+
+	public function byCatalogCar($catalog_car_id)
+	{
+		$ids = Feature::select('feature_group_id')->where('catalog_car_id', $catalog_car_id)->groupBy('feature_group_id')->lists('feature_group_id');
+		return FeatureGroup::whereIn('id', $ids)->get();
 	}
 }
