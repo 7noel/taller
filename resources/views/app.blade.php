@@ -40,13 +40,25 @@
 				@if( !Auth::guest() )
 
 				<ul class="nav navbar-nav">
-					@include('guard.nav')
-					@include('storage.nav')
-					@include('sales.nav')
-					@include('autorepair.nav')
-					@include('finances.nav')
-					@include('humanresources.nav')
-					@include('logistics.nav')
+					@inject('menu','App\Http\Controllers\MenuController')
+					@foreach($menu->links() as $modulo => $links)
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{ $modulo }}<span class="caret"></span></a>
+							<ul class="dropdown-menu" role="menu">
+							@foreach($links as $link)
+								@if(isset($link['div']))
+								<li class="divider"></li>
+								@endif
+								@if(isset($link['route']))
+								<li><a href="{{ route( $link['route'] ) }}">{{ $link['name'] }}</a></li>
+								@else
+								<li><a href="{{ $link['url'] }}">{{ $link['name'] }}</a></li>
+								@endif
+							@endforeach
+							</ul>
+						</li>
+					@endforeach
+
 				</ul>
 
 				@endif
