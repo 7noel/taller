@@ -68,12 +68,13 @@
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
-						{!! Form::label('is_provider','Proveedor', ['class'=>'col-sm-2 control-label']) !!}
-						<label class="radio-inline">
-							{!! Form::radio('is_provider', '1', null, ['id'=>'is_provider1']) !!} SI
-						</label>
-						<label class="radio-inline">
-							{!! Form::radio('is_provider', '0', null, ['id'=>'is_provider2']) !!} NO
-						</label>
+						{!! Form::label('is_provider','Opciones', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-10">
+							<div class="checkbox">
+								<label>
+									{!! Form::checkbox('is_provider', '1', null,['class'=>'checkbox']) !!} Proveedor
+								</label>
+							</div>
+						</div>
 					</div>
 					

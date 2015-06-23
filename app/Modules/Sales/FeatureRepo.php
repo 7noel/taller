@@ -24,7 +24,7 @@ class FeatureRepo extends BaseRepo{
 			$data[$k['key']] = $k['value'];
 			if (isset($data['id'])) {
 				$model = $this->findOrFail($data['id']);
-				if (trim($data['name']) == '') {
+				if (trim($data['name']) == '' and  trim($data['value']) == '') {
 					$model->delete();
 				} else {					
 					$model->fill($data);
@@ -32,7 +32,7 @@ class FeatureRepo extends BaseRepo{
 				}
 				
 			} else {
-				if (trim($data['name']) != '') {
+				if (trim($data['name']) != '' or trim($data['value']) != '') {
 					Feature::create($data);
 				}
 			}

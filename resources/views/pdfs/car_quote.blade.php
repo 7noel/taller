@@ -67,7 +67,7 @@
 				@foreach($groups->where('template', 'primaryRight') as $group)
 				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
-					{{ $feature->name }} <br>
+					<span class="name">{{ $feature->name }}</span> <span class="value">{{ $feature->value }}</span><br>
 					@endforeach
 				@endforeach
 			</div>
