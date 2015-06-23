@@ -10,12 +10,12 @@
 				<div class="panel-body">
 					<div class="row">
 						<div class="col-xs-6 col-md-3">
-							<a href="{{ route('finances.companies.index') }}" class="thumbnail">EMPRESAS
+							<a href="{{ route('finances.companies.index') }}" class="thumbnail">CLIENTES
 								<img src="/img/companies.png" alt="...">
 							</a>
 						</div>
 						<div class="col-xs-6 col-md-3">
-							<a href="#" class="thumbnail">VENTAS
+							<a href="{{ route('sales.car_quotes.index') }}" class="thumbnail">VENTAS
 								<img src="/img/sale.jpg" alt="...">
 							</a>
 						</div>

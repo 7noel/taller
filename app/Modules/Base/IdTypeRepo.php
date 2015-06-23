@@ -12,6 +12,6 @@ class IdTypeRepo extends BaseRepo{
 	}
 	public function getList2($name='name', $id='id')
 	{
-		return [""=>"SELECCIONAR"] + $this->model->where('id','!=',1)->lists($name, $id)->toArray();
+		return [""=>"Seleccionar"] + $this->model->where('id','!=',1)->lists($name, $id)->toArray();
 	}
 }

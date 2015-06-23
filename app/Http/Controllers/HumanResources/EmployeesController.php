@@ -48,7 +48,7 @@ class EmployeesController extends Controller {
 
 	public function edit($id)
 	{
-		$id_types = $this->idTypeRepo->getList2();
+		$id_types = $this->idTypeRepo->getList2('symbol');
 		$model = $this->repo->findOrFail($id);
 		$ubigeo = $this->ubigeoRepo->listUbigeo($model->ubigeo_id);
 		return view('partials.edit', compact('model', 'id_types', 'ubigeo'));

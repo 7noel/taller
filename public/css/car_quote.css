@@ -11,7 +11,7 @@ body{
 	position:absolute;
 	right: 0;
 }
-.greeting p span{
+.greeting p span, .cuentas p{
 	color: red;
 	font-weight: bold;
 }
@@ -40,7 +40,59 @@ body{
 	display: inline-block;
 	width:350px;
 }
+.features-1-left .name{
+	display: inline-block;
+	width:200px;
+}
 .features-1-right{
 	display: inline-block;
 	width:349px;
+}
+.header-pdf-2 img{
+	width: 700px;
+}
+.td-bank{
+	width: 180px;
+	font-weight: bold;
+}
+.td-cuenta{
+	text-align: center;
+	width: 200px;
+}
+.center{
+	text-align: center;
+}
+.border{
+	margin: auto;
+}
+.border, .border td{
+	border-collapse: collapse;
+	border: solid 1px;
+}
+.red-underline{
+	color: red;
+	text-decoration: underline;
+}
+.blue-underline{
+	color: blue;
+	text-decoration: underline;
+}
+.feature-subtitle{
+	margin-bottom: 0;
+}
+.features-2-left{
+	display: inline-block;
+	width:350px;
+}
+.features-2-right{
+	display: inline-block;
+	width:349px;
+}
+.conditions-name{
+	color: red;
+	width: 150px;
+	font-weight: bold;
+}
+.logo p{
+	margin: 0;
 }
