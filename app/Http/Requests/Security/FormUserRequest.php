@@ -22,10 +22,11 @@ class FormUserRequest extends Request {
 	public function rules()
 	{
 		$data=Request::route()->parameters();
+		//dd($data);
 		return [
 			'name'=>'required',
 			'email'=>'required|unique:users,email'.((empty($data)) ? '' : ','.$data['users']),
-			'password'=>'required'
+			'password'=>((empty($data)) ? 'required' : '')
 		];
 	}
 

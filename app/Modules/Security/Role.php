@@ -7,7 +7,7 @@ class Role extends Model {
 
 	use SoftDeletes;
 
-	protected $guarded = ['name', 'description'];
+	protected $fillable = ['name', 'description'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {

@@ -11,6 +11,15 @@ class MenuController extends Controller
 {
     public function links()
     {
+        return $this->arrayLinks();
+        if (\Auth::user()->is_superuser == true) {
+            return $this->arrayLinks();
+        }
+        $p = \Auth::user()->permissions;
+        dd($p);
+    }
+    public function arrayLinks()
+    {
         $links = [
             'Seguridad'=>[
                 ['name' => 'Usuarios', 'route' => 'guard.users.index' ],

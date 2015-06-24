@@ -12,19 +12,12 @@ class RoleRepo extends BaseRepo{
 	}
 	public function save($data, $id=0)
 	{
-		$data = $this->prepareData($data);
-		if ($id>0) {
-			$model = $this->model->findOrFail($id);
-			$model->fill($data);
-		} else {
-			$model = $this->model->fill($data);			
+		$model = parent::save($data,$id);
+		if (!isset($data['permissions'])) {
+			$data['permissions'] = [];
 		}
-		if ($model->save()) {
-			if (!isset($data['permissions'])) { $data['permissions'] = []; }
-			$role->permissions()->sync($data['permissions']);
-			return $model;
-		} else {
-			return false;
-		}
+		$model->permissions()->sync($data['permissions']);
+		
+		return $model;
 	}
 }

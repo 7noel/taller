@@ -6,6 +6,13 @@ body{
 .logo{
 	display: inline-block;
 }
+.logo p{
+	margin: 0;
+}
+.logo img{
+	width: 200px;
+	height: auto;
+}
 .date{
 	display: inline-block;
 	position:absolute;
@@ -15,59 +22,54 @@ body{
 	color: red;
 	font-weight: bold;
 }
-.features-primary{
-	display: inline-block;
-	width: 300px;
-}
 .features-primary strong{
 	display: inline-block;
 	width: 150px;
 }
-.image-car{
-	display: inline-block;
-	position: absolute;
-	width: 400px;
-	right: 0;
+.inline{
+	display: inline;
+}
+.modelo{
+	font-size: 40px;
+	font-weight: bold;
+	font-style: italic;
+}
+.version{
+	font-size: 20px;
 }
 .image-car img{
 	height: 230px;
 	width: auto;
 }
-.features-1{
-	background-color: none;
+.div-img{
+	text-align: center;
 }
-.features-1-left{
+.div-left{
 	display: inline-block;
 	width:350px;
 }
-.features-1-left .name, .features-1-right .name{
-	display: inline-block;
-	width:200px;
+.features-1 .name{
+	width:180px;
 }
-.features-1-right{
+.features-1 .value{
+	width:150px;
+}
+.div-right{
 	display: inline-block;
 	width:349px;
 }
 .header-pdf-2 img{
 	width: 700px;
 }
-.td-bank{
-	width: 180px;
-	font-weight: bold;
+.tbl-cuentas .td-1{
+	width: 150px;
 }
-.td-cuenta{
+.tbl-cuentas .td-2{
 	text-align: center;
-	width: 200px;
+	width: 150px;
 }
 .center{
 	text-align: center;
-}
-.border{
-	margin: auto;
-}
-.border, .border td{
-	border-collapse: collapse;
-	border: solid 1px;
 }
 .red-underline{
 	color: red;
@@ -80,19 +82,12 @@ body{
 .feature-subtitle{
 	margin-bottom: 0;
 }
-.features-2-left{
-	display: inline-block;
-	width:350px;
-}
-.features-2-right{
-	display: inline-block;
-	width:349px;
-}
 .conditions-name{
 	color: red;
 	width: 150px;
 	font-weight: bold;
 }
-.logo p{
-	margin: 0;
+.image-features img{
+	height: 230px;
+	width: auto;
 }

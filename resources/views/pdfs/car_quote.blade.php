@@ -9,16 +9,18 @@
 	<div class="quote">
 		<div class="header-pdf">
 			<div class="logo">
-				<img src="{{ './img/honda_masaki.jpg' }}" alt="" width="200px">
+				<img src="{{ './img/honda_masaki.jpg' }}" alt="">
 				<br><br>
 				<p><strong>Masaki S.A.C.</strong></p>
 				<p>Av. Javier Prado Este 5446</p>
 				<p>Urb. Camacho - La Molina</p>
 				<p>Telf.: 612-7500</p>
+				<p>www.masaki.com.pe</p>
 			</div>
 			<div class="date">
 				<?php 
-				setlocale(LC_TIME, 'Spanish');
+				setlocale(LC_ALL, 'es_ES');
+				strftime("%A %e %B %Y");
 				$dt=\Carbon::now();
 				 ?>
 				Lima, {{ $dt->formatLocalized('%A %d de %B de %Y') }}
@@ -27,86 +29,85 @@
 		<br>
 		<div class="greeting">
 			Señor (es): <br>
-			<strong>SERGIO LUIS DA COSTA BURGA</strong> <br>
-			<strong>Att.-</strong> <br>
-			Estimado (s) señor (es) : <br>
+			<span>{{ $quote->company->company_name }}</span> <br>
+			<span>Atención</span> <br>
+			De nuestra consideración: <br>
 											
-			<p>Nos es muy grato saludarle y a la vez presentarnos como <strong>MASAKI SAC</strong>, concesionario autorizado <span>HONDA</span>. Asimismo, deseamos hacerle extensiva las características técnicas y mejor oferta de nuestro vehiculo: </p>
+			<p>Nos es grato saludarle en atención a su interés por la marca y presentarnos a nombre de Masaki S.A.C. concesionario autorizado de HONDA DEL PERÚ, para lo cual hacemos presente las características técnicas  del modelo solicitado:</p>
 		</div>
 		<div class="body">
-			<div class="features-primary">
-				<br><br>
-				<strong>MARCA</strong>{{ $quote->catalog_car->version->modelo->brand->name }}<br>
-				<strong>MODELO</strong>{{ $quote->catalog_car->version->modelo->name.' '.$quote->catalog_car->version->name }}<br>
-				<strong>CILINDRADA</strong>{{ $quote->catalog_car->cylinder }}<br>
-				<strong>TRANSMISIÓN</strong>{{ $quote->catalog_car->transmission }}<br>
-				<strong>ASIENTOS</strong>{{ $quote->catalog_car->seats }}<br>
-				<strong>COMBUSTIBLE</strong>{{ $quote->catalog_car->fuel }}<br>
-				<strong>AÑO DE FAB.</strong>{{ $quote->catalog_car->manufacture_year }}<br>
-				<strong>AÑO DE MOD.</strong>{{ $quote->catalog_car->model_year }}<br>
-
-			</div>
 			<div class="image-car">
-				<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+				<div class="modelo">{{ $quote->catalog_car->version->modelo->name }}</div>
+				<div class="inline label_version">VERSIÓN : </div>
+				<div class="inline version">{{ $quote->catalog_car->version->name }}</div>
+				<div></div>
+				<div class="div-left div-img">
+					<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+				</div>
+				<div class="div-right div-img">
+					<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+				</div>
+			</div>
+			<br>
+			<div class="features-primary">
+				<div class="div-left">
+					<strong>AÑO DE FAB.</strong>{{ $quote->catalog_car->manufacture_year }}<br>
+					<strong>AÑO DE MOD.</strong>{{ $quote->catalog_car->model_year }}<br>
+					<strong>COMBUSTIBLE</strong>{{ $quote->catalog_car->fuel }}<br>
+				</div>
+				<div class="div-right">
+					<strong>CILINDRADA</strong>{{ $quote->catalog_car->cylinder }}<br>
+					<strong>TRANSMISIÓN</strong>{{ $quote->catalog_car->transmission }}<br>
+					<strong>ASIENTOS</strong>{{ $quote->catalog_car->seats }}<br>
+				</div>
 			</div>
 		</div>
-		<br><br><br><br><br>
+		<br>
 		<div class="features-1">
-			<div class="features-1-left">
+			<div class="div-left">
 				@foreach($groups->where('template', 'primaryLeft') as $group)
 				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
 				<table>
-					
-				</table>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
-					<span class="name">{{ $feature->name }}</span> <span class="value">{{ $feature->value }}</span><br>
+					<tr>
+						<td  class="name">{{ $feature->name }}</td>
+						<td class="value">{{ (($feature->name=="") ? '' : ':').$feature->value }}</td>
+					</tr>
 					@endforeach
+				</table>
 				@endforeach
 			</div>
-			<div class="features-1-right">
+			<div class="div-right">
 				@foreach($groups->where('template', 'primaryRight') as $group)
 				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
+				<table>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
-					<span class="name">{{ $feature->name }}</span> <span class="value">{{ $feature->value }}</span><br>
+					<tr>
+						<td  class="name">{{ $feature->name }}</td>
+						<td class="value">{{ (($feature->name=="") ? '' : ':').$feature->value }}</td>
+					</tr>
 					@endforeach
+				</table>
 				@endforeach
-			</div>
-		</div>
-		<div class="options">
-			<div class="cortesias">
-				<p><span class="red-underline">CORTESÍAS:</span></p>
-				<ul>
-					<li>Trámite de Placas físicas, tarjeta de Propiedad e Inscripción Municipal SAT</li>
-					<li>Kit. de Seguridad ( Seguro de Emblemas y seguro de plumillas )</li>
-					<li>Servicio de Mantenimiento gratuito en 1,000 Kms.</li>
-				</ul>
-			</div>
-			<div class="incluye">
-				<p><span class="red-underline">INCLUYE:</span> Alarma de fabrica y pisos alfombrados originales.</p>
 			</div>
 		</div>
 		<div class="price">
-			<div class="price">
-				<p><span class="red-underline">PRECIO DE LISTA:</span> {{ $quote->currency->symbol.' '.$quote->price }}</p>
-			</div>
 			<div class="price-set">
-				<p><span>PRECIO ESPECIAL:</span> {{ $quote->currency->symbol.' '.$quote->set_price }} <span>> Precio incluye I.G.V.</span></p>
+				<p><span clas="price-label">VALOR DE LA PROPUESTA ECNÓMICA:</span> <span class='price-value'>{{ $quote->currency->symbol.' '.$quote->set_price }} <span></p>
 			</div>
-			<div>
-				<p>Tipo de cambio preferencial <span>3.15</span></p>
-				<p>PRECIO EN SOLES <span></span></p>
+			<div class="price-conditions">
+				<ul>
+					<li>Monto Expresado en Dólares Americanos. El precio Incluye I.G.V.</li>
+					<li>No Incluye costo de flete de Lima a Provincias</li>
+					<li>Sujeto a variación de modificación tributaria o arancelaria</li>
+				</ul>
 			</div>
 		</div>
-		<div class="colors">
-			<p>COLOR DISPONIBLE: <span> Plata Alabastro, Gris Smoky, Gris Steel, Rojo Cherry.</span></p>
-		</div>
+
 		<div style='page-break-after: always;'></div>
-		<div class="header-pdf-2">
-			<img src="{{ './img/header_quote.png' }}" alt="">
-		</div>
+		
 		<div class="features-2">
-			<div class="features-2-left">
-				<p class="blue-underline">EQUIPAMIENTO INTERIOR:</p>
+			<div class="div-left">
 				@foreach($groups->where('template', 'in') as $group)
 				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
@@ -114,8 +115,7 @@
 					@endforeach
 				@endforeach
 			</div>
-			<div class="features-2-right">
-				<p class="blue-underline">EQUIPAMIENTO EXTERIOR:</p>
+			<div class="div-right">
 				@foreach($groups->where('template', 'out') as $group)
 				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
@@ -124,54 +124,72 @@
 				@endforeach
 			</div>
 		</div>
-		<div class="cuentas">
-			<p>CUENTAS BANCARIAS MASAKI SAC</p>
-			<table class="border">
-				<tr class="center">
-					<td colspan="2" class="red-italic">CTA. CORRIENTE DÓLARES</td>
+		<div class="image-features">
+			<div class="div-left div-img">
+				<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+			</div>
+			<div class="div-right div-img">
+				<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+			</div>
+		</div>
+		<div class="conditions-others">
+			<table>
+				<tr>
+					<td class="td-1">Garantía de Fábrica</td>
+					<td class="td-2">: 3 años ó 100,000 kms. (Lo que ocurra primero)</td>
 				</tr>
 				<tr>
-					<td class="td-bank">BANCO CONTINENTAL</td>
-					<td class="td-cuenta">0011 910 010011603879</td>
+					<td class="td-1">Condiciones de Venta</td>
+					<td class="td-2">: Al contado a través del sistema financiero.</td>
 				</tr>
 				<tr>
-					<td class="td-bank">BANCO DE CRÉDITO</td>
-					<td class="td-cuenta">193-1624871-1-47</td>
+					<td class="td-1">Tiempo de Entrega</td>
+					<td class="td-2">: 15 días útiles, contra cancelación de la unidad.</td>
 				</tr>
 				<tr>
-					<td class="td-bank">BANCO SCOTIABANK</td>
-					<td class="td-cuenta">000-3142887</td>
+					<td class="td-1">Trámites</td>
+					<td class="td-2">Tarjeta de propiedad, Placas de rodaje, Declaración Municipal SAT.</td>
 				</tr>
 				<tr>
-					<td class="td-bank">BANCO INTERBANK</td>
-					<td class="td-cuenta">045-3000-488783</td>
-				</tr>
-				<tr>
-					<td class="td-bank">BANCO HSBC</td>
-					<td class="td-cuenta">104532001</td>
+					<td class="td-1"></td>
+					<td class="td-2">Alarma Original, Seguro de aros, Seguro de plumillas, Seguro de emblemas, Jgo. Pisos Originales Alfombrados.</td>
 				</tr>
 			</table>
 		</div>
-		<br>
-		<div class="conditions">
-			<table>
+		</div>
+		<div class="cuentas div-left">
+			<p><strong>CUENTAS BANCARIAS</strong></p>
+			<table class="tbl-cuentas">
 				<tr>
-					<td class="conditions-name">VALIDEZ DE LA OFERTA :</td>
-					<td>Según disponibilidad de stock</td>
+					<td class="td-1">BANCO CONTINENTAL</td>
+					<td class="td-2">0011 910 010011603879</td>
 				</tr>
 				<tr>
-					<td class="conditions-name">PLAZO DE ENTREGA :</td>
-					<td>Con tarjeta de Propiedad, 15 días útiles de la fecha de cancelación. <br><strong>sujeto a stock</strong></td>
+					<td class="td-1">BANCO DE CRÉDITO</td>
+					<td class="td-2">193-1624871-1-47</td>
 				</tr>
 				<tr>
-					<td class="conditions-name">GARANTÍA:</td>
-					<td>3 años ó 100.000 kilómetros (lo primero que ocurra)</td>
+					<td class="td-1">BANCO SCOTIABANK</td>
+					<td class="td-2">000-3142887</td>
+				</tr>
+				<tr>
+					<td class="td-1">BANCO INTERBANK</td>
+					<td class="td-2">045-3000-488783</td>
+				</tr>
+				<tr>
+					<td class="td-1">BANCO HSBC</td>
+					<td class="td-2">104532001</td>
 				</tr>
 			</table>
+		</div>
+		<div class="div-right">
+			<p><strong>Seguro Vehicular:</strong></p>
+			<p>Cotice sin compromiso o solicite a su Asesor Comercial</p>
+			<p><strong>RIMAC PACIFICO MAPFRE MAGALLANES</strong></p>
 		</div>
 		<br>
 		<div>
-			<p>A la espera de sus prontas y gratas noticias quedamos de Uds.</p>
+			<p>Sin otro particular quedamos a la espera de su órden.</p>
 			<p>Atentamente,</p>
 		</div>
 	</div>
