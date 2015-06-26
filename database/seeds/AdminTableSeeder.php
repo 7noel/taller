@@ -235,61 +235,42 @@ class AdminTableSeeder extends Seeder {
         PaymentCondition::create(['name' => 'CONTADO', 'to_sales' => '1', 'to_purchases' => '1']);
         PaymentCondition::create(['name' => 'CRÉDITO', 'to_sales' => '1', 'to_purchases' => '1']);
 
-        Modelo::create(['name' => 'ACCORD SEDAN', 'brand_id' => '2']);//1
-        Modelo::create(['name' => 'ACCORD COUPE', 'brand_id' => '2']);//2
-        Modelo::create(['name' => 'CIVIC SEDAN', 'brand_id' => '2']);//3
-        Modelo::create(['name' => 'CIVIC COUPE', 'brand_id' => '2']);//4
-        Modelo::create(['name' => 'CIVIC', 'brand_id' => '2']);//5
+        Modelo::create(['name' => 'FIT', 'brand_id' => '2']);//1
+        Modelo::create(['name' => 'CIVIC', 'brand_id' => '2']);//2
+        Modelo::create(['name' => 'CIVIC COUPE', 'brand_id' => '2']);//3
+        Modelo::create(['name' => 'ACCORD', 'brand_id' => '2']);//4
+        Modelo::create(['name' => 'ACCORD COUPE', 'brand_id' => '2']);//5
         Modelo::create(['name' => 'CR-V', 'brand_id' => '2']);//6
-        Modelo::create(['name' => 'FIT', 'brand_id' => '2']);//7
-        Modelo::create(['name' => 'ODYSSEY', 'brand_id' => '2']);//8
-        Modelo::create(['name' => 'PILOT', 'brand_id' => '2']);//9
-
-        Version::create(['name' => 'LX', 'modelo_id' => '1']);
-        Version::create(['name' => 'SPORT', 'modelo_id' => '1']);
-        Version::create(['name' => 'EX', 'modelo_id' => '1']);
-        Version::create(['name' => 'EX-L', 'modelo_id' => '1']);
-        Version::create(['name' => 'EX-L V-6', 'modelo_id' => '1']);
-        Version::create(['name' => 'TOURING', 'modelo_id' => '1']);
-        Version::create(['name' => 'LX-S', 'modelo_id' => '2']);
-        Version::create(['name' => 'EX', 'modelo_id' => '2']);
-        Version::create(['name' => 'EX-L', 'modelo_id' => '2']);
-        Version::create(['name' => 'EX-L V-6', 'modelo_id' => '2']);
-        Version::create(['name' => 'LX', 'modelo_id' => '3']);
-        Version::create(['name' => 'SE', 'modelo_id' => '3']);
-        Version::create(['name' => 'EX', 'modelo_id' => '3']);
-        Version::create(['name' => 'EX-L', 'modelo_id' => '3']);
-        Version::create(['name' => 'LX', 'modelo_id' => '4']);
-        Version::create(['name' => 'EX', 'modelo_id' => '4']);
-        Version::create(['name' => 'EX-L', 'modelo_id' => '4']);
-        Version::create(['name' => 'SI SEDAN', 'modelo_id' => '5']);
-        Version::create(['name' => 'SI COUPE', 'modelo_id' => '5']);
-        Version::create(['name' => '2WD LX', 'modelo_id' => '6']);
-        Version::create(['name' => 'AWD LX', 'modelo_id' => '6']);
-        Version::create(['name' => '2WD EX', 'modelo_id' => '6']);
-        Version::create(['name' => 'AWD EX', 'modelo_id' => '6']);
-        Version::create(['name' => '2WD EX-L', 'modelo_id' => '6']);
-        Version::create(['name' => 'AWD EX-L', 'modelo_id' => '6']);
-        Version::create(['name' => '2WD TOURING', 'modelo_id' => '6']);
-        Version::create(['name' => 'AWD TOURING', 'modelo_id' => '6']);
-        Version::create(['name' => 'LX', 'modelo_id' => '7']);
-        Version::create(['name' => 'EX', 'modelo_id' => '7']);
-        Version::create(['name' => 'EX-L', 'modelo_id' => '7']);
-        Version::create(['name' => 'LX', 'modelo_id' => '8']);
-        Version::create(['name' => 'EX', 'modelo_id' => '8']);
-        Version::create(['name' => 'EX-L', 'modelo_id' => '8']);
-        Version::create(['name' => 'TOURING', 'modelo_id' => '8']);
-        Version::create(['name' => 'TOURIN ELITE', 'modelo_id' => '8']);
-        Version::create(['name' => '2WD LX', 'modelo_id' => '9']);
-        Version::create(['name' => '4WD LX', 'modelo_id' => '9']);
-        Version::create(['name' => '2WD EX', 'modelo_id' => '9']);
-        Version::create(['name' => '2WD SE', 'modelo_id' => '9']);
-        Version::create(['name' => '4WD EX', 'modelo_id' => '9']);
-        Version::create(['name' => '4WD SE', 'modelo_id' => '9']);
-        Version::create(['name' => '2WD EX-L', 'modelo_id' => '9']);
-        Version::create(['name' => '4WD EX-L', 'modelo_id' => '9']);
-        Version::create(['name' => '2WD TOURING', 'modelo_id' => '9']);
-        Version::create(['name' => '4WD TOURING', 'modelo_id' => '9']);
+        Modelo::create(['name' => 'ODYSSEY', 'brand_id' => '2']);//7
+        Modelo::create(['name' => 'PILOT', 'brand_id' => '2']);//8
+        //FIT
+        Version::create(['name' => 'LX MT', 'modelo_id' => '1']);
+        Version::create(['name' => 'LX AT', 'modelo_id' => '1']);
+        Version::create(['name' => 'EX AT', 'modelo_id' => '1']);
+        //CIVIC SEDAN
+        Version::create(['name' => 'LX AT', 'modelo_id' => '2']);
+        Version::create(['name' => 'DE LUXE', 'modelo_id' => '2']);
+        Version::create(['name' => 'SI 2.4 MT', 'modelo_id' => '2']);
+        //CIVIC COUPE
+        Version::create(['name' => 'EX AT', 'modelo_id' => '3']);
+        Version::create(['name' => 'SI 2.4 MT', 'modelo_id' => '3']);
+        //ACCORD SEDAN
+        Version::create(['name' => 'EX AT', 'modelo_id' => '4']);
+        Version::create(['name' => 'EXL AT', 'modelo_id' => '4']);
+        Version::create(['name' => 'V6 AT', 'modelo_id' => '4']);
+        //ACCORD COUPE
+        Version::create(['name' => 'V6 AT', 'modelo_id' => '5']);
+        //CR-V
+        Version::create(['name' => 'LX CVT 2WD Up-Grade', 'modelo_id' => '6']);
+        Version::create(['name' => 'LX CVT 2WD Up-Grade', 'modelo_id' => '6']);
+        Version::create(['name' => 'DE LUXE', 'modelo_id' => '6']);
+        Version::create(['name' => 'TOURING', 'modelo_id' => '6']);
+        //PILOT
+        Version::create(['name' => 'LX Up-Grade', 'modelo_id' => '7']);
+        Version::create(['name' => 'EXL Up-Grade', 'modelo_id' => '7']);
+        Version::create(['name' => 'TOURING', 'modelo_id' => '7']);
+        //ODYSSEY
+        Version::create(['name' => 'EXL', 'modelo_id' => '8']);
 
         FeatureGroup::create(['name' => 'Especificaciones Técnicas Principales :', 'template' => 'primaryLeft']);
         FeatureGroup::create(['name' => 'Dimensiones :', 'template' => 'primaryRight']);

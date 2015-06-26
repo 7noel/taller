@@ -187,14 +187,10 @@
 					<td class="td-1">BANCO INTERBANK</td>
 					<td class="td-2">045-3000-488783</td>
 				</tr>
-				<tr>
-					<td class="td-1">BANCO HSBC</td>
-					<td class="td-2">104532001</td>
-				</tr>
 			</table>
 		</div>
 		<div class="div-right">
-			<br><br>
+			<br>
 			<p><strong>Seguro Vehicular:</strong></p>
 			<p>Cotice sin compromiso o solicite a su Asesor Comercial</p>
 			<p><strong>RIMAC PACIFICO MAPFRE MAGALLANES</strong></p>
