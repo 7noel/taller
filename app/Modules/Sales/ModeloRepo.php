@@ -16,4 +16,24 @@ class ModeloRepo extends BaseRepo{
 			return Modelo::with('brand')->orderBy('id', 'DESC')->paginate();
 		}
 	}
+	public function save($data, $id=0)
+	{
+		$model = parent::save($data, $id);
+		if (isset($data['image'])) {
+			$this->saveFile('img', $data['image']);
+		}
+
+		return $model;
+	}
+	public function prepareData($data)
+	{
+		/*if (isset($data['image'])) {
+			$data['image'] = $data['image']->getClientOriginalName();
+		} else {
+			unset($data['image']);
+		}*/
+		$data = $this->prepareDataImage($data, ['image']);
+		
+		return $data;
+	}
 }

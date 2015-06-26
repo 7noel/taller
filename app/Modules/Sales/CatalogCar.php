@@ -7,7 +7,7 @@ class CatalogCar extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['manufacture_year', 'model_year', 'version_id', 'cylinder', 'transmission', 'seats', 'fuel', 'price', 'currency_id', 'image'];
+	protected $fillable = ['manufacture_year', 'model_year', 'version_id', 'cylinder', 'transmission', 'seats', 'fuel', 'price', 'currency_id', 'image', 'image1', 'image2', 'image3', 'image4', 'description_image3', 'description_image4'];
 
 	public function scopeYear($query, $name){
 		if (trim($name) != "") {

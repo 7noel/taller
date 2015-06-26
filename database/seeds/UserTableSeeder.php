@@ -17,16 +17,14 @@ class UserTableSeeder extends Seeder {
         	'password' => '123'
         ]);
 
-        for ($i=0; $i < 30; $i++) { 
+        /*for ($i=0; $i < 30; $i++) { 
 	        $faker=Faker::create();
-	        //\DB::table('users')->insert(array(
 	        User::create([
 	        	'name'=>$faker->firstName,
 	        	'email'=>$faker->unique()->email,
 	        	'password'=>'123'
-	        //));
 			]);
-        }
+        }*/
     }
 
 }

@@ -7,7 +7,7 @@ class Modelo extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['name', 'description', 'brand_id'];
+	protected $fillable = ['name', 'description', 'brand_id', 'image'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {

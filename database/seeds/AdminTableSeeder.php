@@ -35,15 +35,46 @@ class AdminTableSeeder extends Seeder {
         	'password' => '123',
             'is_superuser' => true
         ]);
-
-        for ($i=0; $i < 10; $i++) { 
-	        $faker=Faker::create();
-	        User::create([
-	        	'name'=>$faker->firstName,
-	        	'email'=>$faker->unique()->email,
-	        	'password'=>'123'
-			]);
-        }
+        User::create([
+            'name' => 'Juana',
+            'email' => 'jlara@masaki.com.pe',
+            'password' => '123'
+        ]);
+        User::create([
+            'name' => 'Estuardo',
+            'email' => 'etataje@masaki.com.pe',
+            'password' => '123'
+        ]);
+        User::create([
+            'name' => 'Marian',
+            'email' => 'mderteano@masaki.com.pe',
+            'password' => '123'
+        ]);
+        User::create([
+            'name' => 'Pedro',
+            'email' => 'prequena@masaki.com.pe',
+            'password' => '123'
+        ]);
+        User::create([
+            'name' => 'Pamela',
+            'email' => 'pguerrero@masaki.com.pe',
+            'password' => '123'
+        ]);
+        User::create([
+            'name' => 'Eduardo',
+            'email' => 'ecastellano@masaki.com.pe',
+            'password' => '123'
+        ]);
+        User::create([
+            'name' => 'Marco',
+            'email' => 'mgeller@masaki.com.pe',
+            'password' => '123'
+        ]);
+        User::create([
+            'name' => 'Melissa',
+            'email' => 'mmendoza@masaki.com.pe',
+            'password' => '123'
+        ]);
         Role::create(['name' => 'ADMINISTRADOR DE SISTEMA']);
         Role::create(['name' => 'JEFE DE ALMACEN']);
         Role::create(['name' => 'ASISTENTE DE ALMACEN']);
@@ -260,16 +291,10 @@ class AdminTableSeeder extends Seeder {
         Version::create(['name' => '2WD TOURING', 'modelo_id' => '9']);
         Version::create(['name' => '4WD TOURING', 'modelo_id' => '9']);
 
-        FeatureGroup::create(['name' => 'ESPECIFICACIONES TÉCNICAS', 'template' => 'primaryLeft']);
-        FeatureGroup::create(['name' => 'SUSPENSIÓN', 'template' => 'primaryLeft']);
-        FeatureGroup::create(['name' => 'DIMENSIONES Y PESO', 'template' => 'primaryRight']);
-        FeatureGroup::create(['name' => 'NEUMÁTICOS', 'template' => 'primaryRight']);
-        FeatureGroup::create(['name' => 'FRENOS', 'template' => 'primaryRight']);
-        FeatureGroup::create(['name' => 'ASIENTOS', 'template' => 'in']);
-        FeatureGroup::create(['name' => 'TIMÓN', 'template' => 'in']);
-        FeatureGroup::create(['name' => 'COMODIDAD', 'template' => 'in']);
-        FeatureGroup::create(['name' => 'SEGURIDAD', 'template' => 'out']);
-        FeatureGroup::create(['name' => 'SISTEMA DE AUDIO', 'template' => 'out']);
+        FeatureGroup::create(['name' => 'Especificaciones Técnicas Principales :', 'template' => 'primaryLeft']);
+        FeatureGroup::create(['name' => 'Dimensiones :', 'template' => 'primaryRight']);
+        FeatureGroup::create(['name' => 'CONFORT Y TECNOLOGIA :', 'template' => 'in']);
+        FeatureGroup::create(['name' => 'SISTEMA DE SEGURIDAD :', 'template' => 'out']);
 
         Color::create(['name' => 'NEGRO', 'in' => '1', 'out' => '1']);
         Color::create(['name' => 'AZUL', 'in' => '1', 'out' => '1']);

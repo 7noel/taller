@@ -126,4 +126,15 @@ abstract class BaseRepo{
 		}
 		\Storage::disk('local')->put('img/'.$name,  \File::get($file));
 	}
+	public function prepareDataImage($data, $images)
+	{
+		foreach ($images as $key => $image) {
+			if (isset($data[$image])) {
+				$data[$image] = $data[$image]->getClientOriginalName();
+			} else {
+				unset($data[$image]);
+			}
+		}
+		return $data;
+	}
 }

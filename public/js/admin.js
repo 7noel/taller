@@ -55,7 +55,7 @@ $(document).ready(function () {
 		loadPriceCar();
 	});
 	//cargar vista previa imagen
-	$("#file_img_preview").change(function(){
+	$(".file_img_preview").change(function(){
 		mostrarImagen(this);
 	});
 	//pasar elementos entre dos selectores multiples
@@ -270,9 +270,10 @@ function loadPriceCar () {
 }
 function mostrarImagen(input) {
 	if (input.files && input.files[0]) {
+		console.log($(input).parent());
 		var reader = new FileReader();
 		reader.onload = function (e) {
-			$('#img_preview').attr('src', e.target.result);
+			$(input).parent().parent().find('.img_preview').attr('src', e.target.result);
 		}
 		reader.readAsDataURL(input.files[0]);
 	}

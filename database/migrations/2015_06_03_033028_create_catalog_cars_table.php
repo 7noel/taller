@@ -25,6 +25,12 @@ class CreateCatalogCarsTable extends Migration {
 			$table->integer('currency_id')->unsigned();
 			$table->decimal('price', 15, 2);
 			$table->string('image');
+			$table->string('image1');
+			$table->string('image2');
+			$table->string('description_image3');
+			$table->string('image3');
+			$table->string('description_image4');
+			$table->string('image4');
 			
 			$table->foreign('version_id')->references('id')->on('versions');
 			$table->foreign('currency_id')->references('id')->on('currencies');

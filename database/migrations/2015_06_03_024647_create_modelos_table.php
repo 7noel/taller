@@ -17,6 +17,7 @@ class CreateModelosTable extends Migration {
 			$table->increments('id');
 			$table->string('name');
 			$table->string('description');
+			$table->string('image');
 			$table->integer('brand_id')->unsigned();
 			$table->foreign('brand_id')->references('id')->on('brands');
 			$table->timestamps();

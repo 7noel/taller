@@ -11,17 +11,25 @@ class CatalogCarRepo extends BaseRepo{
 	}
 	public function save($data, $id=0)
 	{
-		/*if ($id>0) {
-			$nameOld = CatalogCar::find($id)->image;
-		}*/
-		$nameOld = ($id>0) ? CatalogCar::find($id)->image : '' ;
 		$model = parent::save($data, $id);
 		if (isset($data['features'])) {
 			$featureRepo= new FeatureRepo;
 			$featureRepo->saveMany($data['features'], ['key'=>'catalog_car_id', 'value'=>$model->id]);
 		}
 		if (isset($data['image'])) {
-			$this->saveFile('img', $data['image'], $nameOld);
+			$this->saveFile('img', $data['image']);
+		}
+		if (isset($data['image1'])) {
+			$this->saveFile('img', $data['image1']);
+		}
+		if (isset($data['image2'])) {
+			$this->saveFile('img', $data['image2']);
+		}
+		if (isset($data['image3'])) {
+			$this->saveFile('img', $data['image3']);
+		}
+		if (isset($data['image4'])) {
+			$this->saveFile('img', $data['image4']);
 		}
 
 		return $model;
@@ -55,11 +63,12 @@ class CatalogCarRepo extends BaseRepo{
 
 	public function prepareData($data)
 	{
-		if (isset($data['image'])) {
+		/*if (isset($data['image'])) {
 			$data['image'] = $data['image']->getClientOriginalName();
 		} else {
 			unset($data['image']);
-		}
+		}*/
+		$data = $this->prepareDataImage($data, ['image', 'image1', 'image2', 'image3', 'image4']);
 		
 		return $data;
 	}

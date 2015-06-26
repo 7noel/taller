@@ -19,8 +19,7 @@
 			</div>
 			<div class="date">
 				<?php 
-				setlocale(LC_ALL, 'es_ES');
-				strftime("%A %e %B %Y");
+				setlocale(LC_TIME, 'spanish');
 				$dt=\Carbon::now();
 				 ?>
 				Lima, {{ $dt->formatLocalized('%A %d de %B de %Y') }}
@@ -31,22 +30,31 @@
 			Señor (es): <br>
 			<span>{{ $quote->company->company_name }}</span> <br>
 			<span>Atención</span> <br>
-			De nuestra consideración: <br>
+			<span>{{ $quote->company->company_name }}</span> <br>
+			<p>De nuestra consideración:</p>
 											
 			<p>Nos es grato saludarle en atención a su interés por la marca y presentarnos a nombre de Masaki S.A.C. concesionario autorizado de HONDA DEL PERÚ, para lo cual hacemos presente las características técnicas  del modelo solicitado:</p>
 		</div>
 		<div class="body">
 			<div class="image-car">
-				<div class="modelo">{{ $quote->catalog_car->version->modelo->name }}</div>
+				<div class="modelo"><img src="{{ './storage/img/'.$quote->catalog_car->version->modelo->image }}" alt="" height="40px"></div>
 				<div class="inline label_version">VERSIÓN : </div>
 				<div class="inline version">{{ $quote->catalog_car->version->name }}</div>
-				<div></div>
+				<br>
+				@if($quote->catalog_car->image2 == '')
+				<div class="div-center div-img">
+					<img src="{{ './storage/img/'.$quote->catalog_car->image1 }}" alt="">
+				</div>
+
+				@else
 				<div class="div-left div-img">
-					<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+					<img src="{{ './storage/img/'.$quote->catalog_car->image1 }}" alt="">
 				</div>
 				<div class="div-right div-img">
-					<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+					<img src="{{ './storage/img/'.$quote->catalog_car->image2 }}" alt="">
 				</div>
+				@endif
+				<div class="image-car-obs center">Fotos Referenciales</div>
 			</div>
 			<br>
 			<div class="features-primary">
@@ -66,7 +74,7 @@
 		<div class="features-1">
 			<div class="div-left">
 				@foreach($groups->where('template', 'primaryLeft') as $group)
-				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
+				<p class="feature-subtitle">{{ $group->name }}</p>
 				<table>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
 					<tr>
@@ -79,7 +87,7 @@
 			</div>
 			<div class="div-right">
 				@foreach($groups->where('template', 'primaryRight') as $group)
-				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
+				<p class="feature-subtitle">{{ $group->name }}</p>
 				<table>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
 					<tr>
@@ -92,8 +100,9 @@
 			</div>
 		</div>
 		<div class="price">
+			<br>
 			<div class="price-set">
-				<p><span clas="price-label">VALOR DE LA PROPUESTA ECNÓMICA:</span> <span class='price-value'>{{ $quote->currency->symbol.' '.$quote->set_price }} <span></p>
+				<span clas="price-label">VALOR DE LA PROPUESTA ECONÓMICA:</span><div class='price-value center'>{{ $quote->currency->symbol.' '.number_format($quote->set_price, 2, '.', ',') }} </div>
 			</div>
 			<div class="price-conditions">
 				<ul>
@@ -109,27 +118,29 @@
 		<div class="features-2">
 			<div class="div-left">
 				@foreach($groups->where('template', 'in') as $group)
-				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
+				<p class="feature-subtitle">{{ $group->name }}</p>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
-					{{ $feature->name }} <br>
+					{!! $feature->name !!} <br>
 					@endforeach
 				@endforeach
 			</div>
 			<div class="div-right">
 				@foreach($groups->where('template', 'out') as $group)
-				<p class="red-underline feature-subtitle">{{ $group->name }}</p>
+				<p class="feature-subtitle">{{ $group->name }}</p>
 					@foreach($quote->catalog_car->features->where('feature_group_id', $group->id) as $feature)
-					{{ $feature->name }} <br>
+					{!! $feature->name !!} <br>
 					@endforeach
 				@endforeach
 			</div>
 		</div>
 		<div class="image-features">
 			<div class="div-left div-img">
-				<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+				<img src="{{ './storage/img/'.$quote->catalog_car->image3 }}" alt="">
+				<p>{{ $quote->catalog_car->description_image3 }}</p>
 			</div>
 			<div class="div-right div-img">
-				<img src="{{ './storage/img/'.$quote->catalog_car->image }}" alt="">
+				<img src="{{ './storage/img/'.$quote->catalog_car->image4 }}" alt="">
+				<p>{{ $quote->catalog_car->description_image4 }}</p>
 			</div>
 		</div>
 		<div class="conditions-others">
@@ -148,11 +159,11 @@
 				</tr>
 				<tr>
 					<td class="td-1">Trámites</td>
-					<td class="td-2">Tarjeta de propiedad, Placas de rodaje, Declaración Municipal SAT.</td>
+					<td class="td-2">: Tarjeta de propiedad, Placas de rodaje, Declaración Municipal SAT.</td>
 				</tr>
 				<tr>
-					<td class="td-1"></td>
-					<td class="td-2">Alarma Original, Seguro de aros, Seguro de plumillas, Seguro de emblemas, Jgo. Pisos Originales Alfombrados.</td>
+					<td class="td-1">Kit</td>
+					<td class="td-2">: Alarma Original, Seguro de aros, Seguro de plumillas, Seguro de emblemas, Jgo. Pisos Originales Alfombrados.</td>
 				</tr>
 			</table>
 		</div>
@@ -183,6 +194,7 @@
 			</table>
 		</div>
 		<div class="div-right">
+			<br><br>
 			<p><strong>Seguro Vehicular:</strong></p>
 			<p>Cotice sin compromiso o solicite a su Asesor Comercial</p>
 			<p><strong>RIMAC PACIFICO MAPFRE MAGALLANES</strong></p>
