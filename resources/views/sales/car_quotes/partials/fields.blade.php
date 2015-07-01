@@ -14,6 +14,9 @@
 									<div href="#"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></div>
 								</a>
 							</div>
+							<label class="checkbox">
+								{!! Form::checkbox('company_null', '1', null, ['id' => 'company_null']) !!} Sin Cliente
+							</label>
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">

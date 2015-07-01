@@ -13,6 +13,16 @@ $(document).ready(function(){
 			$('#txtcompany').focus();
 		}
 	});
+
+	$('#company_null').click(function(){
+		if ( $('#company_null').is(':checked') ) {
+			$('#company_id').val('1');
+			$('#txtcompany').val('SIN CLIENTE');
+		} else {
+			$('#company_id').val('');
+			$('#txtcompany').val('');
+		}
+	});
 });
 function addFeature (div) {
 	var group = div.data('group');

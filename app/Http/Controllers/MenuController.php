@@ -20,7 +20,7 @@ class MenuController extends Controller
     }
     public function arrayLinks()
     {
-        $links = [
+        /*$links = [
             'Seguridad'=>[
                 ['name' => 'Usuarios', 'route' => 'guard.users.index' ],
                 ['name' => 'Roles', 'route' => 'guard.roles.index', 'div' => '1' ],
@@ -74,6 +74,15 @@ class MenuController extends Controller
                 ['name' => 'Ordenes de Compra', 'url' => '#' ],
                 ['name' => 'Compras', 'route' => 'logistics.purchases.index' ],
                 ['name' => 'Marca', 'route' => 'logistics.brands.index', 'div' => '1' ],
+            ],
+        ];*/
+        $links = [
+            'Ventas'=>[
+                ['name' => 'Cotización', 'route' => 'sales.car_quotes.index', 'div' => '1' ],
+                ['name' => 'Catálogo de Vehículos', 'route' => 'sales.catalog_cars.index' ],
+                ['name' => 'Versiones', 'route' => 'sales.versions.index' ],
+                ['name' => 'Modelos', 'route' => 'sales.modelos.index' ],
+                ['name' => 'Grupo de Especificaciones', 'route' => 'sales.feature_groups.index' ],
             ],
         ];
         return $links;
