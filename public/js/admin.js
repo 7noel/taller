@@ -39,6 +39,14 @@ $(document).ready(function () {
 			$('#company_id').val(cod);
 		}
 	});
+	$('#txtuser').autocomplete({
+		source: "/guard/users/autocomplete",
+		minLength: 1,
+		select: function(event, ui){
+			var cod=ui.item.id;
+			$('#user_id').val(cod);
+		}
+	});
 
 
 	//carga unidades

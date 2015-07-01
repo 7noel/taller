@@ -7,7 +7,7 @@ class CarQuote extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['catalog_car_id', 'company_id', 'price', 'set_price', 'currency_id', 'observations'];
+	protected $fillable = ['catalog_car_id', 'company_id', 'attention', 'price', 'set_price', 'currency_id', 'observations', 'employee_id'];
 
 	public function scopeYear($query, $name){
 		if (trim($name) != "") {
@@ -27,6 +27,10 @@ class CarQuote extends Model {
 	public function company()
 	{
 		return $this->hasOne('App\Modules\Finances\Company','id','company_id');
+	}
+	public function employee()
+	{
+		return $this->hasOne('App\Modules\HumanResources\Employee', 'id', 'employee_id');
 	}
 
 }

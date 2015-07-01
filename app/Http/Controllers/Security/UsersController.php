@@ -73,5 +73,18 @@ class UsersController extends Controller {
 		$model->save();
 		return redirect()->to('/');
 	}
-
+	public function ajaxAutocomplete()
+	{
+		$term = \Input::get('term');
+		$models = $this->repo->autocomplete($term);
+		$result = [];
+		foreach ($models as $model) {
+			$result[]=[
+				'value' => $model->email.' '.$model->name,
+				'id' => $model->id,
+				'label' => $model->email.' '.$model->name
+			];
+		}
+		return \Response::json($result);
+	}
 }

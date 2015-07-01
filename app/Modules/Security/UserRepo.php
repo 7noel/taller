@@ -32,5 +32,9 @@ class UserRepo extends BaseRepo{
 		if (!isset($data['roles'])) { $data['roles'] = []; }
 		return $data;
 	}
+	public function autocomplete($term)
+	{
+		return User::where('name','like',"%$term%")->orWhere('email','like',"%$term%")->get();
+	}
 }
 

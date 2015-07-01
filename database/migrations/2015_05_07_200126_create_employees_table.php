@@ -24,13 +24,18 @@ class CreateEmployeesTable extends Migration {
 			$table->integer('gender');
 			$table->string('address');
 			$table->integer('ubigeo_id')->unsigned();
-			$table->string('phone');
-			$table->string('mobile');
+			$table->string('phone_personal');
+			$table->string('phone_company');
+			$table->string('mobile_personal');
+			$table->string('mobile_company');
 			$table->string('email_personal');
 			$table->string('email_company');
+			$table->integer('user_id')->unsigned()->nullable();
+			$table->string('signature');
 
 			$table->foreign('id_type_id')->references('id')->on('id_types');
 			$table->foreign('ubigeo_id')->references('id')->on('ubigeos');
+			$table->foreign('user_id')->references('id')->on('users');
 
 			$table->timestamps();
 			$table->softDeletes();

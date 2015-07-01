@@ -38,7 +38,9 @@ class CarQuotesController extends Controller {
 
 	public function store()
 	{
-		$this->repo->save(\Request::all());
+		$data = \Request::all();
+		$data['employee_id'] = \Auth::user()->employee->id;
+		$this->repo->save($data);
 		return \Redirect::route('sales.car_quotes.index');
 	}
 

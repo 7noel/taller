@@ -58,8 +58,13 @@
 					</div>
 					<div class="form-group form-group-sm">
 						{!! Form::label('image2','Foto', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-8">
+						<div class="col-sm-6">
 						{!! Form::file('image2', ['class'=>'form-control file_img_preview', 'accept'=>'image/*']) !!}
+						</div>
+						<div class="col-sm-2 checkbox">
+								<label>
+									{!! Form::checkbox('delete_image2', '1') !!} Eliminar
+								</label>
 						</div>
 						<div class="col-sm-offset-1">
 							@if(isset($model->image) and $model->image2!='')

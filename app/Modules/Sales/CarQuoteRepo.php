@@ -8,4 +8,9 @@ class CarQuoteRepo extends BaseRepo{
 	public function getModel(){
 		return new CarQuote;
 	}
+	public function prepareData($data)
+	{
+		
+		return $data;
+	}
 }

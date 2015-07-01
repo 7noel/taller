@@ -131,7 +131,10 @@ abstract class BaseRepo{
 		foreach ($images as $key => $image) {
 			if (isset($data[$image])) {
 				$data[$image] = $data[$image]->getClientOriginalName();
-			} else {
+			} else if (isset($data['delete_'.$image])) {
+				$data[$image] = '';
+			}
+			else {
 				unset($data[$image]);
 			}
 		}

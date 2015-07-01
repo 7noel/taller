@@ -20,7 +20,7 @@
 					@include( str_replace('edit', 'partials.fields', Request::route()->getAction()['as']) )
 					<div class="form-group">
 						<div class="col-sm-offset-2 col-sm-10">
-							<button type="submit" class="btn btn-primary">{{ config('options.' . Request::route()->getAction()['as'] .'.update') }}</button>
+							<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> {{ config('options.' . Request::route()->getAction()['as'] .'.update') }}</button>
 						</div>
 					</div>
 					{!! Form::close() !!}

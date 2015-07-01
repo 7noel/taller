@@ -235,14 +235,14 @@ class AdminTableSeeder extends Seeder {
         PaymentCondition::create(['name' => 'CONTADO', 'to_sales' => '1', 'to_purchases' => '1']);
         PaymentCondition::create(['name' => 'CRÉDITO', 'to_sales' => '1', 'to_purchases' => '1']);
 
-        Modelo::create(['name' => 'FIT', 'brand_id' => '2']);//1
-        Modelo::create(['name' => 'CIVIC', 'brand_id' => '2']);//2
-        Modelo::create(['name' => 'CIVIC COUPE', 'brand_id' => '2']);//3
-        Modelo::create(['name' => 'ACCORD', 'brand_id' => '2']);//4
-        Modelo::create(['name' => 'ACCORD COUPE', 'brand_id' => '2']);//5
-        Modelo::create(['name' => 'CR-V', 'brand_id' => '2']);//6
-        Modelo::create(['name' => 'ODYSSEY', 'brand_id' => '2']);//7
-        Modelo::create(['name' => 'PILOT', 'brand_id' => '2']);//8
+        Modelo::create(['name' => 'FIT', 'brand_id' => '2', 'image' => 'logo_fit.png']);//1
+        Modelo::create(['name' => 'CIVIC', 'brand_id' => '2', 'image' => 'logo_civic.png']);//2
+        Modelo::create(['name' => 'CIVIC COUPE', 'brand_id' => '2', 'image' => 'logo_civic.png']);//3
+        Modelo::create(['name' => 'ACCORD', 'brand_id' => '2', 'image' => 'logo_accord.png']);//4
+        Modelo::create(['name' => 'ACCORD COUPE', 'brand_id' => '2', 'image' => 'logo_accord.png']);//5
+        Modelo::create(['name' => 'CR-V', 'brand_id' => '2', 'image' => 'logo_crv.png']);//6
+        Modelo::create(['name' => 'PILOT', 'brand_id' => '2', 'image' => 'logo_pilot.png']);//7
+        Modelo::create(['name' => 'ODYSSEY', 'brand_id' => '2', 'image' => 'logo_odyssey.png']);//8
         //FIT
         Version::create(['name' => 'LX MT', 'modelo_id' => '1']);
         Version::create(['name' => 'LX AT', 'modelo_id' => '1']);

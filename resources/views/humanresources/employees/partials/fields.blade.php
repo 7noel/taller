@@ -1,13 +1,13 @@
 					<div class="form-group  form-group-sm">
 						{!! Form::label('name','Nombre Completo', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
-							{!! Form::text('paternal_surname', null, ['class'=>'form-control', 'placeholder'=>'Apellido Paterno']) !!}
+							{!! Form::text('paternal_surname', null, ['class'=>'form-control uppercase', 'placeholder'=>'Apellido Paterno']) !!}
 						</div>
 						<div class="col-sm-3">
-							{!! Form::text('maternal_surname', null, ['class'=>'form-control', 'placeholder'=>'Apellido Materno']) !!}
+							{!! Form::text('maternal_surname', null, ['class'=>'form-control uppercase', 'placeholder'=>'Apellido Materno']) !!}
 						</div>
 						<div class="col-sm-3">
-							{!! Form::text('name', null, ['class'=>'form-control', 'placeholder'=>'Nombre']) !!}
+							{!! Form::text('name', null, ['class'=>'form-control uppercase', 'placeholder'=>'Nombre']) !!}
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
@@ -15,7 +15,7 @@
 						<div class="col-sm-10">
 							<div class="form-inline">
 							{!! Form::select('id_type_id',$id_types , null, ['class'=>'form-control col-sm-1']) !!}
-							{!! Form::text('doc', null, ['class'=>'form-control']) !!}
+							{!! Form::text('doc', null, ['class'=>'form-control uppercase']) !!}
 							</div>
 						</div>
 					</div>
@@ -33,18 +33,28 @@
 					</div>
 					<div class="form-group  form-group-sm">
 						{!! Form::label('address','Direccion', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
-						{!! Form::text('address', null, ['class'=>'form-control']) !!}
+						<div class="col-sm-8">
+						{!! Form::text('address', null, ['class'=>'form-control uppercase']) !!}
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
-						{!! Form::label('phone','Telefono Fijo', ['class'=>'col-sm-2 control-label']) !!}
+						{!! Form::label('phone_personal','Telefono Personal', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
-						{!! Form::text('phone', null, ['class'=>'form-control']) !!}
+						{!! Form::text('phone_personal', null, ['class'=>'form-control']) !!}
 						</div>
-						{!! Form::label('mobilephone','Celulares', ['class'=>'col-sm-2 control-label']) !!}
+						{!! Form::label('phone_company','Telefono Empresa', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
-						{!! Form::text('mobilephone', null, ['class'=>'form-control']) !!}
+						{!! Form::text('phone_company', null, ['class'=>'form-control']) !!}
+						</div>
+					</div>
+					<div class="form-group  form-group-sm">
+						{!! Form::label('mobile_personal','Celulares Personal', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-3">
+						{!! Form::text('mobile_personal', null, ['class'=>'form-control']) !!}
+						</div>
+						{!! Form::label('mobile_company','Celulares Empresa', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-3">
+						{!! Form::text('mobile_company', null, ['class'=>'form-control']) !!}
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
@@ -57,4 +67,28 @@
 						{!! Form::text('email_company', null, ['class'=>'form-control']) !!}
 						</div>
 					</div>
-
+					<div class="form-group  form-group-sm">
+						{!! Form::label('user','Usuario', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-8">
+							{!! Form::hidden('user_id', null, ['id'=>'user_id']) !!}
+							{!! Form::text('user', ((isset($model->user_id)) ? $model->user->email.' '.$model->user->name : null), ['class'=>'form-control', 'id'=>'txtuser', 'required']) !!}
+						</div>
+					</div>
+					<div class="form-group form-group-sm">
+						{!! Form::label('signature','Firma', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-6">
+						{!! Form::file('signature', ['class'=>'form-control file_img_preview', 'accept'=>'image/*']) !!}
+						</div>
+						<div class="col-sm-2 checkbox">
+								<label>
+									{!! Form::checkbox('delete_signature', '1') !!} Eliminar
+								</label>
+						</div>
+						<div class="col-sm-offset-1">
+							@if(isset($model->signature) and $model->signature!='')
+							<img class="img_preview" src="{{ '/storage/img/'.$model->signature }}" alt=""  width="350px">
+							@else
+							<img class="img_preview" src="" alt=""  width="350px">
+							@endif
+						</div>
+					</div>

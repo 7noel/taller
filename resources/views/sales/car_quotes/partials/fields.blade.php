@@ -17,6 +17,12 @@
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
+						{!! Form::label('attention','Atención', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-10">
+						{!! Form::text('attention', null, ['class'=>'form-control']) !!}
+						</div>
+					</div>
+					<div class="form-group  form-group-sm">
 						{!! Form::label('version_id','Modelo/Version', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
 							{!! Form::select('version_id',$versions, ((isset($model->catalog_car_id)) ? $model->catalog_car->version_id : null),['class'=>'form-control', 'id'=>'lstVersions', 'required']) !!}

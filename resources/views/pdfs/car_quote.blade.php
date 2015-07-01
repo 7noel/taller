@@ -30,7 +30,7 @@
 			Señor (es): <br>
 			<span>{{ $quote->company->company_name }}</span> <br>
 			<span>Atención</span> <br>
-			<span>{{ $quote->company->company_name }}</span> <br>
+			<span>{{ $quote->attention }}</span> <br>
 			<p>De nuestra consideración:</p>
 											
 			<p>Nos es grato saludarle en atención a su interés por la marca y presentarnos a nombre de Masaki S.A.C. concesionario autorizado de HONDA DEL PERÚ, para lo cual hacemos presente las características técnicas  del modelo solicitado:</p>
@@ -193,12 +193,22 @@
 			<br>
 			<p><strong>Seguro Vehicular:</strong></p>
 			<p>Cotice sin compromiso o solicite a su Asesor Comercial</p>
-			<p><strong>RIMAC PACIFICO MAPFRE MAGALLANES</strong></p>
+			<p><strong>RIMAC - PACIFICO - MAPFRE - MAGALLANES</strong></p>
 		</div>
 		<br>
 		<div>
 			<p>Sin otro particular quedamos a la espera de su órden.</p>
-			<p>Atentamente,</p>
+			<div>Atentamente,</div>
+		</div>
+		<div class="div-firma center">
+			<div class="firma">
+				<img src="{{ './storage/img/'.$quote->employee->signature }}" alt="">
+			</div>
+			<p class="firma-name">{{ $quote->employee->full_name }}</p>
+			<p>Asesor Comercial HONDA</p>
+			<p>{{ 'CELULAR: '.$quote->employee->mobile_company }}</p>
+			<p>{{ 'OFICINA: '.$quote->employee->phone_company }}</p>
+			<p>{{ 'EMAIL: '.$quote->employee->email_company }}</p>
 		</div>
 	</div>
 

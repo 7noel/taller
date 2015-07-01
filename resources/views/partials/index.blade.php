@@ -11,7 +11,7 @@
 				@endif
 				<div class="panel-body">
 					@include('partials.search')
-					<p><a class="btn btn-info" href="{{ route( str_replace('index', 'create', Request::route()->getAction()['as']) ) }}" role="button">{{ config('options.' . Request::route()->getAction()['as'] .'.create') }}</a></p>
+					<p><a class="btn btn-info" href="{{ route( str_replace('index', 'create', Request::route()->getAction()['as']) ) }}" role="button"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> {{ config('options.' . Request::route()->getAction()['as'] .'.create') }}</a></p>
 					@include( str_replace('index', 'partials.table', Request::route()->getAction()['as']) )
 					{!! $models->appends(\Request::only(['name']))->render() !!}
 				</div>

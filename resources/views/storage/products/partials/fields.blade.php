@@ -1,7 +1,7 @@
 					<div class="form-group form-group-sm">
 						{!! Form::label('name','Nombres', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-10">
-						{!! Form::text('name', null, ['class'=>'form-control']) !!}
+						{!! Form::text('name', null, ['class'=>'form-control uppercase']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
@@ -25,19 +25,19 @@
 					<div class="form-group form-group-sm">
 						{!! Form::label('internal_code','Codigo Interno', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-5">
-						{!! Form::text('internal_code', null, ['class'=>'form-control']) !!}
+						{!! Form::text('internal_code', null, ['class'=>'form-control uppercase']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
 						{!! Form::label('provider_code','Codigo de Proveedor', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-5">
-						{!! Form::text('provider_code', null, ['class'=>'form-control']) !!}
+						{!! Form::text('provider_code', null, ['class'=>'form-control uppercase']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
 						{!! Form::label('manufacturer_code','Codigo de Fabricante', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-5">
-						{!! Form::text('manufacturer_code', null, ['class'=>'form-control']) !!}
+						{!! Form::text('manufacturer_code', null, ['class'=>'form-control uppercase']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">

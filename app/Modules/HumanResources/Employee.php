@@ -7,7 +7,7 @@ class Employee extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['name', 'paternal_surname', 'maternal_surname', 'full_name', 'id_type_id', 'doc', 'gender', 'address', 'ubigeo_id', 'phone', 'mobile', 'email_personal', 'email_company'];
+	protected $fillable = ['name', 'paternal_surname', 'maternal_surname', 'full_name', 'id_type_id', 'doc', 'gender', 'address', 'ubigeo_id', 'phone_personal', 'mobile_personal', 'phone_company', 'mobile_company', 'email_personal', 'email_company', 'user_id', 'signature'];
 
 	public function id_type()
 	{
@@ -16,6 +16,10 @@ class Employee extends Model {
 	public function ubigeo()
 	{
 		return $this->hasOne('App\Modules\Base\Ubigeo','id','ubigeo_id');
+	}
+	public function user()
+	{
+		return $this->hasOne('App\Modules\Security\User','id','user_id');
 	}
 	public function scopeName($query, $name){
 		if (trim($name) != "") {

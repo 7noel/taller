@@ -53,5 +53,9 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 	{
 		return $this->hasManyThrough('App\Modules\Security\Permission', 'App\Modules\Security\Role');
 	}
+	public function employee()
+	{
+		return $this->belongsto('App\Modules\HumanResources\Employee', 'id', 'user_id');
+	}
 
 }
