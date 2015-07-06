@@ -1,5 +1,7 @@
 <?php namespace App\Http\Controllers;
 
+use App\Modules\Security\Role;
+
 class HomeController extends Controller {
 
 	/*
@@ -30,6 +32,11 @@ class HomeController extends Controller {
 	 */
 	public function index()
 	{
+		$p = new Role;
+		$roles = \Auth::user()->roles;
+		//dd(\Auth::user()->permissions);
+		dd($roles);
+		dd($p->whereIn('id',$roles)->get());
 		return view('home');
 	}
 

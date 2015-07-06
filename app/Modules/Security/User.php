@@ -51,7 +51,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 	}
 	public function permissions()
 	{
-		return $this->hasManyThrough('App\Modules\Security\Permission', 'App\Modules\Security\Role');
+		return $this->hasManyThrough('App\Modules\Security\Permission', 'App\Modules\Security\Role', 'user_id', 'role_id');
 	}
 	public function employee()
 	{
