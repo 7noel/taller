@@ -140,4 +140,24 @@ abstract class BaseRepo{
 		}
 		return $data;
 	}
+	public function saveMany($items, $k)
+	{
+		foreach ($items as $key => $data) {
+			$data = $this->prepareData($data);
+			$data[$k['key']] = $k['value'];
+			if (isset($data['id'])) {
+				$model = $this->findOrFail($data['id']);
+				if (trim($data['name']) == '') {
+					$model->delete();
+				} else {
+					$model->fill($data);
+					$model->save();
+				}
+			} else {
+				if (trim($data['name']) != '') {
+					$this->model->create($data);
+				}
+			}
+		}
+	}
 }

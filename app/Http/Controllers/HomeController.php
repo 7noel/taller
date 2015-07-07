@@ -32,11 +32,11 @@ class HomeController extends Controller {
 	 */
 	public function index()
 	{
-		$p = new Role;
-		$roles = \Auth::user()->roles;
+		//$p = new Role;
+		//$roles = \Auth::user()->roles;
 		//dd(\Auth::user()->permissions);
-		dd($roles);
-		dd($p->whereIn('id',$roles)->get());
+		//dd($roles);
+		//dd($p->whereIn('id',$roles)->get());
 		return view('home');
 	}
 

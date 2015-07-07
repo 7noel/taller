@@ -50,10 +50,8 @@ class MenuController extends Controller
                 ['name' => 'Grupo de Especificaciones', 'route' => 'sales.feature_groups.index' ],
             ],
             'PostVenta'=>[
-                ['name' => 'Ordenes de Trabajo', 'url' => '#' ],
-                ['name' => 'Facturación', 'url' => '#' ],
-                ['name' => 'Ordenes de Servicio', 'url' => '#' ],
-                ['name' => 'Tipos de Ordenes', 'url' => '#', 'div' => '1' ],
+                ['name' => 'Hoja Semaforo', 'route' => 'autorepair.service_checklists.index' ],
+                ['name' => 'Items de Hoja Semaforo', 'route' => 'autorepair.checkitem_groups.index' ],
             ],
             'Finanzas'=>[
                 ['name' => 'Cuentas por Cobrar', 'url' => '#' ],
@@ -83,6 +81,10 @@ class MenuController extends Controller
                 ['name' => 'Versiones', 'route' => 'sales.versions.index' ],
                 ['name' => 'Modelos', 'route' => 'sales.modelos.index' ],
                 ['name' => 'Grupo de Especificaciones', 'route' => 'sales.feature_groups.index' ],
+            ],
+            'PostVenta'=>[
+                ['name' => 'Hoja Semaforo', 'route' => 'autorepair.service_checklists.index' ],
+                ['name' => 'Items de Hoja Semaforo', 'route' => 'autorepair.checkitem_groups.index' ],
             ],
         ];
         return $links;

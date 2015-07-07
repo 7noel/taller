@@ -49,9 +49,10 @@ Route::group(['prefix'=>'finances', 'middleware'=>['auth', 'permissions'], 'name
 	Route::resource('payment_conditions','PaymentConditionsController');
 });
 
-/*Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'namespace'=>'AutoRepair'], function(){
-
-});*/
+Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'namespace'=>'AutoRepair'], function(){
+	Route::resource('checkitem_groups','CheckitemGroupsController');
+	Route::resource('service_checklists','ServiceChecklistsController');
+});
 
 Route::group(['prefix'=>'humanresources', 'middleware'=>['auth', 'permissions'], 'namespace'=>'HumanResources'], function(){
 	Route::resource('employees','EmployeesController');

@@ -17,26 +17,4 @@ class FeatureRepo extends BaseRepo{
 			return Feature::with('feature_group')->orderBy('id', 'DESC')->paginate();
 		}
 	}
-
-	public function saveMany($features, $k)
-	{
-		foreach ($features as $key => $data) {
-			$data[$k['key']] = $k['value'];
-			if (isset($data['id'])) {
-				$model = $this->findOrFail($data['id']);
-				if (trim($data['name']) == '' and  trim($data['value']) == '') {
-					$model->delete();
-				} else {					
-					$model->fill($data);
-					$model->save();
-				}
-				
-			} else {
-				if (trim($data['name']) != '' or trim($data['value']) != '') {
-					Feature::create($data);
-				}
-			}
-		}
-		
-	}
 }

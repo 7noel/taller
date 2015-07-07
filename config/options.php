@@ -47,6 +47,18 @@ return array(
 		]
 	],
 	'autorepair' => [
+		'checkitem_groups' => [
+			'index'  => ['panel'=>'Grupo de Hoja Semaforo', 'create'=>'Crear Grupo'],
+			'create' => ['panel'=>'Nuevo Grupo', 'create'=>'Crear Grupo'],
+			'show'   => ['panel'=>'Vizualizando Grupo:'],
+			'edit'   => ['panel'=>'Editar Grupo: ', 'update'=>'Actualizar Grupo', 'delete'=>'Eliminar Grupo']
+		],
+		'service_checklists' => [
+			'index'  => ['panel'=>'Hojas Semáforo', 'create'=>'Crear Hoja Semáforo'],
+			'create' => ['panel'=>'Nueva Hoja Semáforo', 'create'=>'Crear Hoja Semáforo'],
+			'show'   => ['panel'=>'Vizualizando Hoja Semáforo:'],
+			'edit'   => ['panel'=>'Editar Hoja Semáforo: ', 'update'=>'Actualizar Hoja Semáforo', 'delete'=>'Eliminar Hoja Semáforo']
+		],
 	],
 	'humanresources' => [
 		'employees' => [

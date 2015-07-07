@@ -17,3 +17,12 @@ body {
 	width: 20em;
 	padding: 0 10px;
 }
+.checkitem input{
+  margin-left: 10px;
+}
+.checkitem-pre_value, .checkitem-post_value{
+  width: 70px;
+}
+.checkitem-name{
+  width: 300px
+}

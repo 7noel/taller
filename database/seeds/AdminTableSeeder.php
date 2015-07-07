@@ -68,12 +68,19 @@ class AdminTableSeeder extends Seeder {
         User::create([
             'name' => 'Marco',
             'email' => 'mgeller@masaki.com.pe',
-            'password' => '123'
+            'password' => '123',
+            'is_superuser' => true
         ]);
         User::create([
             'name' => 'Melissa',
             'email' => 'mmendoza@masaki.com.pe',
             'password' => '123'
+        ]);
+         User::create([
+            'name' => 'Lung',
+            'email' => 'alung@masaki.com.pe',
+            'password' => '123',
+            'is_superuser' => true
         ]);
         Role::create(['name' => 'ADMINISTRADOR DE SISTEMA']);
         Role::create(['name' => 'JEFE DE ALMACEN']);

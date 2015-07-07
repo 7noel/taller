@@ -15,14 +15,14 @@ class CreateCheckitemsTable extends Migration
         Schema::create('checkitems', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->integer('itemcheck_group_id')->unsigned();
+            $table->integer('checkitem_group_id')->unsigned();
             $table->boolean('with_status')->default(true);
             $table->boolean('with_value')->default(false);
             $table->boolean('column_two')->default(false);
             $table->string('pre_value');
             $table->string('post_value');
 
-            $table->foreign('itemcheck_group_id')->references('id')->on('checkitem_groups');
+            $table->foreign('checkitem_group_id')->references('id')->on('checkitem_groups');
             $table->timestamps();
             $table->softDeletes();
         });
