@@ -6,80 +6,59 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Modules\AutoRepair\ServiceChecklistRepo;
+use App\Modules\AutoRepair\CheckitemGroupRepo;
 
 class ServiceChecklistsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return Response
-     */
+
+    protected $repo;
+    protected $checkitemRepo;
+
+    public function __construct(ServiceChecklistRepo $repo, CheckitemGroupRepo $checkitemGroupRepo) {
+        $this->repo = $repo;
+        $this->checkitemGroupRepo = $checkitemGroupRepo;
+    }
+
     public function index()
     {
-        //
+        $models = $this->repo->index('name', \Request::get('name'));
+        return view('partials.index',compact('models'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
     public function create()
     {
-        //
+        $groups = $this->checkitemGroupRepo->all();
+        return view('partials.create', compact('groups'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @return Response
-     */
     public function store()
     {
-        //
+        $this->repo->save(\Request::all());
+        return \Redirect::route('autorepair.checkitem_groups.index');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
     public function show($id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
     public function edit($id)
     {
-        //
+        $model = $this->repo->findOrFail($id);
+        return view('partials.edit', compact('model'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  int  $id
-     * @return Response
-     */
     public function update($id)
     {
-        //
+        $this->repo->save(\Request::all(), $id);
+        return \Redirect::route('autorepair.checkitem_groups.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return Response
-     */
     public function destroy($id)
     {
-        //
+        $model = $this->repo->destroy($id);
+        if (\Request::ajax()) { return $model; }
+        return redirect()->route('autorepair.checkitem_groups.index');
     }
 }
