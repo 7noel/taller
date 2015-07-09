@@ -51,6 +51,7 @@ Route::group(['prefix'=>'finances', 'middleware'=>['auth', 'permissions'], 'name
 
 Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'namespace'=>'AutoRepair'], function(){
 	Route::resource('checkitem_groups','CheckitemGroupsController');
+	Route::get('service_checklists/pdf/{id}', ['as' => 'pdf_service_checklist', 'uses' => 'ServiceChecklistsController@pdf']);
 	Route::resource('service_checklists','ServiceChecklistsController');
 });
 

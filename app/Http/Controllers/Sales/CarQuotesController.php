@@ -79,7 +79,6 @@ class CarQuotesController extends Controller {
 	{
 		$quote = $this->repo->findOrFail($id);
 		$groups = $this->featureGroupRepo->byCatalogCar($quote->catalog_car_id);
-		//return view('pdfs.car_quote', compact('quote', 'groups'));
 		$pdf = \PDF::loadView('pdfs.car_quote', compact('quote', 'groups'));
 
 		return $pdf->stream();

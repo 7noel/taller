@@ -61,4 +61,19 @@ class ServiceChecklistsController extends Controller
         if (\Request::ajax()) { return $model; }
         return redirect()->route('autorepair.checkitem_groups.index');
     }
+    
+    /**
+     * CREA UN PDF EN EL NAVEGADOR
+     * @param  [integer] $id [Es el id del checklist]
+     * @return [pdf]     [Retorna un pdf]
+     */
+    public function pdf($id)
+    {
+        //$model = $this->repo->findOrFail($id);
+        //$groups = $this->checkitemGroupRepo->all($model->catalog_car_id);
+        //$pdf = \PDF::loadView('pdfs.service_checklist', compact('model', 'groups'));
+        $pdf = \PDF::loadView('pdfs.service_checklist');
+
+        return $pdf->stream();
+    }
 }
