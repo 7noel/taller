@@ -35,13 +35,13 @@
 									@if($checkitem->with_status)
 									<div class="col-sm-4 radio">
 										<label class="checkitem-label-success">
-											<input type="radio" name="checkitems[{{ $i }}][status]" value="success" class="checkitem-success">Satisfactorio
+											<input type="radio" name="checkitems[{{ $i }}][status]" value="success" class="checkitem-success checkbox-success">Satisfactorio
 										</label>
 										<label class="checkitem-label-warning">
-											<input type="radio" name="checkitems[{{ $i }}][status]" value="warning" class="checkitem-warning">Proximo
+											<input type="radio" name="checkitems[{{ $i }}][status]" value="warning" class="checkitem-warning checkbox-warning">Proximo
 										</label>
 										<label class="checkitem-label-danger">
-											<input type="radio" name="checkitems[{{ $i }}][status]" value="danger" class="checkitem-danger">Urgente
+											<input type="radio" name="checkitems[{{ $i }}][status]" value="danger" class="checkitem-danger checkbox-danger">Urgente
 										</label>
 									</div>
 									@endif
