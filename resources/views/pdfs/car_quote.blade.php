@@ -162,7 +162,7 @@
 					<td class="td-2">: Tarjeta de propiedad, Placas de rodaje, Declaración Municipal SAT.</td>
 				</tr>
 				<tr>
-					<td class="td-1">Kit</td>
+					<td class="td-1">Kit de Seguridad</td>
 					<td class="td-2">: Alarma Original, Seguro de aros, Seguro de plumillas, Seguro de emblemas, Jgo. Pisos Originales Alfombrados.</td>
 				</tr>
 			</table>

@@ -14,6 +14,8 @@ class CreateServiceChecklistCheckitem extends Migration
     {
         Schema::create('service_checklist_checkitem', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('service_checklist_id');
+            $table->integer('checkitem_id');
             $table->enum('status',['success', 'warning', 'danger', 'info']);
             $table->decimal('value',10,2);
             $table->timestamps();

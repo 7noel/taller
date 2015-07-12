@@ -40,17 +40,17 @@ body {
     border:2px solid red;
     box-shadow:0 0 5px 0px red inset;
 }
-input[type='radio'] {
+.divCheckitems input[type='radio'] {
     -webkit-appearance:none;
     width:20px;
     height:20px;
     border-radius:50%;
     outline:none;
 }
-input[type='radio']:hover {
+.divCheckitems input[type='radio']:hover {
     box-shadow:0 0 5px 0px orange inset;
 }
-input[type='radio']:before {
+.divCheckitems input[type='radio']:before {
     content:'';
     display:block;
     width:60%;
@@ -58,6 +58,6 @@ input[type='radio']:before {
     margin: 20% auto;    
     border-radius:50%;    
 }
-input[type='radio']:checked:before {
+.divCheckitems input[type='radio']:checked:before {
     background:black;
 }

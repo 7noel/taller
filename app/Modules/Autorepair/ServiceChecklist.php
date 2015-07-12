@@ -9,7 +9,12 @@ class ServiceChecklist extends Model
 {
 	use SoftDeletes;
 
-	protected $fillable = ['name'];
+	protected $fillable = ['order_id', 'company_name', 'plate', 'date', 'observation', 'adviser', 'technician'];
+
+	public function checkitems()
+	{
+		return $this->belongsToMany('App\Modules\Autorepair\Checkitem', 'service_checklist_checkitem')->withPivot( 'status','value' )->withTimestamps();
+	}
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {

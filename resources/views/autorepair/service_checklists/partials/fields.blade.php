@@ -28,31 +28,90 @@
 						<div>
 							<p><strong>{{ $group->name }}</strong></p>
 							<div>
-								@foreach($group->checkitems as $checkitem)
+								@foreach($group->checkitems as $key => $checkitem)
 								<?php $i++; ?>
 								<div class="form-group  form-group-sm">
 									<label for="" class='col-sm-4 control-label'>{!! $checkitem->name !!}</label>
 									@if($checkitem->with_status)
-									<div class="col-sm-4 radio">
-										<label class="checkitem-label-success">
-											<input type="radio" name="checkitems[{{ $i }}][status]" value="success" class="checkitem-success checkbox-success">Satisfactorio
-										</label>
-										<label class="checkitem-label-warning">
-											<input type="radio" name="checkitems[{{ $i }}][status]" value="warning" class="checkitem-warning checkbox-warning">Proximo
-										</label>
-										<label class="checkitem-label-danger">
-											<input type="radio" name="checkitems[{{ $i }}][status]" value="danger" class="checkitem-danger checkbox-danger">Urgente
-										</label>
-									</div>
+										@if(isset($model))
+										<?php 
+											$cc = $checkitem->service_checklists()->where('service_checklist_id',$model->id)->first();
+											if (isset($cc)) {
+												$status = $cc->pivot->status;
+												$value = $cc->pivot->value;
+											} else {
+												$status = '';
+												$value = '';
+											}
+										 ?>
+										<div class="col-sm-4 radio">
+											<label class="checkitem-label-success">
+												@if($status == 'success')
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success checkbox-success" checked>
+												@else
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success checkbox-success" >
+												@endif
+												Satisfactorio
+											</label>
+											<label class="checkitem-label-warning">
+												@if($status == 'warning')
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning checkbox-warning" checked>
+												@else
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning checkbox-warning">
+												@endif
+												Proximo
+											</label>
+											<label class="checkitem-label-danger">
+												@if($status == 'danger')
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger checkbox-danger" checked>
+												@else
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger checkbox-danger">
+												@endif
+												Urgente
+											</label>
+										</div>
+										@else
+										<div class="col-sm-4 radio">
+											<label class="checkitem-label-success">
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success checkbox-success">Satisfactorio
+											</label>
+											<label class="checkitem-label-warning">
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning checkbox-warning">Proximo
+											</label>
+											<label class="checkitem-label-danger">
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger checkbox-danger">Urgente
+											</label>
+										</div>
+										@endif
 									@endif
 									@if($checkitem->with_value)
-									<div class="col-sm-4">
-										<label>
-											{{ $checkitem->pre_value }}
-											<input type="input" name="checkitems[{{ $i }}][value]">
-											{{ $checkitem->post_value }}
-										</label>
-									</div>
+										@if(isset($model))
+										<?php 
+											$cc = $checkitem->service_checklists()->where('service_checklist_id',$model->id)->first();
+											if (isset($cc)) {
+												$status = $cc->pivot->status;
+												$value = $cc->pivot->value;
+											} else {
+												$status = '';
+												$value = '';
+											}
+										 ?>
+										<div class="col-sm-4">
+											<label>
+												{{ $checkitem->pre_value }}
+												<input type="input" name="checkitems[{{ $checkitem->id }}][value]" value="{{ $value }}">
+												{{ $checkitem->post_value }}
+											</label>
+										</div>
+										@else
+										<div class="col-sm-4">
+											<label>
+												{{ $checkitem->pre_value }}
+												<input type="input" name="checkitems[{{ $checkitem->id }}][value]">
+												{{ $checkitem->post_value }}
+											</label>
+										</div>
+										@endif
 									@endif
 
 								</div>
@@ -60,19 +119,7 @@
 							</div>
 						</div>
 						@endforeach
-						@if(isset($model))
-						@foreach($model->checkitems as $checkitem)
-							<div class="checkitem">
-								<input type="hidden" name="checkitems[{{ $i }}][id]" value="{{ $checkitem->id }}">
-								<input type="text" name="checkitems[{{ $i }}][name]" placeholder="Nombre" class="checkitem-name" value="{{ $checkitem->name }}">
-								<input type="checkbox" value="1" name="checkitems[{{ $i }}][with_status]" class="checkitem-checkbox" <?php echo ($checkitem->with_status==true) ? 'checked=\'checked\'' : '' ; ?> > Con Estado
-								<input type="checkbox" value="1" name="checkitems[{{ $i }}][with_value]" class="checkitem-checkbox" <?php echo ($checkitem->with_value==true) ? 'checked=\'checked\'' : '' ; ?> > Con Valor
-								<input type="text" name="checkitems[{{ $i }}][pre_value]" placeholder="Pre Valor" class="checkitem-pre_value" value="{{ $checkitem->pre_value }}">
-								<input type="text" name="checkitems[{{ $i }}][post_value]" placeholder="Post Valor" class="checkitem-post_value" value="{{ $checkitem->post_value }}">
-								<input type="checkbox" value="1" name="checkitems[{{ $i }}][column_two]" class="checkitem-checkbox" <?php echo ($checkitem->column_two==true) ? 'checked=\'checked\'' : '' ; ?> > Columna 2
-							</div>
-						@endforeach
-						@endif
+						
 						<input type="hidden" value="{{ $i }}" name="items" id="items">
 					</div>
 					<br>

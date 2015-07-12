@@ -20,4 +20,8 @@ class Checkitem extends Model
 	{
 		return $this->belongsto('App\Modules\Autorepair\CheckitemGroup');
 	}
+	public function service_checklists()
+	{
+		return $this->belongsToMany('App\Modules\Autorepair\ServiceChecklist', 'service_checklist_checkitem')->withPivot( 'status','value' )->withTimestamps();
+	}
 }

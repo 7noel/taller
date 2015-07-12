@@ -34,8 +34,9 @@ class ServiceChecklistsController extends Controller
 
     public function store()
     {
+        //dd(\Request::all());
         $this->repo->save(\Request::all());
-        return \Redirect::route('autorepair.checkitem_groups.index');
+        return \Redirect::route('autorepair.service_checklists.index');
     }
 
     public function show($id)
@@ -46,20 +47,22 @@ class ServiceChecklistsController extends Controller
     public function edit($id)
     {
         $model = $this->repo->findOrFail($id);
-        return view('partials.edit', compact('model'));
+        $groups = $this->checkitemGroupRepo->all();
+        //dd($model->checkitems[1]);
+        return view('partials.edit', compact('model', 'groups'));
     }
 
     public function update($id)
     {
         $this->repo->save(\Request::all(), $id);
-        return \Redirect::route('autorepair.checkitem_groups.index');
+        return \Redirect::route('autorepair.service_checklists.index');
     }
 
     public function destroy($id)
     {
         $model = $this->repo->destroy($id);
         if (\Request::ajax()) { return $model; }
-        return redirect()->route('autorepair.checkitem_groups.index');
+        return redirect()->route('autorepair.service_checklists.index');
     }
     
     /**
