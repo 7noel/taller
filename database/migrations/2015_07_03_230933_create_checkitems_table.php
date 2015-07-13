@@ -18,6 +18,7 @@ class CreateCheckitemsTable extends Migration
             $table->integer('checkitem_group_id')->unsigned();
             $table->boolean('with_status')->default(true);
             $table->boolean('with_value')->default(false);
+            $table->boolean('with_check')->default(false);
             $table->boolean('column_two')->default(false);
             $table->string('pre_value');
             $table->string('post_value');

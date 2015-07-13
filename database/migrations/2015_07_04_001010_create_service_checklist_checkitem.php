@@ -16,7 +16,7 @@ class CreateServiceChecklistCheckitem extends Migration
             $table->increments('id');
             $table->integer('service_checklist_id');
             $table->integer('checkitem_id');
-            $table->enum('status',['success', 'warning', 'danger', 'info']);
+            $table->enum('status',['success', 'warning', 'danger', 'info'])->nullable()->default(null);
             $table->decimal('value',10,2);
             $table->timestamps();
         });

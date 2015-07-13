@@ -16,6 +16,9 @@ class CheckitemRepo extends BaseRepo{
 		if (!isset($data['with_value'])) {
 			$data['with_value'] = false;
 		}
+		if (!isset($data['with_check'])) {
+			$data['with_check'] = false;
+		}
 		if (!isset($data['column_two'])) {
 			$data['column_two'] = false;
 		}

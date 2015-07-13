@@ -34,7 +34,6 @@ class ServiceChecklistsController extends Controller
 
     public function store()
     {
-        //dd(\Request::all());
         $this->repo->save(\Request::all());
         return \Redirect::route('autorepair.service_checklists.index');
     }
@@ -72,6 +71,7 @@ class ServiceChecklistsController extends Controller
      */
     public function pdf($id)
     {
+        //return view('pdfs.service_checklist');
         //$model = $this->repo->findOrFail($id);
         //$groups = $this->checkitemGroupRepo->all($model->catalog_car_id);
         //$pdf = \PDF::loadView('pdfs.service_checklist', compact('model', 'groups'));

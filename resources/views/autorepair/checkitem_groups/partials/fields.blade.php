@@ -29,6 +29,7 @@
 								<input type="text" name="checkitems[{{ $i }}][name]" placeholder="Nombre" class="checkitem-name" value="{{ $checkitem->name }}">
 								<input type="checkbox" value="1" name="checkitems[{{ $i }}][with_status]" class="checkitem-checkbox" <?php echo ($checkitem->with_status==true) ? 'checked=\'checked\'' : '' ; ?> > Con Estado
 								<input type="checkbox" value="1" name="checkitems[{{ $i }}][with_value]" class="checkitem-checkbox" <?php echo ($checkitem->with_value==true) ? 'checked=\'checked\'' : '' ; ?> > Con Valor
+								<input type="checkbox" value="1" name="checkitems[{{ $i }}][with_check]" class="checkitem-checkbox" <?php echo ($checkitem->with_check==true) ? 'checked=\'checked\'' : '' ; ?> > Con Check
 								<input type="text" name="checkitems[{{ $i }}][pre_value]" placeholder="Pre Valor" class="checkitem-pre_value" value="{{ $checkitem->pre_value }}">
 								<input type="text" name="checkitems[{{ $i }}][post_value]" placeholder="Post Valor" class="checkitem-post_value" value="{{ $checkitem->post_value }}">
 								<input type="checkbox" value="1" name="checkitems[{{ $i }}][column_two]" class="checkitem-checkbox" <?php echo ($checkitem->column_two==true) ? 'checked=\'checked\'' : '' ; ?> > Columna 2

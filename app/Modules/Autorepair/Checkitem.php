@@ -9,7 +9,7 @@ class Checkitem extends Model
 {
 	use SoftDeletes;
 
-	protected $fillable = ['name', 'checkitem_group_id', 'with_status', 'with_value', 'column_two', 'pre_value', 'post_value'];
+	protected $fillable = ['name', 'checkitem_group_id', 'with_status', 'with_value', 'with_check', 'column_two', 'pre_value', 'post_value'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {

@@ -32,70 +32,58 @@
 								<?php $i++; ?>
 								<div class="form-group  form-group-sm">
 									<label for="" class='col-sm-4 control-label'>{!! $checkitem->name !!}</label>
-									@if($checkitem->with_status)
-										@if(isset($model))
-										<?php 
+									<?php 
+										if (isset($model)) {
 											$cc = $checkitem->service_checklists()->where('service_checklist_id',$model->id)->first();
-											if (isset($cc)) {
-												$status = $cc->pivot->status;
-												$value = $cc->pivot->value;
-											} else {
-												$status = '';
-												$value = '';
-											}
-										 ?>
+										}
+										if (isset($cc)) {
+											$status = $cc->pivot->status;
+											$value = $cc->pivot->value;
+										} else {
+											$status = '';
+											$value = '';
+										}
+									 ?>
+									@if($checkitem->with_status)
 										<div class="col-sm-4 radio">
 											<label class="checkitem-label-success">
 												@if($status == 'success')
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success checkbox-success" checked>
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success radio-success" checked>
 												@else
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success checkbox-success" >
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success radio-success" >
 												@endif
 												Satisfactorio
 											</label>
 											<label class="checkitem-label-warning">
 												@if($status == 'warning')
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning checkbox-warning" checked>
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning radio-warning" checked>
 												@else
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning checkbox-warning">
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning radio-warning">
 												@endif
 												Proximo
 											</label>
 											<label class="checkitem-label-danger">
 												@if($status == 'danger')
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger checkbox-danger" checked>
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger radio-danger" checked>
 												@else
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger checkbox-danger">
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger radio-danger">
 												@endif
 												Urgente
 											</label>
 										</div>
-										@else
+									@endif
+									@if($checkitem->with_check)
 										<div class="col-sm-4 radio">
-											<label class="checkitem-label-success">
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success checkbox-success">Satisfactorio
-											</label>
-											<label class="checkitem-label-warning">
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning checkbox-warning">Proximo
-											</label>
-											<label class="checkitem-label-danger">
-												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger checkbox-danger">Urgente
+											<label>
+												@if($status == 'info')
+												<input type="checkbox" name="checkitems[{{ $checkitem->id }}][status]" value="info" class="checkitem-info checkbox-info" checked>
+												@else
+												<input type="checkbox" name="checkitems[{{ $checkitem->id }}][status]" value="info" class="checkitem-info checkbox-info">
+												@endif
 											</label>
 										</div>
-										@endif
 									@endif
 									@if($checkitem->with_value)
-										@if(isset($model))
-										<?php 
-											$cc = $checkitem->service_checklists()->where('service_checklist_id',$model->id)->first();
-											if (isset($cc)) {
-												$status = $cc->pivot->status;
-												$value = $cc->pivot->value;
-											} else {
-												$status = '';
-												$value = '';
-											}
-										 ?>
 										<div class="col-sm-4">
 											<label>
 												{{ $checkitem->pre_value }}
@@ -103,23 +91,12 @@
 												{{ $checkitem->post_value }}
 											</label>
 										</div>
-										@else
-										<div class="col-sm-4">
-											<label>
-												{{ $checkitem->pre_value }}
-												<input type="input" name="checkitems[{{ $checkitem->id }}][value]">
-												{{ $checkitem->post_value }}
-											</label>
-										</div>
-										@endif
 									@endif
-
 								</div>
 								@endforeach
 							</div>
 						</div>
 						@endforeach
-						
 						<input type="hidden" value="{{ $i }}" name="items" id="items">
 					</div>
 					<br>

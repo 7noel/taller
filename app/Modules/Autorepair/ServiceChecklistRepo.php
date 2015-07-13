@@ -18,5 +18,14 @@ class ServiceChecklistRepo extends BaseRepo{
 
 		return $model;
 	}
+	public function prepareData($data)
+	{
+		foreach ($data['checkitems'] as $key => $checkitem) {
+			if (!isset($checkitem['status'])) {
+				$data['checkitems'][$key] = null;
+			}
+		}
+		return $data;
+	}
 
 }

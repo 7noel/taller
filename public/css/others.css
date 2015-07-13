@@ -28,17 +28,23 @@ body {
 }
 
 
-.checkbox-success{
+.radio-success{
     border:2px solid green;
     box-shadow:0 0 5px 0px green inset;
 }
-.checkbox-warning{
+.radio-warning{
     border:2px solid yellow;
     box-shadow:0 0 5px 0px yellow inset;
 }
-.checkbox-danger{
+.radio-danger{
     border:2px solid red;
     box-shadow:0 0 5px 0px red inset;
+}
+.checkbox-info{
+    /* All browsers except webkit*/
+    transform: scale(1.5);
+    /* Webkit browsers*/
+    -webkit-transform: scale(1.5);
 }
 .divCheckitems input[type='radio'] {
     -webkit-appearance:none;

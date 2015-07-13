@@ -26,7 +26,29 @@
 		<br><br><br><br><br><br>
 		<div class="group">
 			<div class="group-name div-left">
-				<span class="div-rotate">INTERIOR/EXTERIOR</span>
+				<div class="div-rotate">INTERIOR/EXTERIOR</div>
+			</div>
+			<div class="group-items div-right">
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+			</div><br>
+			<div class="group-name div-left">
+				<div class="div-rotate">BATERÍA</div>
+			</div>
+			<div class="group-items div-right">
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+				<p>Faros delanteros</p>
+			</div><br>
+			<div class="group-name div-left">
+				<div class="div-rotate">DEBAJO DEL CAPOT</div>
 			</div>
 			<div class="group-items div-right">
 				<p>Faros delanteros</p>
