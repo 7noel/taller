@@ -3,6 +3,9 @@ $(document).ready(function(){
 		var div = $(this).parent();
 		addChecktem(div);
 	});
+	$('#order_id').change(function(){
+		getDataOt();
+	});
 });
 function addChecktem (div) {
 	var html = htmlCheckitem();
@@ -22,4 +25,18 @@ function htmlCheckitem () {
 	html = html + "<input type=\"checkbox\" name=\"checkitems["+items+"][column_two]\" value=\"1\" class=\"checkitem-checkbox\"> Columna 2";
 	html = html + "</div>";
 	return html;
+}
+function getDataOt () {
+	var ot = $('#order_id').val();
+	var page = "/autorepair/service_checklists/ajaxGetOt/" + ot;
+	$.get(page, function(data){
+		console.log(data);
+		if ($.isEmptyObject(data)) {
+			$('#order_id').val('');
+		} else{
+			$('#company_name').val(data.NomCliente);
+			$('#plate').val(data.Placa);
+			$('#adviser').val(data.Nomasesor);
+		};
+	});
 }

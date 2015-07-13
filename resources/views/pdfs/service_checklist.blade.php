@@ -13,52 +13,31 @@
 			<div class="header-data">
 				<div>
 					<span>Nombre:</span>
-					<span>Noel Huillca Huamaní</span>
+					<span>{{ $model->company_name }}</span>
 				</div>
 				<div>
 					<span>Placa:</span>
-					<span>ABC-123</span>
+					<span>{{ $model->plate }}</span>
 					<span>Fecha:</span>
-					<span>12/07/2015</span>
+					<span>{{ $model->created_at }}</span>
 				</div>
 			</div>
 		</div>
 		<br><br><br><br><br><br>
-		<div class="group">
-			<div class="group-name div-left">
-				<div class="div-rotate">INTERIOR/EXTERIOR</div>
-			</div>
-			<div class="group-items div-right">
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-			</div><br>
-			<div class="group-name div-left">
-				<div class="div-rotate">BATERÍA</div>
-			</div>
-			<div class="group-items div-right">
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-			</div><br>
-			<div class="group-name div-left">
-				<div class="div-rotate">DEBAJO DEL CAPOT</div>
-			</div>
-			<div class="group-items div-right">
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-				<p>Faros delanteros</p>
-			</div>
-		</div>
+		<table class="group">
+			@foreach($groups as $group)
+			<tr class="block">
+				<td class="group-name div-left" width="10">
+					<div class="div-rotate">{{ $group->name }}</div>
+				</td>
+				<td class="group-items div-right">
+					@foreach($model->checkitems->where('checkitem_group_id', $group->id) as $checkitem)
+					<div>{{ $checkitem->name }}</div>
+					@endforeach
+				</td>
+			</tr>
+			@endforeach
+		</table>
 	</div>
 </body>
 </html>

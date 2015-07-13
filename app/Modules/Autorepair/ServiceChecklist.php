@@ -16,9 +16,9 @@ class ServiceChecklist extends Model
 		return $this->belongsToMany('App\Modules\Autorepair\Checkitem', 'service_checklist_checkitem')->withPivot( 'status','value' )->withTimestamps();
 	}
 
-	public function scopeName($query, $name){
+	public function scopePlate($query, $name){
 		if (trim($name) != "") {
-			$query->where('name', 'LIKE', "%$name%");
+			$query->where('plate', 'LIKE', "%$name%")->orWhere('order_id', 'LIKE', "%$name%");
 		}
 	}
 }

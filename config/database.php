@@ -84,6 +84,18 @@ return [
 			'prefix'   => '',
 		],
 
+		'masaki'  => [
+			'driver'     => 'mysql',
+			'host'       => env('MASAKI_HOST', 'localhost'),
+			'database'   => env('MASAKI_DATABASE', 'forge'),
+			'username'   => env('MASAKI_USERNAME', 'forge'),
+			'password'   => env('MASAKI_PASSWORD', ''),
+			'charset'    => 'latin1',
+			'collation'  => 'latin1_swedish_ci',
+			'prefix'     => '',
+			'strict'     => false,
+		],
+
 	],
 
 	/*

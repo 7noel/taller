@@ -1,24 +1,30 @@
-					<div class="form-group  form-group-sm">
+					<div class="form-group form-group-sm">
 						{!! Form::label('order_id','Nro de Orden', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
-						{!! Form::text('order_id', null, ['class'=>'form-control uppercase']) !!}
+						<div class="col-sm-3">
+						{!! Form::text('order_id', null, ['class'=>'form-control uppercase', 'required'=>'required']) !!}
+						</div>
+						{!! Form::label('plate','Placa', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-3">
+						{!! Form::text('plate', null, ['class'=>'form-control', 'required', 'readonly']) !!}
 						</div>
 					</div>
-					<div class="form-group  form-group-sm">
+					<div class="form-group form-group-sm">
+						{!! Form::label('company_name','Cliente', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-3">
+						{!! Form::text('company_name', null, ['class'=>'form-control', 'required', 'readonly']) !!}
+						</div>
 						{!! Form::label('adviser','Asesor', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
-						{!! Form::text('adviser', null, ['class'=>'form-control uppercase']) !!}
+						<div class="col-sm-3">
+						{!! Form::text('adviser', null, ['class'=>'form-control uppercase', 'readonly']) !!}
 						</div>
 					</div>
-					<div class="form-group  form-group-sm">
+					<div class="form-group form-group-sm">
 						{!! Form::label('technician','Técnico', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
+						<div class="col-sm-3">
 						{!! Form::text('technician', null, ['class'=>'form-control uppercase']) !!}
 						</div>
-					</div>
-					<div class="form-group  form-group-sm">
 						{!! Form::label('observation','Observación', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
+						<div class="col-sm-3">
 						{!! Form::text('observation', null, ['class'=>'form-control uppercase']) !!}
 						</div>
 					</div>

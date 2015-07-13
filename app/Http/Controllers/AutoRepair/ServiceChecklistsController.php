@@ -22,7 +22,7 @@ class ServiceChecklistsController extends Controller
 
     public function index()
     {
-        $models = $this->repo->index('name', \Request::get('name'));
+        $models = $this->repo->index('plate', \Request::get('name'));
         return view('partials.index',compact('models'));
     }
 
@@ -71,12 +71,23 @@ class ServiceChecklistsController extends Controller
      */
     public function pdf($id)
     {
-        //return view('pdfs.service_checklist');
-        //$model = $this->repo->findOrFail($id);
-        //$groups = $this->checkitemGroupRepo->all($model->catalog_car_id);
-        //$pdf = \PDF::loadView('pdfs.service_checklist', compact('model', 'groups'));
-        $pdf = \PDF::loadView('pdfs.service_checklist');
+        $model = $this->repo->findOrFail($id);
+        $groups = $this->checkitemGroupRepo->all($model->catalog_car_id);
+        //return view('pdfs.service_checklist', compact('model', 'groups'));
+        $pdf = \PDF::loadView('pdfs.service_checklist', compact('model', 'groups'));
+        //$pdf = \PDF::loadView('pdfs.service_checklist');
 
         return $pdf->stream();
+    }
+
+    /**
+     * OBTIENE LOS DATOS DE UNA OT
+     * @param  INTEGER $order_id Nro de OT en la base de datos masaki (clarion)
+     * @return JSON             Diccionario con los datos de la OT
+     */
+    public function ajaxGetOt($order_id)
+    {
+        $result = \DB::connection('masaki')->table('ordtra')->where('NroOrden',$order_id)->first();
+        return \Response::json($result);;
     }
 }

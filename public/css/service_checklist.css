@@ -38,16 +38,19 @@ input[type='radio']:checked:before {
 
 .div-left{
 	background: yellow;
-	display: inline-block;
-	width: 30px;
+	/*display: inline-block;*/
 }
 .div-right{
 	background: green;
-	display: inline-block;
+	/*display: inline-block;*/
 	width:349px;
 }
 .div-rotate{
+   /* -webkit-transform-origin: 50% 50%;
+    -webkit-transform: rotate(-90deg);*/
+}
+.group-name{
+    width: 10%;
     text-align: center;
-    -webkit-transform-origin: 50% 50%;
-    -webkit-transform: rotate(-90);
+    vertical-align: middle;
 }
