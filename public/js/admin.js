@@ -48,6 +48,10 @@ $(document).ready(function () {
 		}
 	});
 
+	$('.btn-print').click(function(e){
+		var url = $(this).data('print');
+		printExternal(url);
+	});
 
 	//carga unidades
 	$('#lstUnitTypes').change(function(){ loadUnits(); });
@@ -285,4 +289,15 @@ function mostrarImagen(input) {
 		}
 		reader.readAsDataURL(input.files[0]);
 	}
+}
+function printExternal(url) {
+    var printWindow = window.open( url, 'Print');
+    printWindow.addEventListener('load', function(){
+        setTimeout(function(){
+        	printWindow.print();
+        	setTimeout(function(){printWindow.close();}, 1);
+        }, 500);
+        //printWindow.onfocus=function(){ printWindow.close();}
+        //printWindow.close();
+    }, true);
 }

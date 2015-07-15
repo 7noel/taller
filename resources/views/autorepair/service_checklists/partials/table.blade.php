@@ -13,7 +13,7 @@
 							<td>{{ $model->plate }}</td>
 							<td>{{ $model->company_name }} </td>
 							<td>
-								<a href="{{ route('pdf_service_checklist', $model->id) }}" class="btn btn-success btn-xs" target="_blank"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> </a>
+								<button data-print="{{ route('pdf_service_checklist', $model->id) }}" class="btn btn-success btn-xs btn-print"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> </button>
 								<a href="{{ route( str_replace('index', 'edit', Request::route()->getAction()['as']) , $model) }}" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
 								<a href="#" class="btn-delete btn btn-danger btn-xs"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Eliminar</a>
 							</td>

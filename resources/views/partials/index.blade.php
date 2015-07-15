@@ -27,6 +27,6 @@
 
 @section('scripts')
 
-{!! Html::script('js/admin.js') !!}
+@include( str_replace('index', 'scripts', Request::route()->getAction()['as']) )
 
 @endsection

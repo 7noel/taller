@@ -8,7 +8,9 @@
 <body>
 	<div class="checklist">
 		<div class="header">
-			<div class="header-image"></div>
+			<div class="header-image">
+				<img src="./img/banner-express-service.png" alt="" height="40px">
+			</div>
 			<div class="header-title">CHECKLIST MULTI-PUNTO DE INSPECCIÓN VEHICULAR DE HONDA</div>
 			<div class="header-data">
 				<div>
@@ -23,21 +25,43 @@
 				</div>
 			</div>
 		</div>
-		<br><br><br><br><br><br>
-		<table class="group">
-			@foreach($groups as $group)
-			<tr class="block">
-				<td class="group-name div-left" width="10">
+		<div class="group">
+			@foreach($groups as $key => $group)
+			@if($key==0)
+			<div class="block block-{{ $key }}">
+				<div class="group-name group-name-{{ $key }} inline-block">
 					<div class="div-rotate">{{ $group->name }}</div>
-				</td>
-				<td class="group-items div-right">
-					@foreach($model->checkitems->where('checkitem_group_id', $group->id) as $checkitem)
-					<div>{{ $checkitem->name }}</div>
+				</div>
+				<div class="group-items inline-block">
+					@foreach($group->checkitems as $checkitem)
+					<div style="background: gray;">{{ $checkitem->name }}</div>
 					@endforeach
-				</td>
-			</tr>
+				</div>
+			</div>
+			@endif
 			@endforeach
-		</table>
+			@if(1==0)
+			<div>
+				<div class="div-left"></div>
+				<div class="group-items div-right">
+					<div>
+						<div class="inline-block" width="300px" style="background: green;">
+							<div>Observaciones</div>
+							<span>Este es un comentario</span>
+							<br>
+							<label for="">Asesor: {{ $model->adviser }}</label><br>
+							<label for="">Técnico: {{ $model->technician }}</label>
+						</div>
+						<div class="inline-block div-images" width="300px">
+							<label>Daños o golpes debajo del auto</label><br><br>
+							<img src="./img/banner-auto.png" alt="" height="80px"><br><br>
+							<img src="./img/honda_masaki.jpg" alt="" height="20px">
+						</div>
+					</div>
+				</div>
+			</div>
+			@endif
+		</div>
 	</div>
 </body>
 </html>
