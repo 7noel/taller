@@ -40,7 +40,7 @@
 						} else { $status = ''; $value = ''; }
 					 ?>
 					<div class="div-checkitem">
-						<div class="inline-block checkitem-name">{!! $checkitem->name !!}</div>
+						<div class="inline-block checkitem-name strike"><span>{!! $checkitem->name !!}</span></div>
 						<div class="inline-block div-radios">
 							@if($checkitem->with_status)
 								@if($status == 'success')
@@ -70,23 +70,23 @@
 			</tr>
 			@endforeach
 			<tr>
-				<td></td>
+				<td class="group-name"> </td>
 				<td class="group-items">
-					<div>
-						<div class="inline-block" width="300px" style="background: green;">
+						<div class="inline-block div-options">
 							<div>Observaciones</div>
-							<span>Este esuuu un comentario</span>
+							<div>
+								Este es un comentario de prueba para el siste de Hoja Semaforo
+							</div>
 							<br>
 							<label for="">Asesor: {{ $model->adviser }}</label><br>
 							<label for="">Técnico: {{ $model->technician }}</label>
+							<div></div>
 						</div>
-						<div class="inline-block div-images" width="300px">
+						<div class="inline-block div-images">
 							<label>Daños o golpes debajo del auto</label><br><br>
 							<img src="/img/banner-auto.png" alt="" height="80px"><br><br>
 							<img src="/img/honda_masaki.jpg" alt="" height="20px">
 						</div>
-						
-					</div>
 				</td>
 			</tr>
 		</table>

@@ -83,6 +83,7 @@
     }*/
 
     .div-rotate{
+        width: 60px;
         text-align: center;
         -webkit-transform-origin: 50% 50%;
         -webkit-transform: rotate(-90deg);
@@ -97,15 +98,10 @@
         border-top: dotted 1px black;
         padding: 5px;
         background: white;
-        width: 600px;
+        width: 620px;
     }
     .block-1{
         height: 70px;
-    }
-    .div-images{
-        margin-right: 10px;
-        text-align: center;
-        background: red;
     }
     .inline-block{
         display: inline-block;
@@ -125,7 +121,35 @@
         width: 450px;
     }
     .div-checkitem{
-        border: solid 1px;
+        /*border: solid 1px;*/
     }
+    .div-options{
+        width: 340px;
+    }
+    .div-images{
+        width: 220px;
+        text-align: center;
+    }
+    .strike > span:after {
+        left: 100%;
+        margin-left: 5px;
+    }
+    .strike > span:after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        width: 9999px;
+        height: 1px;
+        border-top: dotted 2px black;
+    }
+    .strike > span {
+        position: relative;
+        display: inline-block;
+    }
+    .strike {
+        overflow: hidden;
+        white-space: nowrap; 
+    }
+
 
 }
