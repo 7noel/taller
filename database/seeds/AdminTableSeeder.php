@@ -153,7 +153,7 @@ class AdminTableSeeder extends Seeder {
         Permission::create(['name' => 'Hoja Semáforo Crear', 'action' => 'autorepair.service_checklists.create', 'permission_group_id' => '6']);
         Permission::create(['name' => 'Hoja Semáforo Editar', 'action' => 'autorepair.service_checklists.edit', 'permission_group_id' => '6']);
         Permission::create(['name' => 'Hoja Semáforo Eliminar', 'action' => 'autorepair.service_checklists.destroy', 'permission_group_id' => '6']);
-        Permission::create(['name' => 'Hoja Semáforo Imprimir', 'action' => 'autorepair.service_checklists.print_out', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Hoja Semáforo Imprimir', 'action' => 'autorepair.service_checklists.print', 'permission_group_id' => '6']);
 
         Permission::create(['name' => 'Colores Listar', 'action' => 'sales.colors.index', 'permission_group_id' => '4']);
         Permission::create(['name' => 'Colores Ver', 'action' => 'sales.colors.show', 'permission_group_id' => '4']);
@@ -185,7 +185,7 @@ class AdminTableSeeder extends Seeder {
         Permission::create(['name' => 'Cotización Crear', 'action' => 'sales.car_quotes.create', 'permission_group_id' => '4']);
         Permission::create(['name' => 'Cotización Editar', 'action' => 'sales.car_quotes.edit', 'permission_group_id' => '4']);
         Permission::create(['name' => 'Cotización Eliminar', 'action' => 'sales.car_quotes.destroy', 'permission_group_id' => '4']);
-        Permission::create(['name' => 'Cotización Imprimir', 'action' => 'sales.car_quotes.print_out', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Cotización Imprimir', 'action' => 'sales.car_quotes.print', 'permission_group_id' => '4']);
 
         IdType::create(['name' => 'REGISTRO UNICO DE CONTRIBUYENTE', 'symbol' => 'RUC']);
         IdType::create(['name' => 'DOCUMENTO NACIONAL DE IDENTIDAD', 'symbol' => 'DNI']);
