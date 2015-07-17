@@ -56,11 +56,6 @@ INSERT INTO `checkitems` (`id`, `name`, `checkitem_group_id`, `with_status`, `wi
 (47, 'Trasera derecha', 6, 1, 1, 1, '', 'mm', '2015-07-07 01:58:31', '2015-07-07 03:13:46', NULL);
 
 
-INSERT INTO `car_quotes` (`id`, `catalog_car_id`, `company_id`, `attention`, `currency_id`, `price`, `set_price`, `observations`, `employee_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(2, 1, 1, 'JOSE', 2, '49990.00', '49990.00', '', 1, '2015-07-10 15:19:46', '2015-07-10 15:30:25', '2015-07-10 15:30:25'),
-(3, 1, 43, 'LEONELA', 2, '49990.00', '45990.00', '', 1, '2015-07-10 15:29:57', '2015-07-10 15:33:37', NULL),
-(4, 2, 1, 'qffasdfasdfsdf', 2, '40990.00', '39990.00', '', 1, '2015-07-15 17:14:36', '2015-07-15 17:14:36', NULL);
-
 INSERT INTO `catalog_cars` (`id`, `manufacture_year`, `model_year`, `cylinder`, `transmission`, `seats`, `fuel`, `version_id`, `currency_id`, `price`, `image`, `image1`, `image2`, `description_image3`, `image3`, `description_image4`, `image4`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 2015, 2015, '3500 c.c.', 'automatic', '8', 'gasoline', 20, 2, '49990.00', '', 'ODYSSEY.jpg', 'ODYSSEYp.jpg', 'Espacio para 8 pasajeros', 'IntOdyssey1.jpg', 'Amplio Espacio ', 'IntOdyssey2.jpg', '2015-07-08 16:10:33', '2015-07-08 16:11:09', NULL),
 (2, 2015, 2015, '2,400 c.c. 4 Cilindros', 'AUTOMATICA CVT', '5', 'gasolina', 16, 2, '40990.00', '', 'honda-crv-2015 frente.jpg', '', 'Spoiler Posterior', 'TAILGATE-SPOILER_mid.jpg', 'Airbags completos', '2015-Honda-CR-V-14-850x349.jpg', '2015-07-15 16:18:12', '2015-07-15 16:18:12', NULL),
@@ -69,6 +64,11 @@ INSERT INTO `catalog_cars` (`id`, `manufacture_year`, `model_year`, `cylinder`, 
 
 INSERT INTO `employees` (`id`, `name`, `paternal_surname`, `maternal_surname`, `full_name`, `id_type_id`, `doc`, `gender`, `address`, `ubigeo_id`, `phone_personal`, `phone_company`, `mobile_personal`, `mobile_company`, `email_personal`, `email_company`, `user_id`, `signature`, `created_at`, `updated_at`, `deleted_at`, `job_id`) VALUES
 (1, 'XX', 'MARCO', 'GELLER', 'MARCO GELLER XX', 2, '12345678', 0, 'DIRECCION', 12431412, '', '5554444', '', '999955555', '', '', 8, 'firma_noel.png', '2015-07-10 15:17:59', '2015-07-10 15:24:19', NULL, 2);
+
+INSERT INTO `car_quotes` (`id`, `catalog_car_id`, `company_id`, `attention`, `currency_id`, `price`, `set_price`, `observations`, `employee_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(2, 1, 1, 'JOSE', 2, '49990.00', '49990.00', '', 1, '2015-07-10 15:19:46', '2015-07-10 15:30:25', '2015-07-10 15:30:25'),
+(3, 1, 43, 'LEONELA', 2, '49990.00', '45990.00', '', 1, '2015-07-10 15:29:57', '2015-07-10 15:33:37', NULL),
+(4, 2, 1, 'qffasdfasdfsdf', 2, '40990.00', '39990.00', '', 1, '2015-07-15 17:14:36', '2015-07-15 17:14:36', NULL);
 
 INSERT INTO `features` (`id`, `name`, `value`, `feature_group_id`, `catalog_car_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 'Motor', '3,471 c.c.      V6', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:24:39', NULL),
@@ -150,11 +150,3 @@ INSERT INTO `features` (`id`, `name`, `value`, `feature_group_id`, `catalog_car_
 (77, 'Sistema Smart Entry', '', 4, 2, '2015-07-15 17:14:05', '2015-07-15 17:14:05', NULL),
 (78, 'Vigas en las puertas', '', 4, 2, '2015-07-15 17:14:05', '2015-07-15 17:14:05', NULL),
 (79, 'Sistema de Protección al Peatón  (SPP)', '', 4, 2, '2015-07-15 17:14:05', '2015-07-15 17:14:05', NULL);
-
-
-
-INSERT INTO `feature_groups` (`id`, `name`, `template`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'Especificaciones Técnicas Principales :', 'primaryLeft', '2015-07-08 15:35:43', '2015-07-08 15:35:43', NULL),
-(2, 'Dimensiones :', 'primaryRight', '2015-07-08 15:35:43', '2015-07-08 15:35:43', NULL),
-(3, 'CONFORT Y TECNOLOGIA :', 'in', '2015-07-08 15:35:43', '2015-07-08 15:35:43', NULL),
-(4, 'SISTEMA DE SEGURIDAD :', 'out', '2015-07-08 15:35:43', '2015-07-08 15:35:43', NULL);
