@@ -7,11 +7,15 @@ class Employee extends Model {
 
 	use SoftDeletes;
 
-	protected $fillable = ['name', 'paternal_surname', 'maternal_surname', 'full_name', 'id_type_id', 'doc', 'gender', 'address', 'ubigeo_id', 'phone_personal', 'mobile_personal', 'phone_company', 'mobile_company', 'email_personal', 'email_company', 'user_id', 'signature'];
+	protected $fillable = ['name', 'paternal_surname', 'maternal_surname', 'full_name', 'id_type_id', 'doc', 'job_id', 'gender', 'address', 'ubigeo_id', 'phone_personal', 'mobile_personal', 'phone_company', 'mobile_company', 'email_personal', 'email_company', 'user_id', 'signature'];
 
 	public function id_type()
 	{
-		return $this->hasOne('App\Modules\Base\IdType');
+		return $this->hasOne('App\Modules\Base\IdType','id','id_type_id');
+	}
+	public function job()
+	{
+		return $this->hasOne('App\Modules\HumanResources\Job','id','job_id');
 	}
 	public function ubigeo()
 	{

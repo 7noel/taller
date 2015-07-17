@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Modules\Base\IdTypeRepo;
 use App\Modules\HumanResources\EmployeeRepo;
+use App\Modules\HumanResources\JobRepo;
 use App\Modules\Base\UbigeoRepo;
 
 use App\Http\Requests\HumanResources\FormEmployeeRequest;
@@ -13,11 +14,13 @@ use App\Http\Requests\HumanResources\FormEmployeeRequest;
 class EmployeesController extends Controller {
 
 	protected $repo;
+	protected $jobRepo;
 	protected $ubigeoRepo;
 	protected $idTypeRepo;
 
-	public function __construct(EmployeeRepo $repo, UbigeoRepo $ubigeoRepo, IdTypeRepo $idTypeRepo) {
+	public function __construct(EmployeeRepo $repo, JobRepo $jobRepo, UbigeoRepo $ubigeoRepo, IdTypeRepo $idTypeRepo) {
 		$this->repo = $repo;
+		$this->jobRepo = $jobRepo;
 		$this->ubigeoRepo = $ubigeoRepo;
 		$this->idTypeRepo = $idTypeRepo;
 	}
@@ -30,9 +33,10 @@ class EmployeesController extends Controller {
 
 	public function create()
 	{
+		$jobs = $this->jobRepo->getList();
 		$id_types = $this->idTypeRepo->getList2('symbol');
 		$ubigeo = $this->ubigeoRepo->listUbigeo();
-		return view('partials.create', compact('id_types','ubigeo'));
+		return view('partials.create', compact('jobs', 'id_types','ubigeo'));
 	}
 
 	public function store(FormEmployeeRequest $request)
@@ -48,10 +52,11 @@ class EmployeesController extends Controller {
 
 	public function edit($id)
 	{
+		$jobs = $this->jobRepo->getList();
 		$id_types = $this->idTypeRepo->getList2('symbol');
 		$model = $this->repo->findOrFail($id);
 		$ubigeo = $this->ubigeoRepo->listUbigeo($model->ubigeo_id);
-		return view('partials.edit', compact('model', 'id_types', 'ubigeo'));
+		return view('partials.edit', compact('model', 'jobs', 'id_types', 'ubigeo'));
 	}
 
 	public function update($id, FormEmployeeRequest $request)

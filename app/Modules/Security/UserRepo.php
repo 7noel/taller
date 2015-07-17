@@ -36,5 +36,15 @@ class UserRepo extends BaseRepo{
 	{
 		return User::where('name','like',"%$term%")->orWhere('email','like',"%$term%")->get();
 	}
+    public function allPermissions()
+    {
+    	return \DB::table('permissions')
+    	->join('role_permissions', 'permissions.id', '=', 'role_permissions.permission_id')
+    	->join('user_roles', 'role_permissions.role_id', '=', 'user_roles.role_id')
+    	->where('user_roles.user_id',\Auth::user()->id)
+    	->select('permissions.action')
+    	->groupBy('permissions.action')
+    	->lists('action');
+    }
 }
 

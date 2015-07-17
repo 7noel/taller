@@ -13,7 +13,7 @@
 
 					
 					<div class="form-group">
-						<div class="col-sm-3 col-sm-offset-1">
+						<div class="col-sm-4 col-sm-offset-1">
 							<label>Permisos No Autorizados</label>
 							<select name="origen[]" id="origen" multiple size="10" class="form-control">
 								@foreach($permissions as $permission)
@@ -31,12 +31,12 @@
 								@endforeach			
 							</select>
 							<br>
-							<input type="button" class="btn btn-default pasar izq" value="Pasar »" class="SISTEMAS">
-							<input type="button" class="btn btn-default quitar der" value="« Quitar" class="ALMACEN">
+							<input type="button" class="btn btn-default pasar izq" value="Pasar »">
+							<input type="button" class="btn btn-default quitar der" value="« Quitar">
 							<input type="button" class="btn btn-default pasartodos izq" value="Todos »">
 							<input type="button" class="btn btn-default quitartodos der" value="« Ninguno">
 						</div>
-						<div class="col-sm-3">
+						<div class="col-sm-4">
 							<label>Permisos Autorizados</label>
 							<select name="permissions[]" id="destino" multiple size="10" class="form-control">
 								@if(isset($model))

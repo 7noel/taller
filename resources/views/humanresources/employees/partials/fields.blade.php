@@ -12,10 +12,16 @@
 					</div>
 					<div class="form-group  form-group-sm">
 						{!! Form::label('doc','Documento', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
+						<div class="col-sm-4">
 							<div class="form-inline">
 							{!! Form::select('id_type_id',$id_types , null, ['class'=>'form-control col-sm-1']) !!}
 							{!! Form::text('doc', null, ['class'=>'form-control uppercase']) !!}
+							</div>
+						</div>
+						{!! Form::label('job_id','Cargo', ['class'=>'col-sm-1 control-label']) !!}
+						<div class="col-sm-3">
+							<div class="form-inline">
+							{!! Form::select('job_id',$jobs , null, ['class'=>'form-control col-sm-1']) !!}
 							</div>
 						</div>
 					</div>

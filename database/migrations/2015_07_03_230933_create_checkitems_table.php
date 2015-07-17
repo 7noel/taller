@@ -36,6 +36,6 @@ class CreateCheckitemsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('itemchecks');
+        Schema::drop('checkitems');
     }
 }

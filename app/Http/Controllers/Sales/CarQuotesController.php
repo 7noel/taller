@@ -75,7 +75,7 @@ class CarQuotesController extends Controller {
 	 * @param  [integer] $id [Es el id de la cotizacion]
 	 * @return [pdf]     [Retorna un pdf]
 	 */
-	public function pdf($id)
+	public function print_out($id)
 	{
 		$quote = $this->repo->findOrFail($id);
 		$groups = $this->featureGroupRepo->byCatalogCar($quote->catalog_car_id);

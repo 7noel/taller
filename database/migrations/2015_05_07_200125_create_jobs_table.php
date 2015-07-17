@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCheckitemGroupsTable extends Migration
+class CreateJobsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,11 +12,10 @@ class CreateCheckitemGroupsTable extends Migration
      */
     public function up()
     {
-        Schema::create('checkitem_groups', function (Blueprint $table) {
+        Schema::create('jobs', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->integer('order')->unsigned();
-            $table->boolean('is_double_column');
+            $table->string('description');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -29,6 +28,6 @@ class CreateCheckitemGroupsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('checkitem_groups');
+        Schema::drop('jobs');
     }
 }

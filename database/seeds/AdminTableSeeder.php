@@ -22,6 +22,7 @@ use App\Modules\Sales\Version;
 use App\Modules\Sales\CatalogCar;
 use App\Modules\Sales\Color;
 use App\Modules\Sales\FeatureGroup;
+use App\Modules\HumanResources\Job;
 
 use Faker\Factory as Faker;
 
@@ -69,7 +70,6 @@ class AdminTableSeeder extends Seeder {
             'name' => 'Marco',
             'email' => 'mgeller@masaki.com.pe',
             'password' => '123',
-            'is_superuser' => true
         ]);
         User::create([
             'name' => 'Melissa',
@@ -86,12 +86,14 @@ class AdminTableSeeder extends Seeder {
         Role::create(['name' => 'JEFE DE ALMACEN']);
         Role::create(['name' => 'ASISTENTE DE ALMACEN']);
         Role::create(['name' => 'JEFE DE COMPRAS']);
+        Role::create(['name' => 'ASISTENTE DE ADV']);
+        Role::create(['name' => 'ADMINISTRADOR DE VENTAS']);
         Role::create(['name' => 'VENDEDOR']);
-        Role::create(['name' => 'GERENTE DE VENTAS']);
+        Role::create(['name' => 'JEFE DE VENTAS']);
         Role::create(['name' => 'RECEPCIONISTA']);
         Role::create(['name' => 'ASESOR DE SERVICIO']);
         Role::create(['name' => 'COORDINADOR DE POSTVENTA']);
-        Role::create(['name' => 'GERENTE DE POSTVENTA']);
+        Role::create(['name' => 'JEFE DE POSTVENTA']);
         Role::create(['name' => 'JEFE DE TALLER']);
         Role::create(['name' => 'TECNICO']);
         Role::create(['name' => 'CAJERO']);
@@ -100,6 +102,15 @@ class AdminTableSeeder extends Seeder {
         Role::create(['name' => 'CONTADOR GENERAL']);
         Role::create(['name' => 'ASISTENTE ADMINISTRATIVO']);
         Role::create(['name' => 'GERENTE GENERAL']);
+
+        Job::create(['name' => 'ANALISTA DE SISTEMAS']);
+        Job::create(['name' => 'ASESOR DE VENTAS']);
+        Job::create(['name' => 'ADMINISTRADOR DE VENTAS']);
+        Job::create(['name' => 'TECNICO']);
+        Job::create(['name' => 'JEFE DE TALLER']);
+        Job::create(['name' => 'ASESOR DE SERVICIO']);
+        Job::create(['name' => 'COORDINADOR DE POSTVENTA']);
+        Job::create(['name' => 'JEFE DE POSTVENTA']);
 
         PermissionGroup::create(['name' => 'SISTEMAS']);
         PermissionGroup::create(['name' => 'ALMACEN']);
@@ -116,24 +127,65 @@ class AdminTableSeeder extends Seeder {
         Permission::create(['name' => 'Usuarios Crear', 'action' => 'guard.users.create', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Usuarios Editar', 'action' => 'guard.users.edit', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Usuarios Eliminar', 'action' => 'guard.users.destroy', 'permission_group_id' => '1']);
-
         Permission::create(['name' => 'Roles Listar', 'action' => 'guard.roles.index', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Roles Ver', 'action' => 'guard.roles.show', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Roles Crear', 'action' => 'guard.roles.create', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Roles Editar', 'action' => 'guard.roles.edit', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Roles Eliminar', 'action' => 'guard.roles.destroy', 'permission_group_id' => '1']);
-
         Permission::create(['name' => 'Grupos Listar', 'action' => 'guard.permission_groups.index', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Grupos Ver', 'action' => 'guard.permission_groups.show', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Grupos Crear', 'action' => 'guard.permission_groups.create', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Grupos Editar', 'action' => 'guard.permission_groups.edit', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Grupos Eliminar', 'action' => 'guard.permission_groups.destroy', 'permission_group_id' => '1']);
-
         Permission::create(['name' => 'Permisos Listar', 'action' => 'guard.permissions.index', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Permisos Ver', 'action' => 'guard.permissions.show', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Permisos Crear', 'action' => 'guard.permissions.create', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Permisos Editar', 'action' => 'guard.permissions.edit', 'permission_group_id' => '1']);
         Permission::create(['name' => 'Permisos Eliminar', 'action' => 'guard.permissions.destroy', 'permission_group_id' => '1']);
+
+        Permission::create(['name' => 'Items Hoja Semáforo Listar', 'action' => 'autorepair.checkitem_groups.index', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Items Hoja Semáforo Ver', 'action' => 'autorepair.checkitem_groups.show', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Items Hoja Semáforo Crear', 'action' => 'autorepair.checkitem_groups.create', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Items Hoja Semáforo Editar', 'action' => 'autorepair.checkitem_groups.edit', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Items Hoja Semáforo Eliminar', 'action' => 'autorepair.checkitem_groups.destroy', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Hoja Semáforo Listar', 'action' => 'autorepair.service_checklists.index', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Hoja Semáforo Ver', 'action' => 'autorepair.service_checklists.show', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Hoja Semáforo Crear', 'action' => 'autorepair.service_checklists.create', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Hoja Semáforo Editar', 'action' => 'autorepair.service_checklists.edit', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Hoja Semáforo Eliminar', 'action' => 'autorepair.service_checklists.destroy', 'permission_group_id' => '6']);
+        Permission::create(['name' => 'Hoja Semáforo Imprimir', 'action' => 'autorepair.service_checklists.print_out', 'permission_group_id' => '6']);
+
+        Permission::create(['name' => 'Colores Listar', 'action' => 'sales.colors.index', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Colores Ver', 'action' => 'sales.colors.show', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Colores Crear', 'action' => 'sales.colors.create', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Colores Editar', 'action' => 'sales.colors.edit', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Colores Eliminar', 'action' => 'sales.colors.destroy', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Grupo de Especificaciones Listar', 'action' => 'sales.feature_groups.index', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Grupo de Especificaciones Ver', 'action' => 'sales.feature_groups.show', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Grupo de Especificaciones Crear', 'action' => 'sales.feature_groups.create', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Grupo de Especificaciones Editar', 'action' => 'sales.feature_groups.edit', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Grupo de Especificaciones Eliminar', 'action' => 'sales.feature_groups.destroy', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Modelos Listar', 'action' => 'sales.modelos.index', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Modelos Ver', 'action' => 'sales.modelos.show', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Modelos Crear', 'action' => 'sales.modelos.create', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Modelos Editar', 'action' => 'sales.modelos.edit', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Modelos Eliminar', 'action' => 'sales.modelos.destroy', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Versiones Listar', 'action' => 'sales.versions.index', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Versiones Ver', 'action' => 'sales.versions.show', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Versiones Crear', 'action' => 'sales.versions.create', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Versiones Editar', 'action' => 'sales.versions.edit', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Versiones Eliminar', 'action' => 'sales.versions.destroy', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Catálogo de Vehículos Listar', 'action' => 'sales.catalog_cars.index', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Catálogo de Vehículos Ver', 'action' => 'sales.catalog_cars.show', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Catálogo de Vehículos Crear', 'action' => 'sales.catalog_cars.create', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Catálogo de Vehículos Editar', 'action' => 'sales.catalog_cars.edit', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Catálogo de Vehículos Eliminar', 'action' => 'sales.catalog_cars.destroy', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Cotización Listar', 'action' => 'sales.car_quotes.index', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Cotización Ver', 'action' => 'sales.car_quotes.show', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Cotización Crear', 'action' => 'sales.car_quotes.create', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Cotización Editar', 'action' => 'sales.car_quotes.edit', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Cotización Eliminar', 'action' => 'sales.car_quotes.destroy', 'permission_group_id' => '4']);
+        Permission::create(['name' => 'Cotización Imprimir', 'action' => 'sales.car_quotes.print_out', 'permission_group_id' => '4']);
 
         IdType::create(['name' => 'REGISTRO UNICO DE CONTRIBUYENTE', 'symbol' => 'RUC']);
         IdType::create(['name' => 'DOCUMENTO NACIONAL DE IDENTIDAD', 'symbol' => 'DNI']);

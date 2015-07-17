@@ -52,12 +52,13 @@ Route::group(['prefix'=>'finances', 'middleware'=>['auth', 'permissions'], 'name
 
 Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'namespace'=>'AutoRepair'], function(){
 	Route::resource('checkitem_groups','CheckitemGroupsController');
-	Route::get('service_checklists/pdf/{id}', ['as' => 'pdf_service_checklist', 'uses' => 'ServiceChecklistsController@pdf']);
+	Route::get('service_checklists/print/{id}', ['as' => 'print_service_checklist', 'uses' => 'ServiceChecklistsController@print_out']);
 	Route::resource('service_checklists','ServiceChecklistsController');
 });
 
 Route::group(['prefix'=>'humanresources', 'middleware'=>['auth', 'permissions'], 'namespace'=>'HumanResources'], function(){
 	Route::resource('employees','EmployeesController');
+	Route::resource('jobs','JobsController');
 });
 
 Route::group(['prefix'=>'logistics', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Logistics'], function(){
@@ -72,7 +73,7 @@ Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespa
 	Route::resource('colors','ColorsController');
 	Route::resource('features','FeaturesController');
 	Route::resource('feature_groups','FeatureGroupsController');
-	Route::get('car_quotes/pdf/{id}', ['as' => 'pdf_quote', 'uses' => 'CarQuotesController@pdf']);
+	Route::get('car_quotes/print/{id}', ['as' => 'print_quote', 'uses' => 'CarQuotesController@print_out']);
 	Route::resource('car_quotes','CarQuotesController');
 });
 Route::group(['prefix'=>'storage', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Storage'], function(){

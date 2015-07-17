@@ -6,21 +6,44 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Modules\Security\UserRepo;
 
 class MenuController extends Controller
 {
+    protected $repo;
+
+    public function __construct(UserRepo $repo) {
+        $this->repo = $repo;
+    }
     public function links()
     {
-        return $this->arrayLinks();
+        $arrayLinks = $this->arrayLinks();
+
         if (\Auth::user()->is_superuser == true) {
-            return $this->arrayLinks();
+            return $arrayLinks;
         }
-        $p = \Auth::user()->permissions;
-        dd($p);
+
+        $permissions = $this->repo->allPermissions();
+
+        foreach ($arrayLinks as $k => $module) {
+            foreach ($module as $key => $link) {
+                if (!isset($link['route'])) {
+                    unset($arrayLinks[$k][$key]);
+                } else if (!in_array($link['route'], $permissions)) {
+                    unset($arrayLinks[$k][$key]);
+                }
+            }
+            if (count($arrayLinks[$k]) == 0) {
+                unset($arrayLinks[$k]);
+            }
+        }
+
+        return $arrayLinks;
+
     }
     public function arrayLinks()
     {
-        /*$links = [
+        $links = [
             'Seguridad'=>[
                 ['name' => 'Usuarios', 'route' => 'guard.users.index' ],
                 ['name' => 'Roles', 'route' => 'guard.roles.index', 'div' => '1' ],
@@ -37,16 +60,15 @@ class MenuController extends Controller
                 ['name' => 'Unidades', 'route' => 'storage.units.index' ],
             ],
             'Ventas'=>[
+                ['name' => 'Cotización', 'route' => 'sales.car_quotes.index'],
+                ['name' => 'Catálogo de Vehículos', 'route' => 'sales.catalog_cars.index' ],
                 ['name' => 'Notas de Pedido de Vehículo', 'url' => '#' ],
                 ['name' => 'Notas de Pedido de Accesorios', 'url' => '#' ],
                 ['name' => 'Facturación', 'url' => '#' ],
                 ['name' => 'Ordenes de Compra', 'url' => '#' ],
-                ['name' => 'Cotización', 'route' => 'sales.car_quotes.index', 'div' => '1' ],
-                ['name' => 'Catálogo de Vehículos', 'route' => 'sales.catalog_cars.index' ],
-                ['name' => 'Versiones', 'route' => 'sales.versions.index' ],
+                ['name' => 'Versiones', 'route' => 'sales.versions.index', 'div' => '1'],
                 ['name' => 'Modelos', 'route' => 'sales.modelos.index' ],
                 ['name' => 'Colores', 'route' => 'sales.colors.index' ],
-                ['name' => 'Especificaciones', 'route' => 'sales.features.index' ],
                 ['name' => 'Grupo de Especificaciones', 'route' => 'sales.feature_groups.index' ],
             ],
             'PostVenta'=>[
@@ -65,6 +87,7 @@ class MenuController extends Controller
             ],
             'Recursos Humanos'=>[
                 ['name' => 'Empleados', 'route' => 'humanresources.employees.index' ],
+                ['name' => 'Cargos', 'route' => 'humanresources.jobs.index' ],
                 ['name' => 'Planilla', 'url' => '#' ],
                 ['name' => 'Documentos', 'route' => 'admin.id_types.index' ],
             ],
@@ -72,19 +95,6 @@ class MenuController extends Controller
                 ['name' => 'Ordenes de Compra', 'url' => '#' ],
                 ['name' => 'Compras', 'route' => 'logistics.purchases.index' ],
                 ['name' => 'Marca', 'route' => 'logistics.brands.index', 'div' => '1' ],
-            ],
-        ];*/
-        $links = [
-            'Ventas'=>[
-                ['name' => 'Cotización', 'route' => 'sales.car_quotes.index', 'div' => '1' ],
-                ['name' => 'Catálogo de Vehículos', 'route' => 'sales.catalog_cars.index' ],
-                ['name' => 'Versiones', 'route' => 'sales.versions.index' ],
-                ['name' => 'Modelos', 'route' => 'sales.modelos.index' ],
-                ['name' => 'Grupo de Especificaciones', 'route' => 'sales.feature_groups.index' ],
-            ],
-            'PostVenta'=>[
-                ['name' => 'Hoja Semaforo', 'route' => 'autorepair.service_checklists.index' ],
-                ['name' => 'Items de Hoja Semaforo', 'route' => 'autorepair.checkitem_groups.index' ],
             ],
         ];
         return $links;

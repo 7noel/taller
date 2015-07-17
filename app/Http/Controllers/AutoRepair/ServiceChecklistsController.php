@@ -69,15 +69,15 @@ class ServiceChecklistsController extends Controller
      * @param  [integer] $id [Es el id del checklist]
      * @return [pdf]     [Retorna un pdf]
      */
-    public function pdf($id)
+    public function print_out($id)
     {
         $model = $this->repo->findOrFail($id);
         $groups = $this->checkitemGroupRepo->all($model->catalog_car_id);
         return view('pdfs.service_checklist2', compact('model', 'groups'));
-        $pdf = \PDF::loadView('pdfs.service_checklist2', compact('model', 'groups'));
+        //$pdf = \PDF::loadView('pdfs.service_checklist2', compact('model', 'groups'));
         //$pdf = \PDF::loadView('pdfs.service_checklist');
 
-        return $pdf->stream();
+        //return $pdf->stream();
     }
 
     /**

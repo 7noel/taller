@@ -66,6 +66,12 @@ return array(
 			'create' => ['panel'=>'Nuevo Empleado', 'create'=>'Crear Empleado'],
 			'show'   => ['panel'=>'Vizualizando Empleado:'],
 			'edit'   => ['panel'=>'Editar Empleado: ', 'update'=>'Actualizar Empleado', 'delete'=>'Eliminar Empleado']
+		],
+		'jobs' => [
+			'index'  => ['panel'=>'Cargos', 'create'=>'Crear Cargo'],
+			'create' => ['panel'=>'Nuevo Cargo', 'create'=>'Crear Cargo'],
+			'show'   => ['panel'=>'Vizualizando Cargo:'],
+			'edit'   => ['panel'=>'Editar Cargo: ', 'update'=>'Actualizar Cargo', 'delete'=>'Eliminar Cargo']
 		]
 	],
 	'logistics' => [

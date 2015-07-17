@@ -1,48 +1,10 @@
--- phpMyAdmin SQL Dump
--- version 4.3.11
--- http://www.phpmyadmin.net
---
--- Servidor: 127.0.0.1
--- Tiempo de generación: 10-07-2015 a las 15:51:42
--- Versión del servidor: 5.6.24
--- Versión de PHP: 5.6.8
-
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-
---
--- Base de datos: `masaki_laravel`
---
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `checkitems`
---
-
-CREATE TABLE IF NOT EXISTS `checkitems` (
-  `id` int(10) unsigned NOT NULL,
-  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `checkitem_group_id` int(10) unsigned NOT NULL,
-  `with_status` tinyint(1) NOT NULL DEFAULT '1',
-  `with_value` tinyint(1) NOT NULL DEFAULT '0',
-  `column_two` tinyint(1) NOT NULL DEFAULT '0',
-  `pre_value` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `post_value` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `deleted_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Volcado de datos para la tabla `checkitems`
---
+INSERT INTO `checkitem_groups` (`id`, `name`, `order`, `is_double_column`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'INTERIOR/EXTERIOOR', 1, 0, '2015-07-07 01:27:02', '2015-07-07 03:10:51', NULL),
+(2, 'BATERÍA', 2, 0, '2015-07-07 01:39:13', '2015-07-07 03:10:57', NULL),
+(3, 'DEBAJO DEL CAPOT', 3, 0, '2015-07-07 01:39:40', '2015-07-07 03:11:13', NULL),
+(4, 'DEBAJO DEL AUTO', 4, 0, '2015-07-07 01:50:10', '2015-07-07 03:11:30', NULL),
+(5, 'CONDICIÓN DE LLANTAS', 5, 1, '2015-07-07 01:54:19', '2015-07-07 01:58:39', NULL),
+(6, 'CONDICIÓN DE PASTILLAS DE FRENO', 6, 1, '2015-07-07 01:58:31', '2015-07-07 01:58:31', NULL);
 
 INSERT INTO `checkitems` (`id`, `name`, `checkitem_group_id`, `with_status`, `with_value`, `column_two`, `pre_value`, `post_value`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 'Faros delanteros (Revisar focos de alta)', 1, 1, 0, 0, '', '', '2015-07-07 01:27:02', '2015-07-07 03:10:51', NULL),
@@ -93,74 +55,106 @@ INSERT INTO `checkitems` (`id`, `name`, `checkitem_group_id`, `with_status`, `wi
 (46, 'Delantera derecha', 6, 1, 1, 1, '', 'mm', '2015-07-07 01:58:31', '2015-07-07 03:13:46', NULL),
 (47, 'Trasera derecha', 6, 1, 1, 1, '', 'mm', '2015-07-07 01:58:31', '2015-07-07 03:13:46', NULL);
 
--- --------------------------------------------------------
 
---
--- Estructura de tabla para la tabla `checkitem_groups`
---
+INSERT INTO `car_quotes` (`id`, `catalog_car_id`, `company_id`, `attention`, `currency_id`, `price`, `set_price`, `observations`, `employee_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(2, 1, 1, 'JOSE', 2, '49990.00', '49990.00', '', 1, '2015-07-10 15:19:46', '2015-07-10 15:30:25', '2015-07-10 15:30:25'),
+(3, 1, 43, 'LEONELA', 2, '49990.00', '45990.00', '', 1, '2015-07-10 15:29:57', '2015-07-10 15:33:37', NULL),
+(4, 2, 1, 'qffasdfasdfsdf', 2, '40990.00', '39990.00', '', 1, '2015-07-15 17:14:36', '2015-07-15 17:14:36', NULL);
 
-CREATE TABLE IF NOT EXISTS `checkitem_groups` (
-  `id` int(10) unsigned NOT NULL,
-  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `order` int(10) unsigned NOT NULL,
-  `is_double_column` tinyint(1) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `deleted_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+INSERT INTO `catalog_cars` (`id`, `manufacture_year`, `model_year`, `cylinder`, `transmission`, `seats`, `fuel`, `version_id`, `currency_id`, `price`, `image`, `image1`, `image2`, `description_image3`, `image3`, `description_image4`, `image4`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 2015, 2015, '3500 c.c.', 'automatic', '8', 'gasoline', 20, 2, '49990.00', '', 'ODYSSEY.jpg', 'ODYSSEYp.jpg', 'Espacio para 8 pasajeros', 'IntOdyssey1.jpg', 'Amplio Espacio ', 'IntOdyssey2.jpg', '2015-07-08 16:10:33', '2015-07-08 16:11:09', NULL),
+(2, 2015, 2015, '2,400 c.c. 4 Cilindros', 'AUTOMATICA CVT', '5', 'gasolina', 16, 2, '40990.00', '', 'honda-crv-2015 frente.jpg', '', 'Spoiler Posterior', 'TAILGATE-SPOILER_mid.jpg', 'Airbags completos', '2015-Honda-CR-V-14-850x349.jpg', '2015-07-15 16:18:12', '2015-07-15 16:18:12', NULL),
+(3, 2015, 2015, '2,354 c.c.', 'AUTOMATICA CVT', '5', 'GASOLINA', 13, 2, '31990.00', '', 'c7f98913025aa45951d92d6e83c5759f.png', 'a58df90c89602c377ede63f8a98f483a.png', 'TABLERO ERGONÓMICO', '2015-Honda-CR-V-SUV-LX-4dr-Front-wheel-Drive-Photo-9.png', 'AMPLIO ESPACIO INTERIOR', 'interior crv tolva.jpg', '2015-07-15 17:20:50', '2015-07-15 17:20:50', NULL);
 
---
--- Volcado de datos para la tabla `checkitem_groups`
---
 
-INSERT INTO `checkitem_groups` (`id`, `name`, `order`, `is_double_column`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'INTERIOR/EXTERIOOR', 1, 0, '2015-07-07 01:27:02', '2015-07-07 03:10:51', NULL),
-(2, 'BATERÍA', 2, 0, '2015-07-07 01:39:13', '2015-07-07 03:10:57', NULL),
-(3, 'DEBAJO DEL CAPOT', 3, 0, '2015-07-07 01:39:40', '2015-07-07 03:11:13', NULL),
-(4, 'DEBAJO DEL AUTO', 4, 0, '2015-07-07 01:50:10', '2015-07-07 03:11:30', NULL),
-(5, 'CONDICIÓN DE LLANTAS', 5, 1, '2015-07-07 01:54:19', '2015-07-07 01:58:39', NULL),
-(6, 'CONDICIÓN DE PASTILLAS DE FRENO', 6, 1, '2015-07-07 01:58:31', '2015-07-07 01:58:31', NULL);
+INSERT INTO `employees` (`id`, `name`, `paternal_surname`, `maternal_surname`, `full_name`, `id_type_id`, `doc`, `gender`, `address`, `ubigeo_id`, `phone_personal`, `phone_company`, `mobile_personal`, `mobile_company`, `email_personal`, `email_company`, `user_id`, `signature`, `created_at`, `updated_at`, `deleted_at`, `job_id`) VALUES
+(1, 'XX', 'MARCO', 'GELLER', 'MARCO GELLER XX', 2, '12345678', 0, 'DIRECCION', 12431412, '', '5554444', '', '999955555', '', '', 8, 'firma_noel.png', '2015-07-10 15:17:59', '2015-07-10 15:24:19', NULL, 2);
 
---
--- Índices para tablas volcadas
---
+INSERT INTO `features` (`id`, `name`, `value`, `feature_group_id`, `catalog_car_id`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'Motor', '3,471 c.c.      V6', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:24:39', NULL),
+(2, 'Potencia Máxima (Hp / rpm)', '250      HP  -  5,700 rpm', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:06:28', NULL),
+(3, 'Torque de Motor  (Kgm.  /  rpm )', '39.4 Kgm.  -  4,800 rpm', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:06:28', NULL),
+(4, 'Tren de Válvulas', '24   SOHC   i - VTEC', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:06:28', NULL),
+(5, 'Capacidad del Tanque de Combustible', '79.5 Lts.  - 24 Glns.', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:06:28', NULL),
+(6, 'Asistencia de Direccion', 'EPS - TCS', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:06:28', NULL),
+(7, 'Sistema de Inyección y Economy', 'Drive by Wire + VCM', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:06:28', NULL),
+(8, 'Sistemas de Freno', 'ABS + EBD + VSA', 1, 1, '2015-07-09 16:06:28', '2015-07-09 16:06:28', NULL),
+(9, 'Longitud', '5,152 mm', 2, 1, '2015-07-09 16:09:57', '2015-07-09 16:09:57', NULL),
+(10, 'Ancho', '2,011 mm', 2, 1, '2015-07-09 16:09:57', '2015-07-09 16:09:57', NULL),
+(11, 'Alto', '1,737 mm', 2, 1, '2015-07-09 16:09:57', '2015-07-09 16:09:57', NULL),
+(12, 'Distancia suelo/chasis', '    155 mm', 2, 1, '2015-07-09 16:09:57', '2015-07-09 16:09:57', NULL),
+(13, 'Peso en vacío', '2,058 Kgs', 2, 1, '2015-07-09 16:09:57', '2015-07-09 16:09:57', NULL),
+(14, 'Medida de Neumáticos', '235 / 65 / R17', 2, 1, '2015-07-09 16:09:57', '2015-07-09 16:09:57', NULL),
+(15, 'Tipo de Aros', 'Aleación 17''''', 2, 1, '2015-07-09 16:09:57', '2015-07-09 16:09:57', NULL),
+(16, 'EXTERIOR', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(17, 'Faros Halogenos', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(18, 'Luces Diurnas (DRL)', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(19, 'Techo Corredizo automático one touch', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(20, 'INTERIOR', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(21, 'Pantalla Touch Screen', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(22, 'Pantalla de Multi información (i - Mid)', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(23, 'Bluetooth - Hands Free Link', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(24, 'Aire Acondicionado Climatizado Tri - Zona', '', 3, 1, '2015-07-09 16:14:26', '2015-07-09 16:14:26', NULL),
+(25, 'Equipo de Audio con salida 7 parlantes', '', 3, 1, '2015-07-09 16:14:27', '2015-07-09 16:14:27', NULL),
+(26, 'Asientos regulables electricamente en altura y profundidad', '', 3, 1, '2015-07-09 16:14:27', '2015-07-09 16:14:27', NULL),
+(27, 'Controles en el volante iluminados (Audio/Velocidad crucero/Teléfono/i-Mid)', '', 3, 1, '2015-07-09 16:14:27', '2015-07-09 16:24:39', NULL),
+(28, 'Honda Lanewatch', '', 3, 1, '2015-07-09 16:24:39', '2015-07-09 16:24:39', NULL),
+(29, 'Cool Box', '', 3, 1, '2015-07-09 16:24:39', '2015-07-09 16:24:39', NULL),
+(30, 'Airbags Piloto, Copiloto, Laterales y Cortina', '', 4, 1, '2015-07-09 16:24:39', '2015-07-09 16:24:39', NULL),
+(31, 'Cinturones de 23 puntos en todas las plazas', '', 4, 1, '2015-07-09 16:24:39', '2015-07-09 16:24:39', NULL),
+(32, 'Anclajes LATCH para niños', '', 4, 1, '2015-07-09 16:24:39', '2015-07-09 16:24:39', NULL),
+(33, 'Cabezales Activos delanteros', '', 4, 1, '2015-07-09 16:24:40', '2015-07-09 16:24:40', NULL),
+(34, 'Sistema Engine Start/Stop Button ', '', 4, 1, '2015-07-09 16:24:40', '2015-07-09 16:24:40', NULL),
+(35, 'Estructura de Protección Tridimensional (ACE)', '', 4, 1, '2015-07-09 16:24:40', '2015-07-09 16:24:40', NULL),
+(36, 'Sistema de Protección al Peatón (SPP)', '', 4, 1, '2015-07-09 16:24:40', '2015-07-09 16:24:40', NULL),
+(37, 'Alarma Integrada', '', 4, 1, '2015-07-09 16:24:40', '2015-07-09 16:24:40', NULL),
+(38, 'Tercera Luz de Freno en el Aleron Posterior', '', 4, 1, '2015-07-09 16:24:40', '2015-07-09 16:24:40', NULL),
+(39, 'Cámara de vista Posterior con guía', '', 4, 1, '2015-07-09 16:24:40', '2015-07-09 16:24:40', NULL),
+(40, 'Sensores de Estacionamiento', '', 4, 1, '2015-07-09 16:24:40', '2015-07-09 16:24:40', NULL),
+(41, 'Motor', '2,354 c.c.', 1, 2, '2015-07-15 16:26:28', '2015-07-15 16:26:28', NULL),
+(42, 'Potencia Máxima (HP / rpm )', '185      hp  -  5,800 rpm', 1, 2, '2015-07-15 16:26:28', '2015-07-15 16:26:28', NULL),
+(43, 'Torque de Motor (Kgm / rpm )', '22.4 Kgm  -  4,200 rpm', 1, 2, '2015-07-15 16:26:28', '2015-07-15 16:26:28', NULL),
+(44, 'Tren de Válvulas', '16 Válv.     DOHC     i-Vtec', 1, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(45, 'Capacidad de tanque de combustible', '58 Lts.        18 Glns.', 1, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(46, 'Sistemas de Freno', 'ABS + EBD + VSA', 1, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(47, 'Asistencia de Dirección', 'EPS  +  TCS', 1, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(48, 'Asistencias de ahorro de combustible', 'Drive by wire  +  Eco Assist', 1, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(49, 'Longitud', '4,520 mm', 2, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(50, 'Ancho', '1,820 mm', 2, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(51, 'Altura', '1,680 mm', 2, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(52, 'Distancia al suelo', '1,720 mm', 2, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(53, 'Peso en vacío', '1,523 Kgs.', 2, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(54, 'Neumaticos', '225 / 65 / R17', 2, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(55, 'Aros', 'Aleación 17''''', 2, 2, '2015-07-15 16:26:29', '2015-07-15 16:26:29', NULL),
+(56, 'EXTERIOR', '', 3, 2, '2015-07-15 16:54:40', '2015-07-15 16:54:40', NULL),
+(57, 'Faros Halogenos', '', 3, 2, '2015-07-15 16:54:40', '2015-07-15 16:54:40', NULL),
+(58, 'Luces Diurnas Leds (LDR)', '', 3, 2, '2015-07-15 17:03:19', '2015-07-15 17:03:19', NULL),
+(59, 'INTERIOR', '', 3, 2, '2015-07-15 17:03:19', '2015-07-15 17:03:19', NULL),
+(60, 'Aire Acondicionado Climatizado Dual', '', 3, 2, '2015-07-15 17:03:19', '2015-07-15 17:03:19', NULL),
+(61, 'Equipo de Audio con 4 parlantes y 2 Twiters- memoria de 2 Gb', '', 3, 2, '2015-07-15 17:03:19', '2015-07-15 17:08:19', NULL),
+(62, 'Asientos y timón con cuero de fábrica regulables en altura y profundidad', '', 3, 2, '2015-07-15 17:03:19', '2015-07-15 17:08:19', NULL),
+(63, 'Blue tooth Hands Free Link', '', 3, 2, '2015-07-15 17:08:19', '2015-07-15 17:08:19', NULL),
+(64, 'Pantalla de multinfomación i - Mid', '', 3, 2, '2015-07-15 17:08:19', '2015-07-15 17:08:19', NULL),
+(65, 'Pantalla Touch Screen ', '', 3, 2, '2015-07-15 17:08:19', '2015-07-15 17:08:19', NULL),
+(66, 'Controles montados en el volante iluminados (audio-cruce control-bluetooth)', '', 3, 2, '2015-07-15 17:08:19', '2015-07-15 17:08:19', NULL),
+(67, 'Sistema de encendido ENGINE START / STOP', '', 3, 2, '2015-07-15 17:08:19', '2015-07-15 17:12:29', NULL),
+(68, 'Fácil y Cómodo abatimiento de asientos posteriores', '', 3, 2, '2015-07-15 17:08:19', '2015-07-15 17:08:19', NULL),
+(69, 'Airbags Piloto, Copiloto, Laterales y cortina', '', 4, 2, '2015-07-15 17:12:29', '2015-07-15 17:12:29', NULL),
+(70, 'Cinturones de 3 puntos en todas las plazas', '', 4, 2, '2015-07-15 17:12:29', '2015-07-15 17:12:29', NULL),
+(71, 'Seguridad para asientos de Niños (LATCH)', '', 4, 2, '2015-07-15 17:12:29', '2015-07-15 17:12:29', NULL),
+(72, 'Cabezales Activos delanteros', '', 4, 2, '2015-07-15 17:12:29', '2015-07-15 17:12:29', NULL),
+(73, 'Alarma Integrada', '', 4, 2, '2015-07-15 17:12:29', '2015-07-15 17:12:29', NULL),
+(74, 'Estructura de Protección tridimensional (ACE)', '', 4, 2, '2015-07-15 17:12:29', '2015-07-15 17:12:29', NULL),
+(75, 'Llave de apertura remota y por aproximación de puertas', '', 4, 2, '2015-07-15 17:12:29', '2015-07-15 17:12:29', NULL),
+(76, 'Tercera Luz de Freno en Spoiler posterior', '', 4, 2, '2015-07-15 17:14:05', '2015-07-15 17:14:05', NULL),
+(77, 'Sistema Smart Entry', '', 4, 2, '2015-07-15 17:14:05', '2015-07-15 17:14:05', NULL),
+(78, 'Vigas en las puertas', '', 4, 2, '2015-07-15 17:14:05', '2015-07-15 17:14:05', NULL),
+(79, 'Sistema de Protección al Peatón  (SPP)', '', 4, 2, '2015-07-15 17:14:05', '2015-07-15 17:14:05', NULL);
 
---
--- Indices de la tabla `checkitems`
---
-ALTER TABLE `checkitems`
-  ADD PRIMARY KEY (`id`), ADD KEY `checkitems_checkitem_group_id_foreign` (`checkitem_group_id`);
 
---
--- Indices de la tabla `checkitem_groups`
---
-ALTER TABLE `checkitem_groups`
-  ADD PRIMARY KEY (`id`);
 
---
--- AUTO_INCREMENT de las tablas volcadas
---
-
---
--- AUTO_INCREMENT de la tabla `checkitems`
---
-ALTER TABLE `checkitems`
-  MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=48;
---
--- AUTO_INCREMENT de la tabla `checkitem_groups`
---
-ALTER TABLE `checkitem_groups`
-  MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=7;
---
--- Restricciones para tablas volcadas
---
-
---
--- Filtros para la tabla `checkitems`
---
-ALTER TABLE `checkitems`
-ADD CONSTRAINT `checkitems_checkitem_group_id_foreign` FOREIGN KEY (`checkitem_group_id`) REFERENCES `checkitem_groups` (`id`);
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+INSERT INTO `feature_groups` (`id`, `name`, `template`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'Especificaciones Técnicas Principales :', 'primaryLeft', '2015-07-08 15:35:43', '2015-07-08 15:35:43', NULL),
+(2, 'Dimensiones :', 'primaryRight', '2015-07-08 15:35:43', '2015-07-08 15:35:43', NULL),
+(3, 'CONFORT Y TECNOLOGIA :', 'in', '2015-07-08 15:35:43', '2015-07-08 15:35:43', NULL),
+(4, 'SISTEMA DE SEGURIDAD :', 'out', '2015-07-08 15:35:43', '2015-07-08 15:35:43', NULL);
