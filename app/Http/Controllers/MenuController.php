@@ -10,19 +10,39 @@ use App\Modules\Security\UserRepo;
 
 class MenuController extends Controller
 {
+    protected $links;
     protected $repo;
 
+    /**
+     * Constructor que prepara $repo y $links
+     * @param UserRepo $repo [description]
+     */
     public function __construct(UserRepo $repo) {
         $this->repo = $repo;
+        $this->links = $this->arrayLinks();
     }
+
+    /**
+     * Funcion principal de la clase que es llamado por la vista
+     * @return array Devuelve los links autorizados al usuario logueado
+     */
     public function links()
     {
-        $arrayLinks = $this->arrayLinks();
-
         if (\Auth::user()->is_superuser == true) {
-            return $arrayLinks;
+            return $this->links;
         }
 
+        return $this->linksFiltered();
+
+    }
+
+    /**
+     * Filtra links segun los permisos que se le haya otorgado al usuario
+     * @return array
+     */
+    public function linksFiltered()
+    {
+        $arrayLinks = $this->links;
         $permissions = $this->repo->allPermissions();
 
         foreach ($arrayLinks as $k => $module) {
@@ -39,8 +59,12 @@ class MenuController extends Controller
         }
 
         return $arrayLinks;
-
     }
+
+    /**
+     * Obtiene todos los links del Menu
+     * @return array
+     */
     public function arrayLinks()
     {
         $links = [

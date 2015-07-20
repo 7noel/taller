@@ -9,7 +9,7 @@
 				<div class="panel-body">
 					@include('partials.messages')
 
-					<form class="form-horizontal" role="form" method="POST" action="{{ url('/guard/update_password') }}">
+					<form class="form-horizontal" role="form" method="POST" action="{{ route('update_password') }}">
 						<input type="hidden" name="_token" value="{{ csrf_token() }}">
 
 						<div class="form-group">

@@ -22,72 +22,39 @@ Route::controllers([
 ]);
 
 Route::group(['middleware'=>['auth']], function(){
-	//Obtener provincas y distritos x ajax
-	Route::get('listarProvincias/{departamento}', ['as' => 'ajaxprovincias', 'uses' => 'Admin\UbigeosController@ajaxProvincias']);
-	Route::get('listarDistritos/{departamento}/{provincia}', ['as' => 'ajaxdistritos','uses' => 'Admin\UbigeosController@ajaxDistritos']);
-	Route::get('listUnits/{unit_type_id}', ['as' => 'ajaxUnits','uses' => 'Storage\UnitsController@ajaxList']);
-	Route::get('listSubCategories/{category_id}', ['as' => 'ajaxSubCategories','uses' => 'Storage\SubCategoriesController@ajaxList']);
-	Route::get('listWarehouses', ['as' => 'ajaxWarehouses','uses' => 'Storage\WarehousesController@ajaxList']);
-	Route::get('finances/companies/autocomplete', ['as' => 'companiesAutocomplete','uses' => 'Finances\CompaniesController@ajaxAutocomplete']);
-	Route::get('storage/products/autocomplete/{warehouse_id}', ['as' => 'productsAutocomplete','uses' => 'Storage\ProductsController@ajaxAutocomplete']);
-	Route::get('storage/products/ajaxGetData/{warehouse_id}/{product_id}', ['as' => 'ajaxGetData','uses' => 'Storage\ProductsController@ajaxGetData']);
-	Route::get('listCars/{version_id}', ['as' => 'ajaxCars','uses' => 'Sales\CatalogCarsController@ajaxList']);
-	Route::get('ajaxGetCar/{catalog_car_id}', ['as' => 'ajaxGetCar','uses' => 'Sales\CatalogCarsController@ajaxGetCar']);
-	Route::get('guard/users/autocomplete', ['as' => 'usersAutocomplete','uses' => 'Security\UsersController@ajaxAutocomplete']);
-	Route::get('autorepair/service_checklists/ajaxGetOt/{order_id}', ['as' => 'ajaxGetOt','uses' => 'AutoRepair\ServiceChecklistsController@ajaxGetOt']);
+	//cambiar contraseña
+	Route::get('change_password', ['as' => 'change_password', 'uses' => 'Security\UsersController@changePassword']);
+	Route::post('update_password', ['as' => 'update_password', 'uses'=>'Security\UsersController@updatePassword']);
+	//metodos ajax
+	require(__DIR__.'/routes/ajax.php');
 });
 
 Route::group(['prefix'=>'admin', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Admin'], function(){
-	Route::resource('id_types','IdTypesController');
-	Route::resource('unit_types','UnitTypesController');
-	Route::resource('currencies','CurrenciesController');
-	Route::resource('document_types','DocumentTypesController');
+	require(__DIR__.'/routes/admin.php');
 });
 
 Route::group(['prefix'=>'finances', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Finances'], function(){
-	Route::resource('exchanges','ExchangesController');
-	Route::resource('companies','CompaniesController');
-	Route::resource('payment_conditions','PaymentConditionsController');
+	require(__DIR__.'/routes/finances.php');
 });
 
 Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'namespace'=>'AutoRepair'], function(){
-	Route::resource('checkitem_groups','CheckitemGroupsController');
-	Route::get('service_checklists/print/{id}', ['as' => 'autorepair.service_checklists.print', 'uses' => 'ServiceChecklistsController@print_out']);
-	Route::resource('service_checklists','ServiceChecklistsController');
+	require(__DIR__.'/routes/autorepair.php');
 });
 
 Route::group(['prefix'=>'humanresources', 'middleware'=>['auth', 'permissions'], 'namespace'=>'HumanResources'], function(){
-	Route::resource('employees','EmployeesController');
-	Route::resource('jobs','JobsController');
+	require(__DIR__.'/routes/humanresources.php');
 });
 
 Route::group(['prefix'=>'logistics', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Logistics'], function(){
-	Route::resource('brands','BrandsController');
-	Route::resource('purchases','PurchasesController');
+	require(__DIR__.'/routes/logistics.php');
 });
 
 Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Sales'], function(){
-	Route::resource('modelos','ModelosController');
-	Route::resource('versions','VersionsController');
-	Route::resource('catalog_cars','CatalogCarsController');
-	Route::resource('colors','ColorsController');
-	Route::resource('features','FeaturesController');
-	Route::resource('feature_groups','FeatureGroupsController');
-	Route::get('car_quotes/print/{id}', ['as' => 'sales.car_quotes.print', 'uses' => 'CarQuotesController@print_out']);
-	Route::resource('car_quotes','CarQuotesController');
+	require(__DIR__.'/routes/sales.php');
 });
 Route::group(['prefix'=>'storage', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Storage'], function(){
-	Route::resource('units','UnitsController');
-	Route::resource('warehouses','WarehousesController');
-	Route::resource('categories','CategoriesController');
-	Route::resource('sub_categories','SubCategoriesController');
-	Route::resource('products','ProductsController');
+	require(__DIR__.'/routes/storage.php');
 });
 Route::group(['prefix'=>'guard', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Security'], function(){
-	Route::get('change_password', ['as' => 'change_password', 'uses' => 'UsersController@changePassword']);
-	Route::post('update_password', ['as'=>'update_password', 'uses'=>'UsersController@updatePassword']);
-	Route::resource('users','UsersController');
-	Route::resource('roles','RolesController');
-	Route::resource('permissions','PermissionsController');
-	Route::resource('permission_groups','PermissionGroupsController');
+	require(__DIR__.'/routes/guard.php');
 });
