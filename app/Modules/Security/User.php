@@ -57,18 +57,5 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 	{
 		return $this->belongsto('App\Modules\HumanResources\Employee', 'id', 'user_id');
 	}
-	public function action_allowed($action)
-    {
-    	$result = \DB::table('permissions')
-    	->join('role_permissions', 'permissions.id', '=', 'role_permissions.permission_id')
-    	->join('user_roles', 'role_permissions.role_id', '=', 'user_roles.role_id')
-    	->where('user_roles.user_id',\Auth::user()->id)
-    	->where('permissions.action',$action)
-    	->first();
-    	if (is_null($result)) {
-    		return false;
-    	}
 
-    	return true;
-    }
 }

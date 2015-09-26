@@ -25,7 +25,7 @@
 							</a>
 						</div>
 						<div class="col-xs-6 col-md-3">
-							<a href="{{ route('autorepair.service_checklists.index') }}" class="thumbnail">POSTVENTA
+							<a href="#" class="thumbnail">POSTVENTA
 								<img src="/img/service.jpg" alt="...">
 							</a>
 						</div>

@@ -2,52 +2,34 @@
     table {border-collapse:collapse; border: none;}
     body{
     	font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
-    	font-size: 11px;
+    	font-size: 12px;
         margin: 0 auto;
         width:650px;
     }
     .header{
-        margin-left: 80px;
+        margin-left: 71px;
     }
     .header-image{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-top: 10px;
+        padding-top: 30px;
         padding-bottom: 10px;
+        text-align: right;
         padding-right: 20px;
-    }
-    .img-padding-left{
-        margin-left: -70px;
     }
     .header-title{
         text-align: center;
-        background: red;
+        background: #ABA9A9;
         -webkit-border-top-left-radius: 50px;
         -webkit-border-top-right-radius: 50px;
         -moz-border-radius-topleft: 50px;
         -moz-border-radius-topright: 50px;
         border-top-left-radius: 50px;
         border-top-right-radius: 50px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        color: white;
-        font-weight: bold;
-        font-size: 1.2em;
     }
     .header-data{
         background: white;
-        padding: 5px;
-    }
-    .header-data-label{
-        display: inline-block;
-        width: 50px;
-    }
-    .padding-left{
-        padding-left: 40px;
     }
     .checklist{
-        background-color: #d3d3d3;
+        background-color: black;
     }
     .radio-success{
         margin: 0 5px;
@@ -61,13 +43,9 @@
         margin: 0 5px;
         border:2px solid red;
     }
-    .radio-info{
-        margin: 0 5px;
-        border:2px solid black;
-    }
     input[type='radio'] {
         margin: 0;
-        margin-bottom: 0px;
+        margin-bottom: -2px;
         padding: 0;
         -webkit-appearance:none;
         width:12px;
@@ -111,28 +89,19 @@
         -webkit-transform: rotate(-90deg);
     }
     .group-name{
-        padding-left: 10px;
         border-top: dotted 1px white;
-        background: #d3d3d3;
-        width: 80px;
-        color: black;
+        background: black;
+        width: 50px;
+        color: white;
     }
     .group-items{
         border-top: dotted 1px black;
         padding: 5px;
         background: white;
-        width: 560px;
-    }
-    .block-4 .group-items, .block-5 .group-items{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        width: 620px;
     }
     .block-1{
         height: 70px;
-    }
-    .block-6{
-        height: 90px;
     }
     .inline-block{
         display: inline-block;
@@ -148,12 +117,11 @@
     .red{
         /*background: red;*/
     }
-    .div-checkitem > .checkitem-name{
-        width: 510px;
+    .checkitem-name{
+        width: 450px;
     }
     .div-checkitem{
         /*border: solid 1px;*/
-        font-family: 'Arial Narrow', Arial, sans-serif;
     }
     .div-options{
         width: 340px;
@@ -182,11 +150,6 @@
         overflow: hidden;
         white-space: nowrap; 
     }
-    .div_column_one > .div-checkitem > .checkitem-name{
-        width: 270px;
-    }
-    .div_column_two > .div-checkitem > .checkitem-name{
-        width: 180px;
-    }
+
 
 }
