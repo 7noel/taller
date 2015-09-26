@@ -72,6 +72,7 @@ class MenuController extends Controller
                 ['name' => 'Grupo de Especificaciones', 'route' => 'sales.feature_groups.index' ],
             ],
             'PostVenta'=>[
+                ['name' => 'Proximos Servicios', 'route' => 'autorepair.vehicles.nextservice' ],
                 ['name' => 'Hoja Semaforo', 'route' => 'autorepair.service_checklists.index' ],
                 ['name' => 'Items de Hoja Semaforo', 'route' => 'autorepair.checkitem_groups.index' ],
             ],

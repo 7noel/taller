@@ -6,6 +6,24 @@ $(document).ready(function(){
 	$('#order_id').change(function(){
 		getDataOt();
 	});
+	$('.checkitem-select').change(function(){
+		var select = $(this);
+		console.log(select.val());
+		select.removeClass('success');
+		select.removeClass('warning');
+		select.removeClass('danger');
+		if (select.val()=='success') {
+			select.addClass('success');
+		} else if(select.val()=='warning'){
+			select.addClass('warning');
+		} else if(select.val()=='danger'){
+			select.addClass('danger');
+		} else{
+			//select.addClass('select-none');
+		};
+
+	});
+	
 });
 function addChecktem (div) {
 	var html = htmlCheckitem();

@@ -23,27 +23,20 @@
 						<div class="col-sm-3">
 						{!! Form::text('technician', null, ['class'=>'form-control uppercase']) !!}
 						</div>
-					</div>
-					<div class="form-group">
 						{!! Form::label('observation','Observación', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-8">
-						{!! Form::textarea('observation', null, ['class'=>'form-control uppercase','size' => '10x3']) !!}
+						<div class="col-sm-3">
+						{!! Form::text('observation', null, ['class'=>'form-control uppercase']) !!}
 						</div>
-					</div>			
-<?php $p1=\Auth::user()->action_allowed('autorepair.service_checklists.part01') ?>
-<?php $p2=\Auth::user()->action_allowed('autorepair.service_checklists.part02') ?>
+					</div>
 					<div class="divCheckitems">
 						<?php $i=0; ?>
-						<?php $with_two_values = array(1,2,3,4,16,48,49); ?>
-						<?php $with_one_value = array(45,50,51); ?>
 						@foreach($groups as $group)
-						@if(($group->id != 7 and $p1) or ($group->id == 7 and $p2))
 						<div>
 							<p><strong>{{ $group->name }}</strong></p>
 							<div>
 								@foreach($group->checkitems as $key => $checkitem)
 								<?php $i++; ?>
-								<div class="form-group form-group-sm">
+								<div class="form-group  form-group-sm">
 									<label for="" class='col-sm-4 control-label'>{!! $checkitem->name !!}</label>
 									<?php 
 										if (isset($model)) {
@@ -58,28 +51,35 @@
 										}
 									 ?>
 									@if($checkitem->with_status)
-										<div class="col-sm-2">
-											@if( in_array($checkitem->id, $with_two_values) )
-											<select name="checkitems[{{ $checkitem->id }}][status]" class="form-control checkitem-select {{ $status }}">
-												@if($status == '')
-												<option value="" class="option" selected>Seleccionar</option>
-												@else
-												<option value="" class="option">Seleccionar</option>
-												@endif
-
+										<div class="col-sm-4 radio">
+											<label class="checkitem-label-success">
 												@if($status == 'success')
-												<option value="success" class="option" selected>Satisfactorio</option>
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success radio-success" checked>
 												@else
-												<option value="success" class="option">Satisfactorio</option>
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="success" class="checkitem-success radio-success" >
 												@endif
-
+												Satisfactorio
+											</label>
+											<label class="checkitem-label-warning">
+												@if($status == 'warning')
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning radio-warning" checked>
+												@else
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="warning" class="checkitem-warning radio-warning">
+												@endif
+												Proximo
+											</label>
+											<label class="checkitem-label-danger">
 												@if($status == 'danger')
-												<option value="danger" class="option" selected>Urgente</option>
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger radio-danger" checked>
 												@else
-												<option value="danger" class="option">Urgente</option>
+												<input type="radio" name="checkitems[{{ $checkitem->id }}][status]" value="danger" class="checkitem-danger radio-danger">
 												@endif
-											</select>
-											@elseif( in_array($checkitem->id, $with_one_value) )
+												Urgente
+											</label>
+										</div>
+									@endif
+									@if($checkitem->with_check)
+										<div class="col-sm-4 radio">
 											<label>
 												@if($status == 'info')
 												<input type="checkbox" name="checkitems[{{ $checkitem->id }}][status]" value="info" class="checkitem-info checkbox-info" checked>
@@ -87,34 +87,6 @@
 												<input type="checkbox" name="checkitems[{{ $checkitem->id }}][status]" value="info" class="checkitem-info checkbox-info">
 												@endif
 											</label>
-											@else
-											<select name="checkitems[{{ $checkitem->id }}][status]" class="form-control checkitem-select {{ $status }}">
-												@if($status == '')
-												<option value="" class="option" selected>Seleccionar</option>
-												@else
-												<option value="" class="option">Seleccionar</option>
-												@endif
-
-												@if($status == 'success')
-												<option value="success" class="option" selected>Satisfactorio</option>
-												@else
-												<option value="success" class="option">Satisfactorio</option>
-												@endif
-
-												@if($status == 'warning')
-												<option value="warning" class="option" selected>Proximo</option>
-												@else
-												<option value="warning" class="option">Proximo</option>
-												@endif
-
-												@if($status == 'danger')
-												<option value="danger" class="option" selected>Urgente</option>
-												@else
-												<option value="danger" class="option">Urgente</option>
-												@endif
-											</select>
-											@endif
-											
 										</div>
 									@endif
 									@if($checkitem->with_value)
@@ -130,7 +102,6 @@
 								@endforeach
 							</div>
 						</div>
-						@endif
 						@endforeach
 						<input type="hidden" value="{{ $i }}" name="items" id="items">
 					</div>

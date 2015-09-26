@@ -54,6 +54,7 @@ Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'na
 	Route::resource('checkitem_groups','CheckitemGroupsController');
 	Route::get('service_checklists/print/{id}', ['as' => 'autorepair.service_checklists.print', 'uses' => 'ServiceChecklistsController@print_out']);
 	Route::resource('service_checklists','ServiceChecklistsController');
+	Route::get('vehicles/nextservice', ['as' => 'autorepair.vehicles.nextservice', 'uses' => 'ServiceChecklistsController@nextservice']);
 });
 
 Route::group(['prefix'=>'humanresources', 'middleware'=>['auth', 'permissions'], 'namespace'=>'HumanResources'], function(){

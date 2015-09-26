@@ -46,5 +46,6 @@ class UserRepo extends BaseRepo{
     	->groupBy('permissions.action')
     	->lists('action');
     }
+    
 }
 
