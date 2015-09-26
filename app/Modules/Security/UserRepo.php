@@ -46,5 +46,16 @@ class UserRepo extends BaseRepo{
     	->groupBy('permissions.action')
     	->lists('action');
     }
+<<<<<<< HEAD
+    
+=======
+    public function is_authorized($route)
+    {
+    	if ( \Auth::user()->is_superuser or in_array($route, $this->allPermissions()) ) {
+    		return true;
+    	}
+    	return false;
+    }
+>>>>>>> origin/master
 }
 

@@ -67,3 +67,19 @@ body {
 .divCheckitems input[type='radio']:checked:before {
     background:black;
 }
+.success{
+    background: green;
+    color: white;
+}
+.warning{
+    background: orange;
+    color: white;
+}
+.danger{
+    background: red;
+    color: white;
+}
+.checkitem-select .option{
+    background: white !important;
+    color: black !important;
+}
