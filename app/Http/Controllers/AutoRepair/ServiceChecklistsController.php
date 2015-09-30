@@ -139,4 +139,33 @@ class ServiceChecklistsController extends Controller
         //dd($vehicles);
         return view('autorepair.service_checklists.nextservice', compact('request','vehicles'));
     }
+    public function formEmail()
+    {
+        return view('autorepair.service_reminder.send_email');
+    }
+    public function sendEmail(Request $request)
+   {
+       //guarda el valor de los campos enviados desde el form en un array
+       $data = $request->all();
+       //dd($data);
+ 
+       //se envia el array y la vista lo recibe en llaves individuales {{ $email }} , {{ $subject }}...
+       \Mail::send('emails.message', $data, function($message) use ($request)
+       {
+           //remitente
+           $message->to($request->email, $request->name);
+ 
+           //asunto
+           $message->subject($request->subject);
+ 
+           //receptor
+           $message->from(env('CONTACT_MAIL'), env('CONTACT_NAME'));
+ 
+       });
+       if(count(\Mail::failures()) > 0){
+            $errors = 'Failed to send password reset email, please try again.';
+            dd($errors);
+        }
+       return view('autorepair.service_reminder.success');
+    }
 }
