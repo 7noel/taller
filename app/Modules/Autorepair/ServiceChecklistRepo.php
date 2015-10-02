@@ -37,5 +37,29 @@ class ServiceChecklistRepo extends BaseRepo{
 		}
 		return $data;
 	}
+	public function index($filter = false, $search = false)
+	{
+		if (\Auth::user()->employee->job_id==4) {
+			if ($filter and $search) {
+				return $this->model->$filter($search)->orderBy("$filter", 'ASC')->paginate();
+			} else {
+				return $this->model->orderBy('id', 'DESC')->paginate();
+			}
+		} elseif (\Auth::user()->employee->job_id==6) {
+			if ($filter and $search) {
+				return $this->model->$filter($search)->orderBy("$filter", 'ASC')->paginate();
+			} else {
+				return $this->model->orderBy('id', 'DESC')->paginate();
+			}
+		} else {
+			if ($filter and $search) {
+				return $this->model->$filter($search)->orderBy("$filter", 'ASC')->paginate();
+			} else {
+				return $this->model->orderBy('id', 'DESC')->paginate();
+			}
+		}
+		
+		
+	}
 
 }

@@ -168,4 +168,13 @@ class ServiceChecklistsController extends Controller
         }
        return view('autorepair.service_reminder.success');
     }
+    public function editStatus($id)
+    {
+        $model = $this->repo->findOrFail($id);
+        return view('autorepair.service_checklists.edit_status', compact('model'));
+    }
+    public function updateStatus()
+    {
+        return \Redirect::route('autorepair.service_checklists.index');
+    }
 }

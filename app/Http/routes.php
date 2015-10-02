@@ -53,6 +53,9 @@ Route::group(['prefix'=>'finances', 'middleware'=>['auth', 'permissions'], 'name
 Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'namespace'=>'AutoRepair'], function(){
 	Route::resource('checkitem_groups','CheckitemGroupsController');
 	Route::get('service_checklists/print/{id}', ['as' => 'autorepair.service_checklists.print', 'uses' => 'ServiceChecklistsController@print_out']);
+
+	Route::get('service_checklists/change_status/{id}', ['as' => 'autorepair.service_checklists.change_status', 'uses' => 'ServiceChecklistsController@editStatus'] );
+	Route::get('service_checklists/save_status/{id}', ['as' => 'autorepair.service_checklists.save_status', 'uses' => 'ServiceChecklistsController@updateStatus'] );
 	Route::resource('service_checklists','ServiceChecklistsController');
 	Route::get('vehicles/nextservice', ['as' => 'autorepair.vehicles.nextservice', 'uses' => 'ServiceChecklistsController@nextservice']);
 	Route::post('send', ['as' => 'send', 'uses' => 'ServiceChecklistsController@sendEmail'] );
