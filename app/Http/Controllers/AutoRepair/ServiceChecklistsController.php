@@ -139,9 +139,10 @@ class ServiceChecklistsController extends Controller
         //dd($vehicles);
         return view('autorepair.service_checklists.nextservice', compact('request','vehicles'));
     }
-    public function formEmail()
+    public function formEmail($plate)
     {
-        return view('autorepair.service_reminder.send_email');
+        //dd($plate);
+        return view('autorepair.service_reminder.send_email',compact('plate'));
     }
     public function sendEmail(Request $request)
    {

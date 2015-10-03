@@ -48,6 +48,8 @@
 							<th>Ult. Serv.</th>
 							<th>Preventivo</th>
 							<th>Fecha</th>
+							<th>Estado</th>
+							<th>Acciones</th>
 						</tr>
 						@foreach($vehicles as $vehicle)
 						<tr data-id="{{ $vehicle->Placa }}">
@@ -59,6 +61,10 @@
 							<td align="right">{{ $vehicle->preventive3 }} </td>
 							<td align="right">{{ $vehicle->nextkm }} </td>
 							<td align="right">{{ $vehicle->nextdate }} </td>
+							<td> </td>
+							<td>
+								<a href="{{ route('autorepair.service_reminder.form_email', $vehicle->Placa) }}" class="btn btn-success btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> Enviar</a>
+							</td>
 						</tr>
 						@endforeach
 					</table>
