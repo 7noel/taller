@@ -9,7 +9,7 @@ class ServiceChecklist extends Model
 {
 	use SoftDeletes;
 
-	protected $fillable = ['order_id', 'company_name', 'plate', 'date', 'observation', 'adviser', 'technician'];
+	protected $fillable = ['order_id', 'company_name', 'plate', 'date', 'observation', 'adviser', 'technician', 'status'];
 
 	public function checkitems()
 	{

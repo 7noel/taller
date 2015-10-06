@@ -99,9 +99,9 @@
 	{!! Html::script('//code.jquery.com/ui/1.11.4/jquery-ui.js') !!}
 	{!! Html::script('//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/js/bootstrap.min.js') !!}
 	{!! Html::script('js/moment.js') !!}
-
 	{!! Html::script('js/admin.js') !!}
 	{!! Html::script('js/delete.js') !!}
+	{!! Html::script('js/ckeditor/ckeditor.js') !!}
 
 	@yield('scripts')
 </body>

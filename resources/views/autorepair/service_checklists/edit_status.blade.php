@@ -38,11 +38,11 @@
 					<?php $selected['process']=''; $selected['inspect']=''; $selected['rework']=''; $selected['approved']=''; $selected['printed']=''; ?>
 					<?php $selected[$model->status]='selected' ?>
 
-					{!! Form::model($model, ['route'=>[ 'autorepair.vehicles.nextservice' ], 'method'=>'GET', 'class'=>'form-horizontal']) !!}
+					{!! Form::model($model, ['route'=>[ 'autorepair.service_checklists.save_status', $model ], 'method'=>'GET', 'class'=>'form-horizontal']) !!}
 					<div class="form-group">
 						{!! Form::label('status','Estado', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-6">
-							<select class="form-control">
+							<select name="status" class="form-control">
 								<option value="process" {{$selected['process']}} >PROCESS</option>
 								<option value="inspect" {{$selected['inspect']}} >INSPECT</option>
 								<option value="rework" {{$selected['rework']}} >REWORK</option>

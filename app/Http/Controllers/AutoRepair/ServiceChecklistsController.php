@@ -141,41 +141,42 @@ class ServiceChecklistsController extends Controller
     }
     public function formEmail($plate)
     {
-        //dd($plate);
-        return view('autorepair.service_reminder.send_email',compact('plate'));
+        $vehicle = \DB::connection('masaki')->table('vehiculo')
+            ->join('clientes', 'vehiculo.CodCliente', '=', 'clientes.CodCliente')
+            ->where('vehiculo.Placa','=',$plate)
+            ->select('clientes.CodCliente','clientes.NombreRaz','clientes.RUC','clientes.DniExt','clientes.DNI','clientes.Direccion','clientes.Distrito','clientes.Contacto1','clientes.Telefonos','clientes.TelefOficina','clientes.Celular','clientes.Email','vehiculo.Placa','vehiculo.Anofab','vehiculo.AnoModelo','vehiculo.Modelo','vehiculo.Version','vehiculo.Tipo','vehiculo.Color','vehiculo.Serie','vehiculo.Nomotor','vehiculo.NroChasis','vehiculo.date1','vehiculo.date2','vehiculo.date3','vehiculo.km1','vehiculo.km2','vehiculo.km3','vehiculo.preventive1','vehiculo.preventive2','vehiculo.preventive3','vehiculo.obs1','vehiculo.obs2','vehiculo.obs3','vehiculo.speed','vehiculo.nextkm','vehiculo.nextdate')
+            ->first();
+        $amber_job = $this->repo->findForPlate($plate);
+        $checks = null;
+        if ($amber_job) {
+            $checks['check_warning'] = $this->repo->checksWarning($amber_job->id);
+            $checks['check_danger'] = $this->repo->checksDanger($amber_job->id);
+        }
+        //dd($checks);
+        return view('autorepair.service_reminder.send_email', compact('plate', 'vehicle', 'amber_job', 'checks'));
     }
     public function sendEmail(Request $request)
    {
-       //guarda el valor de los campos enviados desde el form en un array
        $data = $request->all();
-       //dd($data);
- 
-       //se envia el array y la vista lo recibe en llaves individuales {{ $email }} , {{ $subject }}...
+
+       $last_page = $data['last_page'];
+
        \Mail::send('emails.message', $data, function($message) use ($request)
        {
-           //remitente
            $message->to($request->email, $request->name);
- 
-           //asunto
            $message->subject($request->subject);
- 
-           //receptor
            $message->from(env('CONTACT_MAIL'), env('CONTACT_NAME'));
- 
        });
-       if(count(\Mail::failures()) > 0){
-            $errors = 'Failed to send password reset email, please try again.';
-            dd($errors);
-        }
-       return view('autorepair.service_reminder.success');
+       return view('autorepair.service_reminder.success', compact('last_page'));
     }
     public function editStatus($id)
     {
         $model = $this->repo->findOrFail($id);
         return view('autorepair.service_checklists.edit_status', compact('model'));
     }
-    public function updateStatus()
+    public function updateStatus($id)
     {
+        $this->repo->save(\Request::all(), $id);
         return \Redirect::route('autorepair.service_checklists.index');
     }
 }

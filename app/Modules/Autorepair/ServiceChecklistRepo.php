@@ -21,19 +21,21 @@ class ServiceChecklistRepo extends BaseRepo{
 	}
 	public function prepareData($data)
 	{
-		foreach ($data['checkitems'] as $key => $checkitem) {
-			if (!isset($checkitem['status']) and !isset($checkitem['value']) ) {
-				$data['checkitems'][$key] = null;
+		if (isset($data['checkitems'])) {
+			foreach ($data['checkitems'] as $key => $checkitem) {
+				if (!isset($checkitem['status']) and !isset($checkitem['value']) ) {
+					$data['checkitems'][$key] = null;
+				}
 			}
-		}
-		if (!isset($data['checkitems'][45])) {
-			$data['checkitems'][45] = null;
-		}
-		if (!isset($data['checkitems'][50])) {
-			$data['checkitems'][50] = null;
-		}
-		if (!isset($data['checkitems'][51])) {
-			$data['checkitems'][51] = null;
+			if (!isset($data['checkitems'][45])) {
+				$data['checkitems'][45] = null;
+			}
+			if (!isset($data['checkitems'][50])) {
+				$data['checkitems'][50] = null;
+			}
+			if (!isset($data['checkitems'][51])) {
+				$data['checkitems'][51] = null;
+			}
 		}
 		return $data;
 	}
@@ -58,8 +60,18 @@ class ServiceChecklistRepo extends BaseRepo{
 				return $this->model->orderBy('id', 'DESC')->paginate();
 			}
 		}
-		
-		
+	}
+	public function findForPlate($plate='')
+	{
+		return ServiceChecklist::where('plate',$plate)->orderBy('id', 'DESC')->first();
+	}
+	public function checksWarning($id)
+	{
+		return ServiceChecklist::find($id)->checkitems()->wherePivot('status','warning')->get();
+	}
+	public function checksDanger($id)
+	{
+		return ServiceChecklist::find($id)->checkitems()->wherePivot('status','danger')->get();
 	}
 
 }

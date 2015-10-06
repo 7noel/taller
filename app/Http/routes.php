@@ -58,7 +58,7 @@ Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'na
 	Route::get('service_checklists/save_status/{id}', ['as' => 'autorepair.service_checklists.save_status', 'uses' => 'ServiceChecklistsController@updateStatus'] );
 	Route::resource('service_checklists','ServiceChecklistsController');
 	Route::get('vehicles/nextservice', ['as' => 'autorepair.vehicles.nextservice', 'uses' => 'ServiceChecklistsController@nextservice']);
-	Route::get('service_reminder/emailconfirm/{plate}', ['as' => 'autorepair.service_reminder.send_email', 'uses' => 'ServiceChecklistsController@sendEmail'] );
+	Route::post('service_reminder/emailconfirm/{plate}', ['as' => 'autorepair.service_reminder.send_email', 'uses' => 'ServiceChecklistsController@sendEmail'] );
 	Route::get('service_reminder/emailform/{plate}', ['as' => 'autorepair.service_reminder.form_email', 'uses' => 'ServiceChecklistsController@formEmail'] );
 });
 
