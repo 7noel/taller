@@ -144,7 +144,7 @@ class ServiceChecklistsController extends Controller
             ->join('clientes', 'vehiculo.CodCliente', '=', 'clientes.CodCliente')
             ->where('vehiculo.nextdate','>=',$datemin)
             ->where('vehiculo.nextdate','<=',$datemax)
-            ->select('clientes.CodCliente','clientes.NombreRaz','clientes.RUC','clientes.DniExt','clientes.DNI','clientes.Direccion','clientes.Distrito','clientes.Contacto1','clientes.Telefonos','clientes.TelefOficina','clientes.Celular','clientes.Email','vehiculo.Placa','vehiculo.Anofab','vehiculo.AnoModelo','vehiculo.Modelo','vehiculo.Version','vehiculo.Tipo','vehiculo.Color','vehiculo.Serie','vehiculo.Nomotor','vehiculo.NroChasis','vehiculo.date1','vehiculo.date2','vehiculo.date3','vehiculo.km1','vehiculo.km2','vehiculo.km3','vehiculo.preventive1','vehiculo.preventive2','vehiculo.preventive3','vehiculo.obs1','vehiculo.obs2','vehiculo.obs3','vehiculo.speed','vehiculo.nextkm','vehiculo.nextdate')
+            ->select('clientes.CodCliente','clientes.NombreRaz','clientes.RUC','clientes.DniExt','clientes.DNI','clientes.Direccion','clientes.Distrito','clientes.Contacto1','clientes.Telefonos','clientes.TelefOficina','clientes.Celular','clientes.Email','vehiculo.Placa','vehiculo.Anofab','vehiculo.AnoModelo','vehiculo.Modelo','vehiculo.Version','vehiculo.Tipo','vehiculo.Color','vehiculo.Serie','vehiculo.Nomotor','vehiculo.NroChasis','vehiculo.date1','vehiculo.date2','vehiculo.date3','vehiculo.km1','vehiculo.km2','vehiculo.km3','vehiculo.preventive1','vehiculo.preventive2','vehiculo.preventive3','vehiculo.obs1','vehiculo.obs2','vehiculo.obs3','vehiculo.speed','vehiculo.nextkm','vehiculo.nextdate','status','send_email')
             ->get();
         if (is_null($vehicles)) {
             $vehicles = [];
@@ -180,6 +180,9 @@ class ServiceChecklistsController extends Controller
            $message->subject($request->subject);
            $message->from(env('CONTACT_MAIL'), env('CONTACT_NAME'));
        });
+       \DB::connection('masaki')->table('vehiculo')
+            ->where('Placa', $data['plate'])
+            ->update(array('send_email' => 1));
        return view('autorepair.service_reminder.success', compact('last_page'));
     }
     public function editStatus($id)
@@ -191,5 +194,25 @@ class ServiceChecklistsController extends Controller
     {
         $this->repo->save(\Request::all(), $id);
         return \Redirect::route('autorepair.service_checklists.index');
+    }
+    public function editStatusReminder($plate)
+    {
+        $vehicle = \DB::connection('masaki')->table('vehiculo')
+            ->join('clientes', 'vehiculo.CodCliente', '=', 'clientes.CodCliente')
+            ->where('vehiculo.Placa','=',$plate)
+            ->select('clientes.CodCliente','clientes.NombreRaz','clientes.RUC','clientes.DniExt','clientes.DNI','clientes.Direccion','clientes.Distrito','clientes.Contacto1','clientes.Telefonos','clientes.TelefOficina','clientes.Celular','clientes.Email','vehiculo.Placa','vehiculo.Anofab','vehiculo.AnoModelo','vehiculo.Modelo','vehiculo.Version','vehiculo.Tipo','vehiculo.Color','vehiculo.Serie','vehiculo.Nomotor','vehiculo.NroChasis','vehiculo.date1','vehiculo.date2','vehiculo.date3','vehiculo.km1','vehiculo.km2','vehiculo.km3','vehiculo.preventive1','vehiculo.preventive2','vehiculo.preventive3','vehiculo.obs1','vehiculo.obs2','vehiculo.obs3','vehiculo.speed','vehiculo.nextkm','vehiculo.nextdate','vehiculo.status')
+            ->first();
+        $status_list = [''=>'Seleccionar', 'NO'=>'NO CITA', 'CALL_AGAIN'=>'VOLVER A LLAMAR', 'SI'=>'SI CITA'];
+        return view('autorepair.service_reminder.edit_status', compact('vehicle', 'status_list'));
+    }
+    public function updateStatusReminder($plate)
+    {
+        $data=\Request::all();
+        $last_page = $data['last_page'];
+        \DB::connection('masaki')->table('vehiculo')
+            ->where('Placa', $plate)
+            ->update(array('status' => $data['status']));
+        return redirect($last_page);
+        //return \Redirect::route('autorepair.service_checklists.index');
     }
 }

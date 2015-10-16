@@ -1,4 +1,5 @@
 					<div class="form-group form-group-sm">
+						{!! Form::hidden('status', null) !!}
 						{!! Form::label('order_id','Nro de Orden', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
 						@if(isset($model))

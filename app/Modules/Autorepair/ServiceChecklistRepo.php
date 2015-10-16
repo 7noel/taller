@@ -35,6 +35,10 @@ class ServiceChecklistRepo extends BaseRepo{
 			}
 			if (!isset($data['checkitems'][51])) {
 				$data['checkitems'][51] = null;
+			} else {
+				if ($data['status']=='process') {
+					$data['status'] = 'inspect';
+				}
 			}
 		}
 		return $data;

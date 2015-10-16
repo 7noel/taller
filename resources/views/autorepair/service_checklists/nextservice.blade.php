@@ -43,11 +43,10 @@
 							<th>Placa</th>
 							<th>Modelo</th>
 							<th>Cliente</th>
-							<th>Contacto</th>
-							<th>Telefonos</th>
 							<th>Ult. Serv.</th>
 							<th>Preventivo</th>
 							<th>Fecha</th>
+							<th>Email</th>
 							<th>Estado</th>
 							<th>Acciones</th>
 						</tr>
@@ -56,14 +55,29 @@
 							<td>{{ $vehicle->Placa }}</td>
 							<td>{{ $vehicle->Modelo }}</td>
 							<td>{{ utf8_encode($vehicle->NombreRaz) }} </td>
-							<td>{{ utf8_encode($vehicle->Contacto1) }} </td>
-							<td>{{ $vehicle->Telefonos."/".$vehicle->Celular }}</td>
 							<td align="right">{{ $vehicle->preventive3 }} </td>
 							<td align="right">{{ $vehicle->nextkm }} </td>
 							<td align="right">{{ $vehicle->nextdate }} </td>
-							<td> </td>
+							<td align="center">
+								@if($vehicle->send_email)
+								<span class="glyphicon glyphicon-ok"></span>
+								@endif
+							</td>
+							<td align="center">
+								@if($vehicle->status == 'SI')
+								<span class="glyphicon glyphicon-ok"></span>
+								@elseif($vehicle->status == 'NO')
+								<span class="glyphicon glyphicon-remove"></span>
+								@elseif($vehicle->status == 'CALL_AGAIN')
+								<span class="glyphicon glyphicon-phone-alt"></span>
+								@endif
+							</td>
 							<td>
+								@if($request['type']=='message')
 								<a href="{{ route('autorepair.service_reminder.form_email', $vehicle->Placa) }}" class="btn btn-success btn-xs"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span> Enviar</a>
+								@else
+								<a href="{{ route( 'autorepair.service_reminder.change_status' , $vehicle->Placa) }}" class="btn btn-success btn-xs"><span class="glyphicon glyphicon-earphone" aria-hidden="true"></span> Llamar </a>
+								@endif
 							</td>
 						</tr>
 						@endforeach

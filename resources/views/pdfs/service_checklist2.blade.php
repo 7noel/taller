@@ -108,8 +108,8 @@
 								{{ $model->observation }}
 							</div>
 							<br>
-							<label for="">Asesor: {{ $model->adviser }}</label><br>
-							<label for="">Técnico: {{ $model->technician }}</label>
+							<label for="">Asesor: {{ $model->adviser->full_name }}</label><br>
+							<label for="">Técnico: {{ $model->technician->full_name }}</label>
 							<div></div>
 						</div>
 				</td>

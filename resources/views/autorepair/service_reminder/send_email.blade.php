@@ -13,6 +13,7 @@
               <input type="hidden" name="last_page" value="{{ URL::previous() }}">
             </div>
               <div class="form-group">
+                {!! Form::hidden('plate', $vehicle->Placa) !!}
                 {!! Form::label('subject', 'Asunto') !!}
                 {!! Form::text('subject', 'Recordatorio para su proximo servicio', ['class' => 'form-control' ]) !!}
               </div>
@@ -21,6 +22,7 @@
                 <textarea name="body" class="form-control ckeditor">
                   Señores: {{$vehicle->NombreRaz}} <br>
                   Atención: {{$vehicle->Contacto1}} <br>
+                  Recordatorio para su proximo servicio de  {{$vehicle->nextkm}} kilometros el día {{$vehicle->nextdate}} <br>
                   @if($checks)
                     @if($checks['check_warning'])
                       <br>Para la Proxima visita <br>
@@ -28,7 +30,7 @@
                       {{$item->name}} <br>
                       @endforeach
                     @endif
-                    @if($checks['check_warning'])
+                    @if($checks['check_danger'])
                       <br>Urgentes: <br>
                       @foreach($checks['check_danger'] as $item)
                       {{$item->name}} <br>
