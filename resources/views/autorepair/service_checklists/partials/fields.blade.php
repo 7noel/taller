@@ -1,7 +1,11 @@
 					<div class="form-group form-group-sm">
 						{!! Form::label('order_id','Nro de Orden', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
+						@if(isset($model))
+						{!! Form::text('order_id', null, ['class'=>'form-control uppercase', 'required'=>'required', 'readonly']) !!}
+						@else
 						{!! Form::text('order_id', null, ['class'=>'form-control uppercase', 'required'=>'required']) !!}
+						@endif
 						</div>
 						{!! Form::label('plate','Placa', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
@@ -15,13 +19,18 @@
 						</div>
 						{!! Form::label('adviser','Asesor', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
-						{!! Form::text('adviser', null, ['class'=>'form-control uppercase', 'readonly']) !!}
+						{!! Form::hidden('adviser_id', null, ['id'=>'adviser_id', 'required']) !!}
+						{!! Form::text('adviser', null, ['class'=>'form-control uppercase', 'readonly', 'required']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
-						{!! Form::label('technician','Técnico', ['class'=>'col-sm-2 control-label']) !!}
+						{!! Form::label('technician_id','Técnico', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
-						{!! Form::text('technician', null, ['class'=>'form-control uppercase']) !!}
+						@if(\Auth::user()->employee->job_id == 4)
+						{!! Form::select('technician_id', [\Auth::user()->employee->id => \Auth::user()->employee->full_name], \Auth::user()->employee->id, ['class'=>'form-control', 'required']) !!}
+						@else
+						{!! Form::select('technician_id', $technicians, null, ['class'=>'form-control', 'required']) !!}
+						@endif
 						</div>
 					</div>
 					<div class="form-group">

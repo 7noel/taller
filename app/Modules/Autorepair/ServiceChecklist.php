@@ -9,7 +9,7 @@ class ServiceChecklist extends Model
 {
 	use SoftDeletes;
 
-	protected $fillable = ['order_id', 'company_name', 'plate', 'date', 'observation', 'adviser', 'technician', 'status'];
+	protected $fillable = ['order_id', 'company_name', 'plate', 'date', 'observation', 'adviser_id', 'technician_id', 'status', 'created_by_id', 'updated_by_id'];
 
 	public function checkitems()
 	{
@@ -21,4 +21,12 @@ class ServiceChecklist extends Model
 			$query->where('plate', 'LIKE', "%$name%")->orWhere('order_id', 'LIKE', "%$name%");
 		}
 	}
+	public function adviser()
+    {
+        return $this->hasOne('App\Modules\HumanResources\Employee', 'id', 'adviser_id');
+    }
+    public function technician()
+    {
+        return $this->hasOne('App\Modules\HumanResources\Employee', 'id', 'technician_id');
+    }
 }

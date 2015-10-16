@@ -30,4 +30,12 @@ class EmployeeRepo extends BaseRepo{
 		
 		return $data;
 	}
+	public function getAdviserOldId($other_id)
+	{
+		return Employee::where('job_id', 6)->where('other_id',$other_id)->first();
+	}
+	public function getListTechnicians()
+	{
+		return [""=>"Seleccionar"] + Employee::where('job_id', 4)->lists('full_name', 'id')->toArray();
+	}
 }

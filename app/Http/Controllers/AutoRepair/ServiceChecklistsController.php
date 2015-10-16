@@ -8,16 +8,19 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Modules\AutoRepair\ServiceChecklistRepo;
 use App\Modules\AutoRepair\CheckitemGroupRepo;
+use App\Modules\HumanResources\EmployeeRepo;
 
 class ServiceChecklistsController extends Controller
 {
 
     protected $repo;
     protected $checkitemRepo;
+    protected $employeeRepo;
 
-    public function __construct(ServiceChecklistRepo $repo, CheckitemGroupRepo $checkitemGroupRepo) {
+    public function __construct(ServiceChecklistRepo $repo, CheckitemGroupRepo $checkitemGroupRepo, EmployeeRepo $employeeRepo) {
         $this->repo = $repo;
         $this->checkitemGroupRepo = $checkitemGroupRepo;
+        $this->employeeRepo = $employeeRepo;
     }
 
     public function index()
@@ -29,12 +32,16 @@ class ServiceChecklistsController extends Controller
     public function create()
     {
         $groups = $this->checkitemGroupRepo->all();
-        return view('partials.create', compact('groups'));
+        $technicians = $this->employeeRepo->getListTechnicians();
+        return view('partials.create', compact('groups', 'technicians'));
     }
 
     public function store()
     {
-        $this->repo->save(\Request::all());
+        $data = \Request::all();
+        $data['created_by_id'] = \Auth::user()->id;
+        $data['updated_by_id'] = \Auth::user()->id;
+        $this->repo->save($data);
         return \Redirect::route('autorepair.service_checklists.index');
     }
 
@@ -46,14 +53,17 @@ class ServiceChecklistsController extends Controller
     public function edit($id)
     {
         $model = $this->repo->findOrFail($id);
+        $model->adviser = $model->adviser->full_name;
         $groups = $this->checkitemGroupRepo->all();
-        //dd($model->checkitems[1]);
-        return view('partials.edit', compact('model', 'groups'));
+        $technicians = $this->employeeRepo->getListTechnicians();
+        return view('partials.edit', compact('model', 'groups', 'technicians'));
     }
 
     public function update($id)
     {
-        $this->repo->save(\Request::all(), $id);
+        $data = \Request::all();
+        $data['updated_by_id'] = \Auth::user()->id;
+        $this->repo->save($data, $id);
         return \Redirect::route('autorepair.service_checklists.index');
     }
 
@@ -88,7 +98,10 @@ class ServiceChecklistsController extends Controller
     public function ajaxGetOt($order_id)
     {
         $result = \DB::connection('masaki')->table('ordtra')->where('NroOrden',$order_id)->first();
-        return \Response::json($result);;
+        $adviser = $this->employeeRepo->getAdviserOldId($result->Codasesor);
+        $result->adviser_id = $adviser->id;
+        $result->adviser = $adviser->full_name;
+        return \Response::json($result);
     }
 
     /**

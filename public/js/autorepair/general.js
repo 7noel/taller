@@ -54,7 +54,8 @@ function getDataOt () {
 		} else{
 			$('#company_name').val(data.NomCliente);
 			$('#plate').val(data.Placa);
-			$('#adviser').val(data.Nomasesor);
+			$('#adviser_id').val(data.adviser_id);
+			$('#adviser').val(data.adviser);
 		};
 	});
 }

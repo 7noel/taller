@@ -33,6 +33,7 @@ class CreateEmployeesTable extends Migration {
 			$table->string('email_company');
 			$table->integer('user_id')->unsigned()->nullable();
 			$table->string('signature');
+			$table->integer('other_id')->unsigned();
 
 			$table->foreign('job_id')->references('id')->on('jobs');
 			$table->foreign('id_type_id')->references('id')->on('id_types');

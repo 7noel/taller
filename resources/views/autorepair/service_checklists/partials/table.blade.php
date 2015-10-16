@@ -19,7 +19,6 @@
 								@else
 								<a href="{{ route( 'autorepair.service_checklists.change_status' , $model) }}" class="btn btn-warning btn-xs"> {{ strtoupper($model->status) }} </a>
 								@endif
-								
 							</td>
 							<td>
 								<button data-print="{{ route('autorepair.service_checklists.print', $model->id) }}" class="btn btn-success btn-xs btn-print"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> </button>

@@ -27,7 +27,8 @@ class Permissions {
 				return $next($request);
 			}
 		}
-		return redirect()->to('home');
+		//return redirect()->to('home');
+		return view('errors.access_denied');
 		}
 	}
 

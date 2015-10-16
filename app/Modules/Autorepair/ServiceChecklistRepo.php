@@ -41,17 +41,17 @@ class ServiceChecklistRepo extends BaseRepo{
 	}
 	public function index($filter = false, $search = false)
 	{
-		if (\Auth::user()->employee->job_id==4) {
+		if (\Auth::user()->action_allowed('autorepair.service_checklists.edit_as_adviser')) {
 			if ($filter and $search) {
-				return $this->model->$filter($search)->orderBy("$filter", 'ASC')->paginate();
+				return $this->model->$filter($search)->where('adviser_id',\Auth::user()->employee->id)->orderBy("$filter", 'ASC')->paginate();
 			} else {
-				return $this->model->orderBy('id', 'DESC')->paginate();
+				return $this->model->where('adviser_id',\Auth::user()->employee->id)->orderBy('id', 'DESC')->paginate();
 			}
-		} elseif (\Auth::user()->employee->job_id==6) {
+		} elseif (\Auth::user()->action_allowed('autorepair.service_checklists.edit_as_technical')) {
 			if ($filter and $search) {
-				return $this->model->$filter($search)->orderBy("$filter", 'ASC')->paginate();
+				return $this->model->$filter($search)->where('technician_id',\Auth::user()->employee->id)->orWhere('status','rework')->orderBy("$filter", 'ASC')->paginate();
 			} else {
-				return $this->model->orderBy('id', 'DESC')->paginate();
+				return $this->model->where('technician_id',\Auth::user()->employee->id)->orWhere('status','rework')->orderBy('id', 'DESC')->paginate();
 			}
 		} else {
 			if ($filter and $search) {
