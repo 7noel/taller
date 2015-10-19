@@ -202,8 +202,14 @@ class ServiceChecklistsController extends Controller
             ->where('vehiculo.Placa','=',$plate)
             ->select('clientes.CodCliente','clientes.NombreRaz','clientes.RUC','clientes.DniExt','clientes.DNI','clientes.Direccion','clientes.Distrito','clientes.Contacto1','clientes.Telefonos','clientes.TelefOficina','clientes.Celular','clientes.Email','vehiculo.Placa','vehiculo.Anofab','vehiculo.AnoModelo','vehiculo.Modelo','vehiculo.Version','vehiculo.Tipo','vehiculo.Color','vehiculo.Serie','vehiculo.Nomotor','vehiculo.NroChasis','vehiculo.date1','vehiculo.date2','vehiculo.date3','vehiculo.km1','vehiculo.km2','vehiculo.km3','vehiculo.preventive1','vehiculo.preventive2','vehiculo.preventive3','vehiculo.obs1','vehiculo.obs2','vehiculo.obs3','vehiculo.speed','vehiculo.nextkm','vehiculo.nextdate','vehiculo.status')
             ->first();
+        $amber_job = $this->repo->findForPlate($plate);
+        $checks = null;
+        if ($amber_job) {
+            $checks['check_warning'] = $this->repo->checksWarning($amber_job->id);
+            $checks['check_danger'] = $this->repo->checksDanger($amber_job->id);
+        }
         $status_list = [''=>'Seleccionar', 'NO'=>'NO CITA', 'CALL_AGAIN'=>'VOLVER A LLAMAR', 'SI'=>'SI CITA'];
-        return view('autorepair.service_reminder.edit_status', compact('vehicle', 'status_list'));
+        return view('autorepair.service_reminder.edit_status', compact('vehicle', 'status_list', 'checks'));
     }
     public function updateStatusReminder($plate)
     {

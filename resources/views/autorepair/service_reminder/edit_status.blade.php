@@ -23,6 +23,36 @@
 							</div>
 						</div>
 					</div>
+					<p>
+						
+						
+						@if($checks)
+							@if($checks['check_warning'])
+							<div class="panel panel-warning">
+								<div class="panel-heading"><strong>Proxima visita</strong></div>
+								<div class="panel-body">
+									<ul>
+										@foreach($checks['check_warning'] as $item)
+										<li><strong>{{$item->checkitem_group->name}}</strong> {{$item->name}}</li>
+										@endforeach
+									</ul>
+								</div>
+							</div>
+							@endif
+							@if($checks['check_danger'])
+							<div class="panel panel-danger">
+								<div class="panel-heading"><strong>Urgentes</strong></div>
+								<div class="panel-body">
+									<ul>
+										@foreach($checks['check_danger'] as $item)
+										<li><strong>{{$item->checkitem_group->name}}</strong> {{$item->name}}</li>
+										@endforeach
+									</ul>
+								</div>
+							</div>
+							@endif
+						@endif
+					</p>
 					{!! Form::model($vehicle, ['route'=>[ 'autorepair.service_reminder.save_status', $vehicle->Placa ], 'method'=>'GET', 'class'=>'form-horizontal']) !!}
 					<div class="form-group">
 						<input type="hidden" name="last_page" value="{{ URL::previous() }}">

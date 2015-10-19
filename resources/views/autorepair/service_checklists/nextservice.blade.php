@@ -43,7 +43,6 @@
 							<th>Placa</th>
 							<th>Modelo</th>
 							<th>Cliente</th>
-							<th>Ult. Serv.</th>
 							<th>Preventivo</th>
 							<th>Fecha</th>
 							<th>Email</th>
@@ -55,7 +54,6 @@
 							<td>{{ $vehicle->Placa }}</td>
 							<td>{{ $vehicle->Modelo }}</td>
 							<td>{{ utf8_encode($vehicle->NombreRaz) }} </td>
-							<td align="right">{{ $vehicle->preventive3 }} </td>
 							<td align="right">{{ $vehicle->nextkm }} </td>
 							<td align="right">{{ $vehicle->nextdate }} </td>
 							<td align="center">
