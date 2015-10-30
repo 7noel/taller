@@ -75,6 +75,7 @@ class MenuController extends Controller
                 ['name' => 'Proximos Servicios', 'route' => 'autorepair.vehicles.nextservice' ],
                 ['name' => 'Hoja Semaforo', 'route' => 'autorepair.service_checklists.index' ],
                 ['name' => 'Items de Hoja Semaforo', 'route' => 'autorepair.checkitem_groups.index' ],
+                ['name' => 'Citas', 'route' => 'autorepair.appointments.index' ],
             ],
             'Finanzas'=>[
                 ['name' => 'Cuentas por Cobrar', 'url' => '#' ],

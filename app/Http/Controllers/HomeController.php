@@ -32,7 +32,7 @@ class HomeController extends Controller {
 	 */
 	public function index()
 	{
-		dd(toWord(12654.87,'PEN'));
+		//dd(toWord(12654.87,'PEN'));
 		return view('home');
 	}
 
