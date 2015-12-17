@@ -59,6 +59,12 @@ return array(
 			'show'   => ['panel'=>'Vizualizando Hoja Semáforo:'],
 			'edit'   => ['panel'=>'Editar Hoja Semáforo: ', 'update'=>'Actualizar Hoja Semáforo', 'delete'=>'Eliminar Hoja Semáforo']
 		],
+		'appointments' => [
+			'index'  => ['panel'=>'Citas', 'create'=>'Crear Cita'],
+			'create' => ['panel'=>'Nueva Cita', 'create'=>'Crear Cita'],
+			'show'   => ['panel'=>'Vizualizando Cita:'],
+			'edit'   => ['panel'=>'Editar Cita: ', 'update'=>'Actualizar Cita', 'delete'=>'Eliminar Cita']
+		]
 	],
 	'humanresources' => [
 		'employees' => [

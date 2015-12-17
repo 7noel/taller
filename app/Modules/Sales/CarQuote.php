@@ -9,9 +9,9 @@ class CarQuote extends Model {
 
 	protected $fillable = ['catalog_car_id', 'company_id', 'attention', 'price', 'set_price', 'currency_id', 'observations', 'employee_id'];
 
-	public function scopeYear($query, $name){
+	public function scopeAttention($query, $name){
 		if (trim($name) != "") {
-			$query->where('name', 'LIKE', "%$name%");
+			$query->where('attention', 'LIKE', "%$name%");
 		}
 	}
 

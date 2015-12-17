@@ -82,6 +82,8 @@ Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespa
 	Route::resource('colors','ColorsController');
 	Route::resource('features','FeaturesController');
 	Route::resource('feature_groups','FeatureGroupsController');
+	Route::get('afluencia/crear', ['as' => 'sales.afluencia.create', 'uses' => 'CarQuotesController@afluencia_form']);
+	Route::get('afluencia/', ['as' => 'sales.car_quotes.afluencia.index', 'uses' => 'CarQuotesController@afluencia']);
 	Route::get('car_quotes/print/{id}', ['as' => 'sales.car_quotes.print', 'uses' => 'CarQuotesController@print_out']);
 	Route::resource('car_quotes','CarQuotesController');
 });

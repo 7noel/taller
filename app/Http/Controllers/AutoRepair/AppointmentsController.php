@@ -6,27 +6,21 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use App\Modules\AutoRepair\ServiceChecklistRepo;
-use App\Modules\AutoRepair\CheckitemGroupRepo;
-use App\Modules\HumanResources\EmployeeRepo;
-
+use App\Modules\AutoRepair\AppointmentRepo;
 class AppointmentsController extends Controller
 {
 
     protected $repo;
-    protected $checkitemRepo;
-    protected $employeeRepo;
 
-    public function __construct(ServiceChecklistRepo $repo, CheckitemGroupRepo $checkitemGroupRepo, EmployeeRepo $employeeRepo) {
+    public function __construct(AppointmentRepo $repo) {
         $this->repo = $repo;
-        $this->checkitemGroupRepo = $checkitemGroupRepo;
-        $this->employeeRepo = $employeeRepo;
     }
 
     public function index()
     {
-        //$models = $this->repo->index('name', \Request::get('name'));
-        return view('autorepair.appointments.index');
+        $models = $this->repo->index('placa', \Request::get('name'));
+        dd($models);
+        return view('partials.index', compact('models'));
     }
 
     public function create()

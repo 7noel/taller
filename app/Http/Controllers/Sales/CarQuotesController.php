@@ -25,7 +25,7 @@ class CarQuotesController extends Controller {
 
 	public function index()
 	{
-		$models = $this->repo->index('name', \Request::get('name'));
+		$models = $this->repo->index('attention', \Request::get('name'));
 		return view('partials.index',compact('models'));
 	}
 
@@ -82,5 +82,38 @@ class CarQuotesController extends Controller {
 		$pdf = \PDF::loadView('pdfs.car_quote', compact('quote', 'groups'));
 
 		return $pdf->stream();
+	}
+	/**
+	 * [afluencia description]
+	 * @return [type] [description]
+	 */
+	public function afluencia()
+	{
+		return view('sales.car_quotes.afluencia');
+	}
+	public function afluencia_form()
+	{
+		$versions = $this->carRepo->getListVersions();
+		$currencies = $this->currencyRepo->getList();
+		$canals = array('CLIENTE MASAKI',
+			'CLIENTE VINO DE OTRO CONCESIONARIO',
+			'CONTACTO WEB HONDA',
+			'CONTACTO WEB MASAKI',
+			'DIARIO',
+			'E-MAILING MASAKI',
+			'LLAMADA TELEFONICA',
+			'OTROS',
+			'POR EVENTO',
+			'RECOMENDACION CLIENTE',
+			'REFERIDOS DIRECTORIO/GERENCIA',
+			'REFERIDOS HONDA',
+			'REVISTAS',
+			'TRABAJO CERCA',
+			'VISITO ZONA AUTOS',
+			'VIVO CERCA',
+			'VOLANTEO'
+
+			);
+		return view('sales.car_quotes.afluencia_form', compact('versions', 'currencies', 'canals'));
 	}
 }
