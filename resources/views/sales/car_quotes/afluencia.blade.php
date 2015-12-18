@@ -25,7 +25,8 @@
 							<td>CIVIC LX AT</td>
 							<td>27000.00</td>
 							<td>
-								<a href="#" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
+								<a href="{{ route( 'sales.car_quotes.edit', 43 ) }}" class="btn btn-success btn-xs"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> Cotizar</a>
+								<a href="{{ route('sales.afluencia.create') }}" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
 								<a href="#" class="btn-delete btn btn-danger btn-xs"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Eliminar</a>
 							</td>
 						</tr>
@@ -35,7 +36,8 @@
 							<td>CIVIC SEDAN</td>
 							<td>27000.00</td>
 							<td>
-								<a href="#" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
+								<a href="{{ route( 'sales.car_quotes.edit', 43 ) }}" class="btn btn-success btn-xs"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> Cotizar</a>
+								<a href="{{ route('sales.afluencia.create') }}" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
 								<a href="#" class="btn-delete btn btn-danger btn-xs"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Eliminar</a>
 							</td>
 						</tr>
@@ -45,7 +47,8 @@
 							<td>CIVIC SEDAN</td>
 							<td>27000.00</td>
 							<td>
-								<a href="#" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
+								<a href="{{ route( 'sales.car_quotes.edit', 43 ) }}" class="btn btn-success btn-xs"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> Cotizar</a>
+								<a href="{{ route('sales.afluencia.create') }}" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
 								<a href="#" class="btn-delete btn btn-danger btn-xs"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Eliminar</a>
 							</td>
 						</tr>
@@ -55,7 +58,8 @@
 							<td>CIVIC SEDAN</td>
 							<td>27000.00</td>
 							<td>
-								<a href="#" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
+								<a href="{{ route( 'sales.car_quotes.edit', 43 ) }}" class="btn btn-success btn-xs"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> Cotizar</a>
+								<a href="{{ route('sales.afluencia.create') }}" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
 								<a href="#" class="btn-delete btn btn-danger btn-xs"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Eliminar</a>
 							</td>
 						</tr>

@@ -116,4 +116,9 @@ class CarQuotesController extends Controller {
 			);
 		return view('sales.car_quotes.afluencia_form', compact('versions', 'currencies', 'canals'));
 	}
+	public function byCompany($company_id)
+	{
+		$models = $this->repo->byCompany($company_id);
+		return view('partials.index',compact('models'));
+	}
 }

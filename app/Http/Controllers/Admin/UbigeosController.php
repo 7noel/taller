@@ -22,4 +22,9 @@ class UbigeosController extends Controller{
 		$distritos = $this->ubigeoRepo->ajaxDistritos($provincia);
 		return \Response::json($distritos);
 	}
+	public function ajaxDistritos2($departamento,$provincia)
+	{
+		$distritos = $this->ubigeoRepo->ajaxDistritos2($provincia);
+		return \Response::json($distritos);
+	}
 }

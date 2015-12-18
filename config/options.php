@@ -136,7 +136,13 @@ return array(
 			'create' => ['panel'=>'Nuevo Cotización', 'create'=>'Crear Cotización'],
 			'show'   => ['panel'=>'Vizualizando Cotización:'],
 			'edit'   => ['panel'=>'Editar Cotización: ', 'update'=>'Actualizar Cotización', 'delete'=>'Eliminar Cotización']
-		]
+		],
+		'clientes' => [
+			'index'  => ['panel'=>'Clientes', 'create'=>'Crear Cliente'],
+			'create' => ['panel'=>'Nueva Cliente', 'create'=>'Crear Cliente'],
+			'show'   => ['panel'=>'Vizualizando Cliente:'],
+			'edit'   => ['panel'=>'Editar Cliente: ', 'update'=>'Actualizar Cliente', 'delete'=>'Eliminar Cliente']
+		],
 	],
 	'guard' => [
 		'users' => [

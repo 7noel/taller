@@ -25,6 +25,7 @@ Route::group(['middleware'=>['auth']], function(){
 	//Obtener provincas y distritos x ajax
 	Route::get('listarProvincias/{departamento}', ['as' => 'ajaxprovincias', 'uses' => 'Admin\UbigeosController@ajaxProvincias']);
 	Route::get('listarDistritos/{departamento}/{provincia}', ['as' => 'ajaxdistritos','uses' => 'Admin\UbigeosController@ajaxDistritos']);
+	Route::get('listarDistritos2/{departamento}/{provincia}', ['as' => 'ajaxdistritos','uses' => 'Admin\UbigeosController@ajaxDistritos2']);
 	Route::get('listUnits/{unit_type_id}', ['as' => 'ajaxUnits','uses' => 'Storage\UnitsController@ajaxList']);
 	Route::get('listSubCategories/{category_id}', ['as' => 'ajaxSubCategories','uses' => 'Storage\SubCategoriesController@ajaxList']);
 	Route::get('listWarehouses', ['as' => 'ajaxWarehouses','uses' => 'Storage\WarehousesController@ajaxList']);
@@ -84,8 +85,10 @@ Route::group(['prefix'=>'sales', 'middleware'=>['auth', 'permissions'], 'namespa
 	Route::resource('feature_groups','FeatureGroupsController');
 	Route::get('afluencia/crear', ['as' => 'sales.afluencia.create', 'uses' => 'CarQuotesController@afluencia_form']);
 	Route::get('afluencia/', ['as' => 'sales.car_quotes.afluencia.index', 'uses' => 'CarQuotesController@afluencia']);
+	Route::get('car_quotes/index/{company_id}', ['as' => 'sales.car_quotes.company_id', 'uses' => 'CarQuotesController@byCompany']);
 	Route::get('car_quotes/print/{id}', ['as' => 'sales.car_quotes.print', 'uses' => 'CarQuotesController@print_out']);
 	Route::resource('car_quotes','CarQuotesController');
+	Route::resource('clientes','ClientesController');
 });
 Route::group(['prefix'=>'storage', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Storage'], function(){
 	Route::resource('units','UnitsController');

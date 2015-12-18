@@ -23,6 +23,11 @@ class UbigeoRepo extends BaseRepo{
 		$distritos = Ubigeo::where('provincia','=',$provincia)->groupBy('distrito')->lists('distrito','id')->toArray();
 		return $distritos;
 	}
+	public function listDistritos2($provincia='LIMA')
+	{
+		$distritos = Ubigeo::where('provincia','=',$provincia)->groupBy('distrito')->lists('distrito','distrito')->toArray();
+		return $distritos;
+	}
 	public function listUbigeo($id=0)
 	{
 		$ubi=Ubigeo::find($id);
@@ -46,6 +51,29 @@ class UbigeoRepo extends BaseRepo{
 		$ubigeo['distrito'] = ['' => 'Seleccionar'] + $ubigeo['distrito'];
 		return $ubigeo;
 	}
+	public function listUbigeo2($departamento='LIMA',$provincia='LIMA',$distrito='')
+	{
+		$ubi=Ubigeo::where('departamento',$departamento)->where('provincia',$provincia)->where('distrito',$distrito)->first();
+		if (is_null($ubi)) {
+			$ubigeo['value']['departamento'] = $departamento;
+			$ubigeo['value']['provincia'] = $provincia;
+			$ubigeo['value']['distrito'] = '';
+			$ubigeo['departamento'] = $this->listDepartamentos();
+			$ubigeo['provincia'] = $this->listProvincias();
+			$ubigeo['distrito'] = $this->listDistritos2();
+		} else {
+			$ubigeo['value']['departamento'] = $ubi->departamento;
+			$ubigeo['value']['provincia'] = $ubi->provincia;
+			$ubigeo['value']['distrito'] = $ubi->distrito;
+			$ubigeo['departamento'] = $this->listDepartamentos();
+			$ubigeo['provincia'] = $this->listProvincias($ubi->departamento);
+			$ubigeo['distrito'] = $this->listDistritos2($ubi->provincia);
+		}
+		$ubigeo['departamento'] = ['' => 'Seleccionar'] + $ubigeo['departamento'];
+		$ubigeo['provincia'] = ['' => 'Seleccionar'] + $ubigeo['provincia'];
+		$ubigeo['distrito'] = ['' => 'Seleccionar'] + $ubigeo['distrito'];
+		return $ubigeo;
+	}
 	public function ajaxProvincias($departamento)
 	{
 		$provincias = Ubigeo::select('provincia')->where('departamento','=',$departamento)->groupBy('provincia')->get();
@@ -54,6 +82,11 @@ class UbigeoRepo extends BaseRepo{
 	public function ajaxDistritos($provincia)
 	{
 		$distritos = Ubigeo::select('id','distrito')->where('provincia','=',$provincia)->get();
+		return $distritos;
+	}
+	public function ajaxDistritos2($provincia)
+	{
+		$distritos = Ubigeo::select('distrito')->where('provincia','=',$provincia)->get();
 		return $distritos;
 	}
 }

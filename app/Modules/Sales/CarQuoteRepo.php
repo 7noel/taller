@@ -21,4 +21,8 @@ class CarQuoteRepo extends BaseRepo{
 				return $this->model->orderBy('id', 'DESC')->paginate();
 			}
 	}
+	public function byCompany($company_id)
+	{
+		return $this->model->where('company_id', $company_id)->get();
+	}
 }

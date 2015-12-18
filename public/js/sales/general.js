@@ -1,4 +1,21 @@
 $(document).ready(function(){
+	if ($('#listDoc').val() == 'RUC') {
+		$('.div_ruc').show();
+		$('.div_dni').hide();
+	} else {
+		$('.div_ruc').hide();
+		$('.div_dni').show();
+	}
+	$('#listDoc').change(function(){
+		var doc = $('#listDoc').val();
+		if (doc == 'RUC') {
+			$('.div_ruc').show();
+			$('.div_dni').hide();
+		} else {
+			$('.div_ruc').hide();
+			$('.div_dni').show();
+		}
+	});
 	$('.btnAddFeature').click(function(e){
 		var div = $(this).parent();
 		addFeature(div);

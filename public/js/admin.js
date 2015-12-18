@@ -147,16 +147,15 @@ function cargaProvincias(){
 function cargaDistritos(){
 	var idDepartamento = $('#lstDepartamento option:selected').val();
 	var rel=$('#lstProvincia option:selected').val();
-	var page = "/listarDistritos/" + idDepartamento + "/" +rel;
+	var page = "/listarDistritos2/" + idDepartamento + "/" +rel;
 	if(rel !==''){
 		$.get(page, function(data){
 			console.log(data);
 			$('#lstDistrito').empty();
 			$('#lstDistrito').append("<option value=''>Seleccionar</option>");
 			$.each(data, function (index, DistritoObj) {
-				$('#lstDistrito').append("<option value='"+DistritoObj.id+"'>"+DistritoObj.distrito+"</option>");
+				$('#lstDistrito').append("<option value='"+DistritoObj.distrito+"'>"+DistritoObj.distrito+"</option>");
 			});
-			
 		});
 	}
 }

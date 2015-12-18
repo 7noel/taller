@@ -60,6 +60,8 @@ class MenuController extends Controller
                 ['name' => 'Unidades', 'route' => 'storage.units.index' ],
             ],
             'Ventas'=>[
+                ['name' => 'Clientes', 'route' => 'sales.clientes.index' ],
+                ['name' => 'Afluencia', 'route' => 'sales.car_quotes.afluencia.index'],
                 ['name' => 'Cotización', 'route' => 'sales.car_quotes.index'],
                 ['name' => 'Catálogo de Vehículos', 'route' => 'sales.catalog_cars.index' ],
                 ['name' => 'Notas de Pedido de Vehículo', 'url' => '#' ],
