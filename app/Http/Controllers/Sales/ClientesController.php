@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use App\Modules\Sales\ClienteRepo;
+use App\Modules\Sales\Cliente;
 use App\Modules\Base\UbigeoRepo;
 
 class ClientesController extends Controller {
@@ -34,45 +35,59 @@ class ClientesController extends Controller {
 	public function store()
 	{
 		$data = \Request::all();
-		dd($data);
-		$this->repo->save($data);
-		if (isset($data['last_page']) && $data['last_page'] != '') {
-			return \Redirect::to($data['last_page']);
+		if($data['DniExt'] != 'RUC') {
+			$data['NombreRaz'] = $data['ApellidoPat'].' '.$data['ApellidoMat'].' '.$data['Nombre'];
 		}
-		return \Redirect::route('finances.companies.index');
+		$data['Letra'] = $data['NombreRaz'][0];
+		$data['Rubroneg'] = 'NO ESPECIFICADO';
+		$data['Profesion'] = 'NO ESPECIFICADO';
+		$data['Fecha1'] = date('Y-m-d');
+		$data['Hora1'] = date('H:i:s');
+		$data['Usuario1'] = \Auth::user()->name;
+		$this->repo->save($data);
+		return \Redirect::route('sales.clientes.index');
 	}
 
 	public function show($id)
 	{
-		$id_types = $this->idTypeRepo->getList('symbol');
-		$model = $this->repo->findOrFail($id);
-		$ubigeo = $this->ubigeoRepo->listUbigeo($model->ubigeo_id);
-		return view('partials.show', compact('model', 'id_types', 'ubigeo'));
+		//
 	}
 
 	public function edit($id)
 	{
 		$id_types = $this->id_types;
 		$model = $this->repo->findOrFail($id);
-		$ubigeo = $this->ubigeoRepo->listUbigeo($model->ubigeo_id);
-		return view('partials.edit', compact('model', 'id_types', 'ubigeo'));
+		$ubigeo = $this->ubigeoRepo->listUbigeo2($model->Departam, $model->Provincia, $model->Distrito);
+		if ($model->RUC > 0) {
+			$model->DniExt = 'RUC';
+			$model->DNI = $model->RUC;
+		}
+		return view('sales.clientes.edit', compact('model', 'id_types', 'ubigeo'));
 	}
 
-	public function update($id, FormCompanyRequest $request)
+	public function update($id)
 	{
 		$data = \Request::all();
-		$this->repo->save($data, $id);
-		if (isset($data['last_page']) && $data['last_page'] != '') {
-			return \Redirect::to($data['last_page']);
+		if($data['DniExt'] != 'RUC') {
+			$data['NombreRaz'] = $data['ApellidoPat'].' '.$data['ApellidoMat'].' '.$data['Nombre'];
+		} else {
+			$data['RUC'] = $data['DNI'];
 		}
-		return \Redirect::route('finances.companies.index');
+		$data['Letra'] = $data['NombreRaz'][0];
+		$data['Rubroneg'] = 'NO ESPECIFICADO';
+		$data['Profesion'] = 'NO ESPECIFICADO';
+		$data['Fecha2'] = date('Y-m-d');
+		$data['Hora2'] = date('H:i:s');
+		$data['Usuario2'] = \Auth::user()->name;
+		$this->repo->save($data, $id);
+		return \Redirect::route('sales.clientes.index');
 	}
 
 	public function destroy($id)
 	{
 		$model = $this->repo->destroy($id);
 		if (\Request::ajax()) {	return $model; }
-		return redirect()->route('finances.companies.index');
+		return redirect()->route('sales.clientes.index');
 	}
 	public function ajaxAutocomplete()
 	{

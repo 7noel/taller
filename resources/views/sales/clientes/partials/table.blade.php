@@ -7,7 +7,7 @@
 						</tr>
 						@foreach($models as $model)
 						<?php $doc = ($model->RUC == 0) ? $model->DNI : $model->RUC ; ?>
-						<tr data-id="{{ $model->id }}">
+						<tr data-id="{{ $model->CodCliente }}">
 							<td>{{ $model->CodCliente }}</td>
 							<td>{{ $model->NombreRaz }} </td>
 							<td>{{ $doc }} </td>

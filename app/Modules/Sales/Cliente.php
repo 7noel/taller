@@ -8,9 +8,9 @@ class Cliente extends Model
 {
 	protected $connection = 'masaki';
 	protected $table = 'clientes';
-	protected $primaryKey = 'codcliente';
+	protected $primaryKey = 'CodCliente';
 	public $timestamps = false;
-	protected $fillable = ['NombreRaz', 'Nombre', 'ApellidoPat', 'ApellidoMat', 'RUC', 'DniExt', 'DNI', 'Letra', 'Departam', 'Provincia', 'Distrito', 'Telefonos', 'Celular', 'Email'];
+	protected $fillable = ['NombreRaz', 'Nombre', 'ApellidoPat', 'ApellidoMat', 'RUC', 'DniExt', 'DNI', 'Letra', 'Departam', 'Provincia', 'Distrito', 'Direccion', 'Telefonos', 'Celular', 'Email', 'Rubroneg', 'Profesion','Fecha1','Hora1','Usuario1','Fecha2','Hora2','Usuario2'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {
