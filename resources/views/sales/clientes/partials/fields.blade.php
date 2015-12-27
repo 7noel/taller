@@ -39,23 +39,76 @@
 					</div>
 					<div class="form-group form-group-sm">
 						{!! Form::label('Direccion','Direccion', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
+						<div class="col-sm-8">
 						{!! Form::text('Direccion', null, ['class'=>'form-control uppercase', 'required']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
 						{!! Form::label('Telefonos','Telefono Fijo', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-3">
+						<div class="col-sm-2">
 						{!! Form::text('Telefonos', null, ['class'=>'form-control']) !!}
 						</div>
-						{!! Form::label('Celular','Celulares', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-3">
+						{!! Form::label('Celular','Celulares', ['class'=>'col-sm-1 control-label']) !!}
+						<div class="col-sm-2">
 						{!! Form::text('Celular', null, ['class'=>'form-control']) !!}
+						</div>
+						{!! Form::label('Email','Email', ['class'=>'col-sm-1 control-label']) !!}
+						<div class="col-sm-3">
+						{!! Form::text('Email', null, ['class'=>'form-control']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
-						{!! Form::label('Email','Email', ['class'=>'col-sm-2 control-label']) !!}
+						{!! Form::label('company','Tipo Afluencia:', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-4">
+							<label class="radio-inline">
+								{!! Form::radio('optionsRadios', 'PRESENCIAL') !!} Presencial
+							</label>
+							<label class="radio-inline">
+								{!! Form::radio('optionsRadios', 'TELEFONICA') !!} Telefónica
+							</label>
+							<label class="radio-inline">
+								{!! Form::radio('optionsRadios', 'VIRTUAL') !!} Virtual
+							</label>
+						</div>
+						{!! Form::label('canal_id','Canal', ['class'=>'col-sm-1 control-label']) !!}
 						<div class="col-sm-3">
-						{!! Form::text('Email', null, ['class'=>'form-control']) !!}
+							{!! Form::select('canal_id',$canals, null,['class'=>'form-control', 'required']) !!}
+						</div>
+					</div>
+					<div class="form-group  form-group-sm">
+						{!! Form::label('version_id','Modelo/Version', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-3">
+							{!! Form::select('version_id',$versions, null,['class'=>'form-control', 'id'=>'lstVersions', 'required']) !!}
+						</div>
+						{!! Form::label('catalog_car_id','Fabricación/Modelo', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-3">
+							{!! Form::select('catalog_car_id', [''=>'Seleccionar'], null,['class'=>'form-control', 'id'=>'lstYears', 'required']); !!}
+						</div>
+					</div>
+					<div class="form-group form-group-sm">
+						{!! Form::label('status','Status:', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-8">
+							<label class="checkbox-inline">
+								{!! Form::checkbox('inlineCheckbox1', '1') !!} Registrado
+							</label>
+							<label class="checkbox-inline">
+								{!! Form::checkbox('inlineCheckbox2', '1') !!} Cotizado
+							</label>
+							<label class="checkbox-inline">
+								{!! Form::checkbox('inlineCheckbox3', '1') !!} Test Drive
+							</label>
+							<label class="checkbox-inline">
+								{!! Form::checkbox('inlineCheckbox4', '1') !!} Separado
+							</label>
+							<label class="checkbox-inline">
+								{!! Form::checkbox('inlineCheckbox5', '1') !!} Cancelado
+							</label>
+						</div>
+					</div>
+					<div class="form-group form-group-sm">
+						
+						<div class= "col-sm-offset-2 col-sm-5">
+							<button type="button" class="btn btn-warning"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Ultima Afluencia</button> 
+							<button type="button" class="btn btn-info"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Nueva Afluencia</button>
 						</div>
 					</div>

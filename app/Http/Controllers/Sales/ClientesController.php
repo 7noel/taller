@@ -7,16 +7,38 @@ use Illuminate\Http\Request;
 use App\Modules\Sales\ClienteRepo;
 use App\Modules\Sales\Cliente;
 use App\Modules\Base\UbigeoRepo;
+use App\Modules\Sales\CatalogCarRepo;
 
 class ClientesController extends Controller {
 
 	protected $repo;
 	protected $ubigeoRepo;
 	protected $id_types = ['DNI'=>'DNI', 'CEX'=>'CEX', 'PAS'=>'PAS', 'RUC'=>'RUC'];
+	protected $canals = array(
+			'' => 'Seleccionar',
+			'CLIENTE MASAKI' => 'CLIENTE MASAKI',
+			'CLIENTE VINO DE OTRO CONCESIONARIO' => 'CLIENTE VINO DE OTRO CONCESIONARIO',
+			'CONTACTO WEB HONDA' => 'CONTACTO WEB HONDA',
+			'CONTACTO WEB MASAKI' => 'CONTACTO WEB MASAKI',
+			'DIARIO' => 'DIARIO',
+			'E-MAILING MASAKI' => 'E-MAILING MASAKI',
+			'LLAMADA TELEFONICA' => 'LLAMADA TELEFONICA',
+			'OTROS' => 'OTROS',
+			'POR EVENTO' => 'POR EVENTO',
+			'RECOMENDACION CLIENTE' => 'RECOMENDACION CLIENTE',
+			'REFERIDOS DIRECTORIO/GERENCIA' => 'REFERIDOS DIRECTORIO/GERENCIA',
+			'REFERIDOS HONDA' => 'REFERIDOS HONDA',
+			'REVISTAS' => 'REVISTAS',
+			'TRABAJO CERCA' => 'TRABAJO CERCA',
+			'VISITO ZONA AUTOS' => 'VISITO ZONA AUTOS',
+			'VIVO CERCA' => 'VIVO CERCA',
+			'VOLANTEO' => 'VOLANTEO'
+			);
 
-	public function __construct(ClienteRepo $repo, UbigeoRepo $ubigeoRepo) {
+	public function __construct(ClienteRepo $repo, UbigeoRepo $ubigeoRepo, CatalogCarRepo $carRepo) {
 		$this->repo = $repo;
 		$this->ubigeoRepo = $ubigeoRepo;
+		$this->carRepo = $carRepo;
 	}
 
 	public function index()
@@ -29,7 +51,9 @@ class ClientesController extends Controller {
 	{
 		$id_types = $this->id_types;
 		$ubigeo = $this->ubigeoRepo->listUbigeo2();
-		return view('partials.create', compact('id_types','ubigeo'));
+		$versions = $this->carRepo->getListVersions();
+		$canals = $this->canals;
+		return view('partials.create', compact('id_types','ubigeo','versions', 'canals'));
 	}
 
 	public function store()
@@ -62,7 +86,9 @@ class ClientesController extends Controller {
 			$model->DniExt = 'RUC';
 			$model->DNI = $model->RUC;
 		}
-		return view('sales.clientes.edit', compact('model', 'id_types', 'ubigeo'));
+		$versions = $this->carRepo->getListVersions();
+		$canals = $this->canals;
+		return view('sales.clientes.edit', compact('model', 'id_types', 'ubigeo','versions', 'canals'));
 	}
 
 	public function update($id)
