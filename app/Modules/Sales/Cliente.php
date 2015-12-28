@@ -17,4 +17,8 @@ class Cliente extends Model
 			$query->where('NombreRaz', 'LIKE', "%$name%")->orWhere('DNI', 'LIKE', "%$name%")->orWhere('RUC', 'LIKE', "%$name%");
 		}
 	}
+	public function afluencias()
+	{
+		return $this->hasMany('App\Modules\Sales\Afluencia', 'cliente_id', 'CodCliente');
+	}
 }

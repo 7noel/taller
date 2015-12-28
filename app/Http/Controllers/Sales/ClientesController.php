@@ -53,7 +53,8 @@ class ClientesController extends Controller {
 		$ubigeo = $this->ubigeoRepo->listUbigeo2();
 		$versions = $this->carRepo->getListVersions();
 		$canals = $this->canals;
-		return view('partials.create', compact('id_types','ubigeo','versions', 'canals'));
+		$afluencia = null;
+		return view('partials.create', compact('id_types','ubigeo','versions', 'canals', 'afluencia'));
 	}
 
 	public function store()
