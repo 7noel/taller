@@ -21,6 +21,12 @@ class AfluenciaRepo extends BaseRepo{
 		$data['modelo'] = $car->version->modelo->name;
 		$data['version'] = $car->version->name;
 		$data['status'] = 'REGISTRADO';
+		$data['fecha'] = date('Y-m-d');
+		$data['vendedor'] = \Auth::user()->employee->full_name;
+		$data['Fecha1'] = date('Y-m-d');
+		$data['Hora1'] = date('H:i:s');
+		$data['Usuario1'] = \Auth::user()->employee->full_name;
+
 		if (isset($data['quoted_at'])) {
 			if ($data['quoted_at'] == "on") {
 				$data['quoted_at'] = date('Y-m-d H:i:s');

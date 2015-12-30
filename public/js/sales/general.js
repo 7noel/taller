@@ -47,7 +47,15 @@ $(document).ready(function(){
 		$('#lstVersions').val('');
 		$('#lstYears').val('');
 		$('.status-checked').find('input[type="checkbox"]').removeAttr('checked');
-
+	});
+	$('#btn-historial-afluencia').click(function(){
+		var historial;
+		historial = 'Registro: '+$('#registered_at2').val();
+		historial = historial + '\nCotizacion: '+$('#quoted_at2').val();
+		historial = historial + '\nTest Drive: '+$('#test_drive_at2').val();
+		historial = historial + '\nSeparacion: '+$('#separated_at2').val();
+		historial = historial + '\nCancelacion: '+$('#canceled_at2').val();
+		alert(historial);
 	});
 });
 function addFeature (div) {

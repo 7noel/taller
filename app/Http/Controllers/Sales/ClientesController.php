@@ -83,6 +83,7 @@ class ClientesController extends Controller {
 
 	public function edit($id)
 	{
+		//dd(\Auth::user()->employee->full_name);
 		$id_types = $this->id_types;
 		$model = $this->repo->findOrFail($id);
 		$ubigeo = $this->ubigeoRepo->listUbigeo2($model->Departam, $model->Provincia, $model->Distrito);
@@ -93,10 +94,12 @@ class ClientesController extends Controller {
 		$versions = $this->carRepo->getListVersions();
 		$canals = $this->canals;
 		$afluencia = $this->afluenciaRepo->lastAfluencia($model->CodCliente);
-		$years = $this->carRepo->getListYears($afluencia->version_id);
 		$tipo = ['PRESENCIAL'=>false, 'TELEFONICA'=>false, 'VIRTUAL'=>false];
-		$tipo[$afluencia->tipo] = true;
-
+		$years = [''=>'Seleccionar'];
+		if (isset($afluencia)) {
+			$years = $this->carRepo->getListYears($afluencia->version_id);
+			$tipo[$afluencia->tipo] = true;
+		}
 		return view('sales.clientes.edit', compact('model', 'id_types', 'ubigeo','versions', 'canals', 'afluencia', 'years', 'tipo'));
 	}
 

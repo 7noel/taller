@@ -58,9 +58,9 @@
 						</div>
 					</div>
 
+					{!! Form::hidden('id', '0') !!}
 					@if(isset($afluencia))
 
-					{!! Form::hidden('id', $afluencia->id, ['id'=>'afluencia_id']) !!}
 					<div class="form-group form-group-sm">
 						{!! Form::label('tipo','Tipo Afluencia:', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-4 tipo-radio">
@@ -93,24 +93,34 @@
 						{!! Form::label('status','Status:', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-8 status-checked">
 							<label class="checkbox-inline">
+								{!! Form::hidden('registered_at2', $afluencia->registered_at, ['id'=>'registered_at2']) !!}
 								{!! Form::checkbox('registered_at', '1', $afluencia->registered_at) !!} Registrado
 							</label>
 							<label class="checkbox-inline">
+								{!! Form::hidden('quoted_at2', $afluencia->quoted_at, ['id'=>'quoted_at2']) !!}
 								{!! Form::checkbox('quoted_at', $afluencia->quoted_at, $afluencia->quoted_at) !!} Cotizado
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('test_drive_at', '1', $afluencia->test_drive_at) !!} Test Drive
+								{!! Form::hidden('test_drive_at2', $afluencia->test_drive_at, ['id'=>'test_drive_at2']) !!}
+								{!! Form::checkbox('test_drive_at', $afluencia->test_drive_at, $afluencia->test_drive_at) !!} Test Drive
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('separated_at', '1', $afluencia->separated_at) !!} Separado
+								{!! Form::hidden('separated_at2', $afluencia->separated_at, ['id'=>'separated_at2']) !!}
+								{!! Form::checkbox('separated_at', $afluencia->separated_at, $afluencia->separated_at) !!} Separado
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('canceled_at', '1', $afluencia->canceled_at) !!} Cancelado
+								{!! Form::hidden('canceled_at2', $afluencia->canceled_at, ['id'=>'canceled_at2']) !!}
+								{!! Form::checkbox('canceled_at', $afluencia->canceled_at, $afluencia->canceled_at) !!} Cancelado
 							</label>
 						</div>
 					</div>
+					<div class="form-group form-group-sm">
+						{!! Form::label('observaciones','Observaciones:', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-8">
+							{!! Form::textarea('observaciones', $afluencia->observaciones, ['class'=>'form-control', 'rows'=>3]) !!}
+						</div>
+					</div>
 					@else
-					{!! Form::hidden('id', '0') !!}
 					<div class="form-group form-group-sm">
 						{!! Form::label('tipo','Tipo Afluencia:', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-4">
@@ -159,10 +169,16 @@
 							</label>
 						</div>
 					</div>
+					<div class="form-group form-group-sm">
+						{!! Form::label('observaciones','Observaciones:', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-8">
+							{!! Form::textarea('observaciones', null, ['class'=>'form-control', 'rows'=>3]) !!}
+						</div>
+					</div>
 					@endif
 					<div class="form-group form-group-sm">
 						<div class= "col-sm-offset-2 col-sm-5">
-							<button type="button" id="btn-last-afluencia" class="btn btn-warning btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Ultima Afluencia</button> 
-							<button type="button" id="btn-new-afluencia" class="btn btn-info btn-xs"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Nueva Afluencia</button>
+							<button type="button" id="btn-new-afluencia" class="btn btn-warning btn-xs"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Nueva Afluencia</button>
+							<button type="button" id="btn-historial-afluencia" class="btn btn-info btn-xs"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Historial</button>
 						</div>
 					</div>
