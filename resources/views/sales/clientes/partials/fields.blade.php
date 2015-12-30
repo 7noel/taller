@@ -59,23 +59,24 @@
 					</div>
 
 					@if(isset($afluencia))
-					{!! Form::hidden('id', $afluencia->id) !!}
+
+					{!! Form::hidden('id', $afluencia->id, ['id'=>'afluencia_id']) !!}
 					<div class="form-group form-group-sm">
 						{!! Form::label('tipo','Tipo Afluencia:', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-4">
+						<div class="col-sm-4 tipo-radio">
 							<label class="radio-inline">
-								{!! Form::radio('tipo', 'PRESENCIAL', $afluencia->tipo, ['required']) !!} Presencial
+								{!! Form::radio('tipo', 'PRESENCIAL', $tipo['PRESENCIAL'], ['id'=>'tipo_1', 'required']) !!} Presencial
 							</label>
 							<label class="radio-inline">
-								{!! Form::radio('tipo', 'TELEFONICA') !!} Telefónica
+								{!! Form::radio('tipo', 'TELEFONICA', $tipo['TELEFONICA'], ['id'=>'tipo_2']) !!} Telefónica
 							</label>
 							<label class="radio-inline">
-								{!! Form::radio('tipo', 'VIRTUAL') !!} Virtual
+								{!! Form::radio('tipo', 'VIRTUAL', $tipo['VIRTUAL'], ['id'=>'tipo_3']) !!} Virtual
 							</label>
 						</div>
 						{!! Form::label('canal','Canal', ['class'=>'col-sm-1 control-label']) !!}
 						<div class="col-sm-3">
-							{!! Form::select('canal',$canals, $afluencia->canal,['class'=>'form-control', 'required']) !!}
+							{!! Form::select('canal', $canals, $afluencia->canal, ['class'=>'form-control', 'id'=>'canal', 'required']) !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
@@ -85,26 +86,26 @@
 						</div>
 						{!! Form::label('catalog_car_id','Fabricación/Modelo', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
-							{!! Form::select('catalog_car_id', [''=>'Seleccionar'], $afluencia->catalog_car_id,['class'=>'form-control', 'id'=>'lstYears', 'required']); !!}
+							{!! Form::select('catalog_car_id', $years, $afluencia->catalog_car_id,['class'=>'form-control', 'id'=>'lstYears', 'required']); !!}
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
 						{!! Form::label('status','Status:', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-8">
+						<div class="col-sm-8 status-checked">
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_registered', '1', $afluencia->is_registered) !!} Registrado
+								{!! Form::checkbox('registered_at', '1', $afluencia->registered_at) !!} Registrado
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_quoted', '1', $afluencia->is_quoted) !!} Cotizado
+								{!! Form::checkbox('quoted_at', $afluencia->quoted_at, $afluencia->quoted_at) !!} Cotizado
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_test_drive', '1', $afluencia->is_test_drive) !!} Test Drive
+								{!! Form::checkbox('test_drive_at', '1', $afluencia->test_drive_at) !!} Test Drive
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_separated', '1', $afluencia->is_separated) !!} Separado
+								{!! Form::checkbox('separated_at', '1', $afluencia->separated_at) !!} Separado
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_canceled', '1', $afluencia->is_canceled) !!} Cancelado
+								{!! Form::checkbox('canceled_at', '1', $afluencia->canceled_at) !!} Cancelado
 							</label>
 						</div>
 					</div>
@@ -142,23 +143,26 @@
 						{!! Form::label('status','Status:', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-8">
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_quoted', '1') !!} Cotizado
+								{!! Form::checkbox('registered_at', 'on') !!} Registrado
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_test_drive', '1') !!} Test Drive
+								{!! Form::checkbox('quoted_at', 'on') !!} Cotizado
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_separated', '1') !!} Separado
+								{!! Form::checkbox('test_drive_at', 'on') !!} Test Drive
 							</label>
 							<label class="checkbox-inline">
-								{!! Form::checkbox('is_canceled', '1') !!} Cancelado
+								{!! Form::checkbox('separated_at', 'on') !!} Separado
+							</label>
+							<label class="checkbox-inline">
+								{!! Form::checkbox('canceled_at', 'on') !!} Cancelado
 							</label>
 						</div>
 					</div>
 					@endif
 					<div class="form-group form-group-sm">
 						<div class= "col-sm-offset-2 col-sm-5">
-							<button type="button" class="btn btn-warning btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Ultima Afluencia</button> 
-							<button type="button" class="btn btn-info btn-xs"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Nueva Afluencia</button>
+							<button type="button" id="btn-last-afluencia" class="btn btn-warning btn-xs"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Ultima Afluencia</button> 
+							<button type="button" id="btn-new-afluencia" class="btn btn-info btn-xs"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Nueva Afluencia</button>
 						</div>
 					</div>

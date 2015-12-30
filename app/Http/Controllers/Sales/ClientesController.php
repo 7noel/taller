@@ -8,11 +8,13 @@ use App\Modules\Sales\ClienteRepo;
 use App\Modules\Sales\Cliente;
 use App\Modules\Base\UbigeoRepo;
 use App\Modules\Sales\CatalogCarRepo;
+use App\Modules\Sales\AfluenciaRepo;
 
 class ClientesController extends Controller {
 
 	protected $repo;
 	protected $ubigeoRepo;
+	protected $afluenciaRepo;
 	protected $id_types = ['DNI'=>'DNI', 'CEX'=>'CEX', 'PAS'=>'PAS', 'RUC'=>'RUC'];
 	protected $canals = array(
 			'' => 'Seleccionar',
@@ -35,10 +37,11 @@ class ClientesController extends Controller {
 			'VOLANTEO' => 'VOLANTEO'
 			);
 
-	public function __construct(ClienteRepo $repo, UbigeoRepo $ubigeoRepo, CatalogCarRepo $carRepo) {
+	public function __construct(ClienteRepo $repo, UbigeoRepo $ubigeoRepo, CatalogCarRepo $carRepo, AfluenciaRepo $afluenciaRepo) {
 		$this->repo = $repo;
 		$this->ubigeoRepo = $ubigeoRepo;
 		$this->carRepo = $carRepo;
+		$this->afluenciaRepo = $afluenciaRepo;
 	}
 
 	public function index()
@@ -89,7 +92,12 @@ class ClientesController extends Controller {
 		}
 		$versions = $this->carRepo->getListVersions();
 		$canals = $this->canals;
-		return view('sales.clientes.edit', compact('model', 'id_types', 'ubigeo','versions', 'canals'));
+		$afluencia = $this->afluenciaRepo->lastAfluencia($model->CodCliente);
+		$years = $this->carRepo->getListYears($afluencia->version_id);
+		$tipo = ['PRESENCIAL'=>false, 'TELEFONICA'=>false, 'VIRTUAL'=>false];
+		$tipo[$afluencia->tipo] = true;
+
+		return view('sales.clientes.edit', compact('model', 'id_types', 'ubigeo','versions', 'canals', 'afluencia', 'years', 'tipo'));
 	}
 
 	public function update($id)

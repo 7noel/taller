@@ -40,6 +40,15 @@ $(document).ready(function(){
 			$('#txtcompany').val('');
 		}
 	});
+	$('#btn-new-afluencia').click(function(){
+		$('#afluencia_id').val('0');
+		$('.tipo-radio').find('input[type="radio"]').removeAttr('checked');
+		$('#canal').val('');
+		$('#lstVersions').val('');
+		$('#lstYears').val('');
+		$('.status-checked').find('input[type="checkbox"]').removeAttr('checked');
+
+	});
 });
 function addFeature (div) {
 	var group = div.data('group');
