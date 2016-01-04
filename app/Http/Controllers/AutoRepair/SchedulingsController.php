@@ -6,19 +6,19 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use App\Modules\AutoRepair\AppointmentRepo;
-class AppointmentsController extends Controller
+use App\Modules\AutoRepair\SchedulingRepo;
+class SchedulingsController extends Controller
 {
 
     protected $repo;
 
-    public function __construct(AppointmentRepo $repo) {
+    public function __construct(SchedulingRepo $repo) {
         $this->repo = $repo;
     }
 
     public function index()
     {
-        $models = $this->repo->index('placa', \Request::get('name'));
+        $models = $this->repo->index('name', \Request::get('name'));
         return view('partials.index', compact('models'));
     }
 
@@ -66,10 +66,5 @@ class AppointmentsController extends Controller
         if (\Request::ajax()) { return $model; }
         return redirect()->route('autorepair.service_checklists.index');
     }
-    
-    /**
-     * CREA UN PDF EN EL NAVEGADOR
-     * @param  [integer] $id [Es el id del checklist]
-     * @return [pdf]     [Retorna un pdf]
-     */
+
 }

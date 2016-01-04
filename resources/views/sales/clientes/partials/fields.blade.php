@@ -1,11 +1,21 @@
+					<?php $v = '';
+					if (isset($model)) {
+						if (isset($afluencias[0])) {
+							$v = 'Vendedor: '.$afluencias[0]->vendedor;
+						} else {
+							$v = 'Vendedor: '.$model->Usuario1;
+						}
+					}
+					 ?>
 					<div class="form-group form-group-sm">
 						{!! Form::label('DNI','Documento', ['class'=>'col-sm-2 control-label']) !!}
-						<div class="col-sm-10">
+						<div class="col-sm-4">
 							<div class="form-inline">
 							{!! Form::select('DniExt',$id_types , null, ['class'=>'form-control col-sm-1', 'id'=>'listDoc', 'required']) !!}
 							{!! Form::text('DNI', null, ['class'=>'form-control uppercase', 'required']) !!}
 							</div>
 						</div>
+						{!! Form::label('vendedor',$v, ['class'=>'col-sm-4 control-label']) !!}
 					</div>
 					<div class="form-group form-group-sm div_ruc">
 						{!! Form::label('NombreRaz','Razón Social', ['class'=>'col-sm-2 control-label']) !!}
@@ -59,8 +69,8 @@
 					</div>
 
 					{!! Form::hidden('id', '0') !!}
-					@if(isset($afluencia))
-
+					@if(isset($afluencias[0]))
+					<?php $afluencia =$afluencias[0]; ?>
 					<div class="form-group form-group-sm">
 						{!! Form::label('tipo','Tipo Afluencia:', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-4 tipo-radio">
@@ -179,6 +189,50 @@
 					<div class="form-group form-group-sm">
 						<div class= "col-sm-offset-2 col-sm-5">
 							<button type="button" id="btn-new-afluencia" class="btn btn-warning btn-xs"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Nueva Afluencia</button>
-							<button type="button" id="btn-historial-afluencia" class="btn btn-info btn-xs"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> Historial</button>
+							<button type="button" id="xbtn-historial-afluencia" class="btn btn-info btn-xs"  data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Historial</button>
 						</div>
 					</div>
+					@if(isset($afluencias))
+					<!-- Modal -->
+					<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+						<div class="modal-dialog modal-lg" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+									<h4 class="modal-title" id="myModalLabel">Historial: {{ $model->NombreRaz }}</h4>
+								</div>
+								<div class="modal-body">
+									<table class="table table-striped">
+										<thead>
+											<tr>
+												<td>Modelo</td>
+												<td>Version</td>
+												<td>Fecha</td>
+												<td>Vendedor</td>
+												<td>Status</td>
+												<td>Tipo</td>
+												<td>Canal</td>
+											</tr>
+										</thead>
+										<tbody>
+											@foreach($afluencias as $afluencia)
+											<tr>
+												<td>{{ $afluencia->modelo }}</td>
+												<td>{{ $afluencia->version }}</td>
+												<td>{{ $afluencia->fecha }}</td>
+												<td>{{ $afluencia->vendedor }}</td>
+												<td>{{ $afluencia->status }}</td>
+												<td>{{ $afluencia->tipo }}</td>
+												<td>{{ $afluencia->canal }}</td>
+											</tr>
+											@endforeach
+										</tbody>
+									</table>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					@endif

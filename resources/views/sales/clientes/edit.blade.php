@@ -18,6 +18,8 @@
 					@endif
 					
 					@include( 'sales.clientes.partials.fields' )
+
+					
 					<div class="form-group">
 						<div class="col-sm-offset-2 col-sm-10">
 							<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span> {{ config('options.' . Request::route()->getAction()['as'] .'.update') }}</button>

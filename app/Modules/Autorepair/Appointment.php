@@ -10,12 +10,11 @@ class Appointment extends Model
 	protected $table = 't_citas';
 	protected $primaryKey = 'idcita';
 	public $timestamps = false;
-	protected $orderBy = 'idcita';
 	//protected $fillable = [''];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {
-			$query->where('name', 'LIKE', "%$name%");
+			$query->where('name', 'LIKE', "%$name%")->where('reserva', '1');
 		}
 	}
 }

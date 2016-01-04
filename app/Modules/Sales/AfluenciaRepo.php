@@ -14,6 +14,10 @@ class AfluenciaRepo extends BaseRepo{
 	{
 		return Afluencia::where('cliente_id', $cliente_id)->orderBy("id", 'DESC')->first();
 	}
+	public function byCliente($cliente_id)
+	{
+		return Afluencia::where('cliente_id', $cliente_id)->orderBy("id", 'DESC')->get();
+	}
 	public function prepareData($data)
 	{
 		//dd($data);
