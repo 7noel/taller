@@ -7,13 +7,17 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Modules\AutoRepair\AppointmentRepo;
+use App\Modules\AutoRepair\SchedulingRepo;
+
 class AppointmentsController extends Controller
 {
 
     protected $repo;
+    protected $schedulingRepo;
 
-    public function __construct(AppointmentRepo $repo) {
+    public function __construct(AppointmentRepo $repo, SchedulingRepo $schedulingRepo) {
         $this->repo = $repo;
+        $this->schedulingRepo = $schedulingRepo;
     }
 
     public function index()
@@ -24,18 +28,20 @@ class AppointmentsController extends Controller
 
     public function create()
     {
-        $groups = $this->checkitemGroupRepo->all();
-        $technicians = $this->employeeRepo->getListTechnicians();
-        return view('partials.create', compact('groups', 'technicians'));
+
+            $placa=\Session::get('placa2');
+        
+        $efectividad = [''=>'Seleccionar'] + $this->repo->efectividad();
+        $asesores = [''=>'Seleccionar'] + $this->repo->asesores();
+        $tipoot = [''=>'Seleccionar'] + $this->repo->tipoot();
+        return view('partials.create', compact('efectividad', 'asesores', 'tipoot','placa'));
     }
 
     public function store()
     {
         $data = \Request::all();
-        $data['created_by_id'] = \Auth::user()->id;
-        $data['updated_by_id'] = \Auth::user()->id;
         $this->repo->save($data);
-        return \Redirect::route('autorepair.service_checklists.index');
+        return \Redirect::route('autorepair.appointment.index');
     }
 
     public function show($id)

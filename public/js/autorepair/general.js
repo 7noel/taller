@@ -23,7 +23,16 @@ $(document).ready(function(){
 		};
 
 	});
-	
+	$('#date-cita').change(function(){
+		var date = $(this).val();
+		loadTimes(date);
+	});
+	$('#time-cita').change(function(){
+		var date = $('#date-cita').val();
+		var time = $('#time-cita').val();
+		loadAsesores(date, time);
+	});
+
 });
 function addChecktem (div) {
 	var html = htmlCheckitem();
@@ -57,5 +66,22 @@ function getDataOt () {
 			$('#adviser_id').val(data.adviser_id);
 			$('#adviser').val(data.adviser);
 		};
+	});
+}
+function loadTimes (date) {
+	var page = "/autorepair/schedulings/ajaxGetTime/" + date;
+	$.get(page, function(data){
+		console.log(data);
+		$('#time-cita option').remove();
+		$('#time-cita').append(data);
+	});
+}
+
+function loadAsesores (date, time) {
+	var page = "/autorepair/schedulings/ajaxGetAsesores/" + date + "/" + time;
+	$.get(page, function(data){
+		console.log(data);
+		$('#nasesor option').remove();
+		$('#nasesor').append(data);
 	});
 }

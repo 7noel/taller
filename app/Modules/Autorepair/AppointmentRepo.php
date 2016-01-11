@@ -16,4 +16,19 @@ class AppointmentRepo extends BaseRepo{
 			return Appointment::orderBy('idcita', 'DESC')->paginate();
 		}
 	}
+
+	public function efectividad()
+	{
+		return \DB::connection('masaki')->table('efectivi')->lists('Nombre', 'Nombre');
+	}
+	public function asesores()
+	{
+		return \DB::connection('masaki')->table('asesores')->lists('Nombre', 'Codigo');
+	}
+
+	public function tipoot()
+	{
+		return \DB::connection('masaki')->table('tipoord')->lists('Nombre', 'Nombre');
+	}
+
 }

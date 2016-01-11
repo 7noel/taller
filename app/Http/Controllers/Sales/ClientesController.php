@@ -96,12 +96,14 @@ class ClientesController extends Controller {
 		//$afluencia = $this->afluenciaRepo->lastAfluencia($model->CodCliente);
 		$afluencias = $this->afluenciaRepo->byCliente($model->CodCliente);
 		$tipo = ['PRESENCIAL'=>false, 'TELEFONICA'=>false, 'VIRTUAL'=>false];
+		$formapago = ['CONTADO'=>false, 'CREDITO'=>false, 'LEASING'=>false];
 		$years = [''=>'Seleccionar'];
 		if (isset($afluencias[0])) {
 			$years = $this->carRepo->getListYears($afluencias[0]->version_id);
 			$tipo[$afluencias[0]->tipo] = true;
+			$formapago[$afluencias[0]->formapago] = true;
 		}
-		return view('sales.clientes.edit', compact('model', 'id_types', 'ubigeo','versions', 'canals', 'years', 'tipo', 'afluencias'));
+		return view('sales.clientes.edit', compact('model', 'id_types', 'ubigeo','versions', 'canals', 'years', 'tipo', 'afluencias', 'formapago'));
 	}
 
 	public function update($id)

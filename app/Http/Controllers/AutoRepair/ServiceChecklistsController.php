@@ -218,7 +218,12 @@ class ServiceChecklistsController extends Controller
         \DB::connection('masaki')->table('vehiculo')
             ->where('Placa', $plate)
             ->update(array('status' => $data['status']));
+
+        if ($data['status']=='SI') {
+            return redirect('/autorepair/appointments/create')->with('placa2', $plate);
+        }
         return redirect($last_page);
+        
         //return \Redirect::route('autorepair.service_checklists.index');
     }
 }

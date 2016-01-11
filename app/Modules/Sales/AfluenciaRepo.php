@@ -22,6 +22,8 @@ class AfluenciaRepo extends BaseRepo{
 	{
 		//dd($data);
 		$car = CatalogCar::find($data['catalog_car_id']);
+		$data['dato1'] = $data['DNI'];
+		$data['version'] = $car->version->name;
 		$data['modelo'] = $car->version->modelo->name;
 		$data['version'] = $car->version->name;
 		$data['status'] = 'REGISTRADO';

@@ -64,6 +64,9 @@ Route::group(['prefix'=>'autorepair', 'middleware'=>['auth', 'permissions'], 'na
 	Route::get('vehicles/nextservice', ['as' => 'autorepair.vehicles.nextservice', 'uses' => 'ServiceChecklistsController@nextservice']);
 	Route::post('service_reminder/emailconfirm/{plate}', ['as' => 'autorepair.service_reminder.send_email', 'uses' => 'ServiceChecklistsController@sendEmail'] );
 	Route::get('service_reminder/emailform/{plate}', ['as' => 'autorepair.service_reminder.form_email', 'uses' => 'ServiceChecklistsController@formEmail'] );
+
+	Route::get('schedulings/ajaxGetTime/{date}', ['as' => 'autorepair.schedulings.ajaxGetTime', 'uses' => 'SchedulingsController@ajaxGetTime'] );
+	Route::get('schedulings/ajaxGetAsesores/{date}/{time}', ['as' => 'autorepair.schedulings.ajaxGetAsesores', 'uses' => 'SchedulingsController@ajaxGetAsesores'] );
 });
 
 Route::group(['prefix'=>'humanresources', 'middleware'=>['auth', 'permissions'], 'namespace'=>'HumanResources'], function(){

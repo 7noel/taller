@@ -43,6 +43,7 @@ $(document).ready(function(){
 	$('#btn-new-afluencia').click(function(){
 		$('#afluencia_id').val('0');
 		$('.tipo-radio').find('input[type="radio"]').removeAttr('checked');
+		$('.formapago-radio').find('input[type="radio"]').removeAttr('checked');
 		$('#canal').val('');
 		$('#lstVersions').val('');
 		$('#lstYears').val('');
@@ -50,13 +51,22 @@ $(document).ready(function(){
 	});
 	$('#btn-historial-afluencia').click(function(){
 		var historial;
-		historial = 'Registro: '+$('#registered_at2').val();
-		historial = historial + '\nCotizacion: '+$('#quoted_at2').val();
-		historial = historial + '\nTest Drive: '+$('#test_drive_at2').val();
-		historial = historial + '\nSeparacion: '+$('#separated_at2').val();
-		historial = historial + '\nCancelacion: '+$('#canceled_at2').val();
+		historial = 'Registro: ' + $('#registered_at2').val();
+		historial = historial + '\nCotizacion: ' + $('#quoted_at2').val();
+		historial = historial + '\nTest Drive: ' + $('#test_drive_at2').val();
+		historial = historial + '\nSeparacion: ' + $('#separated_at2').val();
+		historial = historial + '\nCancelacion: ' + $('#canceled_at2').val();
 		alert(historial);
 	});
+	$('.otros, .evento').hide();
+	if( $('#canal').val() == 'POR EVENTO' ){ $('.evento').show() }
+	if( $('#canal').val() == 'OTROS' ){ $('.otros').show() }
+	$('#canal').change(function(){
+		$('.otros, .evento').hide();
+		if( $('#canal').val() == 'POR EVENTO' ){ $('.evento').show();$('.evento[type="text"]').focus() }
+		if( $('#canal').val() == 'OTROS' ){ $('.otros').show();$('.otros[type="text"]').focus() }
+	});
+
 });
 function addFeature (div) {
 	var group = div.data('group');

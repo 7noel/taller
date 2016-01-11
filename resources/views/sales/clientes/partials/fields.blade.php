@@ -90,6 +90,26 @@
 						</div>
 					</div>
 					<div class="form-group form-group-sm">
+						{!! Form::label('formapago','Forma de Pago:', ['class'=>'col-sm-2 control-label']) !!}
+						<div class="col-sm-4 formapago-radio">
+							<label class="radio-inline">
+								{!! Form::radio('formapago', 'CONTADO', $formapago['CONTADO'], ['id'=>'formapago_1', 'required']) !!} Contado
+							</label>
+							<label class="radio-inline">
+								{!! Form::radio('formapago', 'CREDITO', $formapago['CREDITO'], ['id'=>'formapago_2']) !!} Credito
+							</label>
+							<label class="radio-inline">
+								{!! Form::radio('formapago', 'LEASING', $formapago['LEASING'], ['id'=>'formapago_3']) !!} Leasing
+							</label>
+						</div>
+						{!! Form::label('evento','Evento', ['class'=>'col-sm-1 control-label evento']) !!}
+						{!! Form::label('otros','Otros', ['class'=>'col-sm-1 control-label otros']) !!}
+						<div class="col-sm-3">
+							{!! Form::text('evento', $afluencia->evento, ['class'=>'form-control evento', 'rows'=>3]) !!}
+							{!! Form::text('otros', $afluencia->otros, ['class'=>'form-control otros', 'rows'=>3]) !!}
+						</div>
+					</div>
+					<div class="form-group form-group-sm">
 						{!! Form::label('version_id','Modelo/Version', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
 							{!! Form::select('version_id',$versions, $afluencia->version_id,['class'=>'form-control', 'id'=>'lstVersions', 'required']) !!}

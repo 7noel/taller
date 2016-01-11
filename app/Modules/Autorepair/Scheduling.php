@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Scheduling extends Model
 {
-	protected $fillable = ['is_saturday', 'time', 'A1', 'A2', 'A3', 'A4', 'A5'];
+	protected $fillable = ['is_saturday', 'time', 'a1', 'a2', 'a3', 'a4', 'a5'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {

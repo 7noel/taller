@@ -66,5 +66,13 @@ class SchedulingsController extends Controller
         if (\Request::ajax()) { return $model; }
         return redirect()->route('autorepair.service_checklists.index');
     }
+    public function ajaxGetTime($date)
+    {
+        return $this->repo->getTime($date);
+    }
+    public function ajaxGetAsesores($date, $time)
+    {
+        return $this->repo->getAsesor($date, $time);
+    }
 
 }
