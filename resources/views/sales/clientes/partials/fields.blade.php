@@ -35,6 +35,7 @@
 							{!! Form::text('Nombre', null, ['class'=>'form-control uppercase', 'placeholder'=>'Nombre']) !!}
 						</div>
 					</div>
+					@if(1==0)
 					<div class="form-group form-group-sm">
 						{!! Form::label('ubigeo_id','Distrito', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-3">
@@ -53,6 +54,7 @@
 						{!! Form::text('Direccion', null, ['class'=>'form-control uppercase', 'required']) !!}
 						</div>
 					</div>
+					@endif
 					<div class="form-group form-group-sm">
 						{!! Form::label('Telefonos','Telefono Fijo', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-2">

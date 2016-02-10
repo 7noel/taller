@@ -39,6 +39,7 @@ class ServiceChecklistsController extends Controller
     public function store()
     {
         $data = \Request::all();
+        $data['status'] = 'process';
         $data['created_by_id'] = \Auth::user()->id;
         $data['updated_by_id'] = \Auth::user()->id;
         $this->repo->save($data);
@@ -82,8 +83,13 @@ class ServiceChecklistsController extends Controller
     public function print_out($id)
     {
         $model = $this->repo->findOrFail($id);
-        $groups = $this->checkitemGroupRepo->all($model->catalog_car_id);
-        return view('pdfs.service_checklist2', compact('model', 'groups'));
+        if ($model->status == 'approved' or $model->status == 'printed') {
+            $data['status'] = 'printed';
+            $this->repo->save($data, $id);
+            $groups = $this->checkitemGroupRepo->all($model->catalog_car_id);
+            return view('pdfs.service_checklist2', compact('model', 'groups'));
+        }
+        return \Redirect::route('autorepair.service_checklists.index');
         //$pdf = \PDF::loadView('pdfs.service_checklist2', compact('model', 'groups'));
         //$pdf = \PDF::loadView('pdfs.service_checklist');
 
@@ -165,25 +171,42 @@ class ServiceChecklistsController extends Controller
             $checks['check_warning'] = $this->repo->checksWarning($amber_job->id);
             $checks['check_danger'] = $this->repo->checksDanger($amber_job->id);
         }
-        //dd($checks);
+        //dd(count($checks['check_warning']));
         return view('autorepair.service_reminder.send_email', compact('plate', 'vehicle', 'amber_job', 'checks'));
     }
     public function sendEmail(Request $request)
    {
-       $data = $request->all();
+        $data = $request->all();
+        $plate = $data['plate'];
+        $vehicle = \DB::connection('masaki')->table('vehiculo')
+            ->join('clientes', 'vehiculo.CodCliente', '=', 'clientes.CodCliente')
+            ->where('vehiculo.Placa','=',$plate)
+            ->select('clientes.CodCliente','clientes.NombreRaz','clientes.RUC','clientes.DniExt','clientes.DNI','clientes.Direccion','clientes.Distrito','clientes.Contacto1','clientes.Telefonos','clientes.TelefOficina','clientes.Celular','clientes.Email','vehiculo.Placa','vehiculo.Anofab','vehiculo.AnoModelo','vehiculo.Modelo','vehiculo.Version','vehiculo.Tipo','vehiculo.Color','vehiculo.Serie','vehiculo.Nomotor','vehiculo.NroChasis','vehiculo.date1','vehiculo.date2','vehiculo.date3','vehiculo.km1','vehiculo.km2','vehiculo.km3','vehiculo.preventive1','vehiculo.preventive2','vehiculo.preventive3','vehiculo.obs1','vehiculo.obs2','vehiculo.obs3','vehiculo.speed','vehiculo.nextkm','vehiculo.nextdate')
+            ->first();
+        $amber_job = $this->repo->findForPlate($plate);
+        $checks = null;
+        if ($amber_job) {
+            $checks['check_warning'] = $this->repo->checksWarning($amber_job->id);
+            $checks['check_danger'] = $this->repo->checksDanger($amber_job->id);
+        }
+        $data['vehicle'] = $vehicle;
+        $data['checks'] = $checks;
 
-       $last_page = $data['last_page'];
+        $last_page = $data['last_page'];
 
-       \Mail::send('emails.message', $data, function($message) use ($request)
-       {
-           $message->to($request->email, $request->name);
-           $message->subject($request->subject);
-           $message->from(env('CONTACT_MAIL'), env('CONTACT_NAME'));
-       });
-       \DB::connection('masaki')->table('vehiculo')
-            ->where('Placa', $data['plate'])
+        \Mail::send('emails.message', $data, function($message) use ($request)
+        {
+            $message->to($request->email, $request->name);
+            $message->cc('noel.logan@gmail.com', $name = null);
+            $message->attach(public_path('img/LOGO_MASAKI_min.png'));
+            $message->attach(public_path('img/2email.jpg'));
+            $message->subject($request->subject);
+            $message->from(env('CONTACT_MAIL'), env('CONTACT_NAME'));
+        });
+        \DB::connection('masaki')->table('vehiculo')
+            ->where('Placa', $plate)
             ->update(array('send_email' => 1));
-       return view('autorepair.service_reminder.success', compact('last_page'));
+        return view('autorepair.service_reminder.success', compact('last_page'));
     }
     public function editStatus($id)
     {

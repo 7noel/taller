@@ -6,7 +6,7 @@
            <div class="panel panel-default">
              <div class="panel-heading"><h3 class="panel-title">Atencion!!!</h3></div>
              <div class="panel-body">
-               <h4>Tu mensaje ha sido enviado, pronto responderemos a tu solicitud.</h4>
+               <h4>Tu mensaje ha sido enviado.</h4>
              </div>
              <div class="panel-footer">
                  <a href="{{ $last_page }}" class="btn btn-primary btn-xs">Volver</a>

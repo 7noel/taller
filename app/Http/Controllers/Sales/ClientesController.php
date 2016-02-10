@@ -66,6 +66,7 @@ class ClientesController extends Controller {
 		if($data['DniExt'] != 'RUC') {
 			$data['NombreRaz'] = $data['ApellidoPat'].' '.$data['ApellidoMat'].' '.$data['Nombre'];
 		}
+		$data['of_sales'] = true;
 		$data['Letra'] = $data['NombreRaz'][0];
 		$data['Rubroneg'] = 'NO ESPECIFICADO';
 		$data['Profesion'] = 'NO ESPECIFICADO';

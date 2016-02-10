@@ -10,7 +10,8 @@ class Cliente extends Model
 	protected $table = 'clientes';
 	protected $primaryKey = 'CodCliente';
 	public $timestamps = false;
-	protected $fillable = ['NombreRaz', 'Nombre', 'ApellidoPat', 'ApellidoMat', 'RUC', 'DniExt', 'DNI', 'Letra', 'Departam', 'Provincia', 'Distrito', 'Direccion', 'Telefonos', 'Celular', 'Email', 'Rubroneg', 'Profesion','Fecha1','Hora1','Usuario1','Fecha2','Hora2','Usuario2'];
+	//protected $fillable = ['NombreRaz', 'Nombre', 'ApellidoPat', 'ApellidoMat', 'RUC', 'DniExt', 'DNI', 'Letra', 'Departam', 'Provincia', 'Distrito', 'Direccion', 'Telefonos', 'Celular', 'Email', 'Rubroneg', 'Profesion','Fecha1','Hora1','Usuario1','Fecha2','Hora2','Usuario2', 'of_sales'];
+	protected $fillable = ['NombreRaz', 'Nombre', 'ApellidoPat', 'ApellidoMat', 'RUC', 'DniExt', 'DNI', 'Letra', 'Telefonos', 'Celular', 'Email', 'Rubroneg', 'Profesion','Fecha1','Hora1','Usuario1','Fecha2','Hora2','Usuario2', 'of_sales'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {

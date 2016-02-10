@@ -21,7 +21,11 @@
 								@endif
 							</td>
 							<td>
+								@if($model->status=='approved' or $model->status=='printed')
 								<button data-print="{{ route('autorepair.service_checklists.print', $model->id) }}" class="btn btn-success btn-xs btn-print"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> </button>
+								@else
+								<button class="btn btn-success btn-xs btn-print" disabled="disabled"><span class="glyphicon glyphicon-print" aria-hidden="true"></span> </button>
+								@endif
 								<a href="{{ route( str_replace('index', 'edit', Request::route()->getAction()['as']) , $model) }}" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Editar</a>
 								
 								<a href="#" class="btn-delete btn btn-danger btn-xs"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Eliminar</a>
