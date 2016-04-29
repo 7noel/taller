@@ -18,29 +18,6 @@
                 {!! Form::text('subject', 'Recordatorio para su proximo servicio', ['class' => 'form-control' ]) !!}
               </div>
               <div class="form-group">
-                {!! Form::label('body', 'Mensaje') !!}
-                <textarea name="body" class="form-control ckeditor">
-                  <p>Estimado Cliente:</p>
-                  <p><h2><strong> {{$vehicle->NombreRaz}} </strong></h2></p>
-                  <p>De acuerdo a nuestro historial de servicios y pensando en el cuidado y mantenimiento de su vehículo HONDA <strong>{{$vehicle->Modelo}}</strong> placa <strong>{{$vehicle->Placa}}</strong> MASAKI le recuerda que está próximo a cumplir <strong>{{$vehicle->nextkm}} Km</strong>.</p>
-                  <p>Lo invitamos a reservar una cita haciendo click en <a href="http://www.masaki.com.pe/online/"><strong>CITAS</strong></a> o llamando al número 612-7511</p>
-                  @if($checks)
-                    @if($checks['check_warning'] and count($checks['check_warning']) > 0)
-                      <br>De acuerdo a su última visita, consultar con su Asesor sobre las siguientes observaciones:<br>
-                      @foreach($checks['check_warning'] as $item)
-                      {{$item->checkitem_group->name}} / {{$item->name}} <br>
-                      @endforeach
-                    @endif
-                    @if($checks['check_danger'] and count($checks['check_danger']) > 0)
-                      <br>Como un tema de Urgencia, consultar con su Asesor sobre las siguientes observaciones:<br>
-                      @foreach($checks['check_danger'] as $item)
-                      {{$item->checkitem_group->name}} / {{$item->name}} <br>
-                      @endforeach
-                    @endif
-                  @endif
-                </textarea>
-              </div>
-              <div class="form-group">
                 {!! Form::submit('Enviar', ['class' => 'btn btn-success ' ] ) !!}
               </div>
             {!! Form::close() !!}

@@ -197,8 +197,8 @@ class ServiceChecklistsController extends Controller
         \Mail::send('emails.message', $data, function($message) use ($request)
         {
             $message->to($request->email, $request->name);
-            $message->cc('noel.logan@gmail.com', $name = null);
-            $message->attach(public_path('img/LOGO_MASAKI_min.png'));
+            //$message->cc('noel.logan@gmail.com', $name = null);
+            $message->attach(public_path('img/logo_honda_masaki.jpg'));
             $message->attach(public_path('img/2email.jpg'));
             $message->subject($request->subject);
             $message->from(env('CONTACT_MAIL'), env('CONTACT_NAME'));
@@ -243,7 +243,8 @@ class ServiceChecklistsController extends Controller
             ->update(array('status' => $data['status']));
 
         if ($data['status']=='SI') {
-            return redirect('/autorepair/appointments/create')->with('placa2', $plate);
+            return redirect($last_page);
+            //return redirect('/autorepair/appointments/create')->with('placa2', $plate);
         }
         return redirect($last_page);
         

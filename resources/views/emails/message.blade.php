@@ -62,17 +62,10 @@
           <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
             <td class="content-wrap" style="position: relative; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 20px;" valign="top">
               <table width="100%" cellpadding="0" cellspacing="0" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-
+                
                 <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
-                  <td class="content-block" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0;" valign="top">
-                    <table>
-                      <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0; padding: 0 0 60px;">
-                        <td style="width: 80%;"></td>
-                        <td style="text-align: right; margin: 0; padding: 0; vertical-align: top; width: 20%;">
-                          <img src="{{ $message->embed(public_path('img/LOGO_MASAKI_min.png')) }}" alt="" style="max-width: 100px; margin: 0; padding: 0;">
-                        </td>
-                      </tr>
-                    </table>
+                  <td class="alert alert-warning" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 16px; vertical-align: top; color: #fff; font-weight: 500; text-align: center; border-radius: 3px 3px 0 0; margin: 0; padding: 0 0 20px;" align="center" valign="top">
+                    <img src="{{ $message->embed(public_path('img/logo_honda_masaki.jpg')) }}" alt="" />
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0; padding: 0 0 40px;">
@@ -83,8 +76,8 @@
                 </tr>
                 <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                   <td class="content-block" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 60px;" valign="top">
-                  <p>De acuerdo a nuestro historial de servicios y pensando en el cuidado y mantenimiento de su vehículo HONDA <strong>{{$vehicle->Modelo}}</strong> placa <strong>{{$vehicle->Placa}}</strong> MASAKI le recuerda que está próximo a cumplir <strong>{{$vehicle->nextkm}} Km</strong>.</p><br /><br />
-                  <p>Lo invitamos a reservar una cita llamando al número 612-7511 / 981-204673 o escribiendo a <a href="mailto:citas@masaki.com.pe">citas@masaki.com.pe</a>.</p>
+                  <p>De acuerdo a nuestro historial de servicios y pensando en el cuidado y mantenimiento de su vehículo HONDA <strong>{{$vehicle->Modelo}}</strong> placa <strong>{{$vehicle->Placa}}</strong> MASAKI le recuerda que su unidad está próxima a cumplir <strong>{{ number_format($vehicle->nextkm) }} Km</strong>.</p><br /><br />
+                  <p>Lo invitamos a reservar una cita llamando al 612-7511 y/o 981-204-673 o escribiendo a <a href="mailto:citas@masaki.com.pe">citas@masaki.com.pe</a>.</p>
                   @if($checks)
                     @if($checks['check_warning'] and count($checks['check_warning']) > 0)
                       <br>De acuerdo a su última visita, consultar con su Asesor sobre las siguientes observaciones:<br>
@@ -99,7 +92,9 @@
                       @endforeach
                     @endif
                   @endif
-
+                  <br />
+                  <p>Atentamente,</p>
+                  <p>Gerencia de Post Venta</p>
                   </td>
                 </tr>
                 <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">

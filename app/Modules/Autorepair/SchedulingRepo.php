@@ -12,7 +12,7 @@ class SchedulingRepo extends BaseRepo{
 	{
 		//return Scheduling::lists('time','time')->toArray();
 		$schedulings = Scheduling::all();
-		$data="<option value=''>Seleccionar</option>";
+		$data = "<option value=''>Seleccionar</option>";
 		foreach ($schedulings as $key => $scheduling) {
 			$data .= "<option value=".$scheduling->time.">".$scheduling->time."</option>";
 		}
