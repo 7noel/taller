@@ -31,4 +31,13 @@ class AppointmentRepo extends BaseRepo{
 		return \DB::connection('masaki')->table('tipoord')->lists('Nombre', 'Nombre');
 	}
 
+	public function prepareData($data)
+	{
+		$data['Ano'] = substr($data['fecha'], 0, 4);
+		$data['Mes'] = substr($data['fecha'], 5, 2);
+		$data['Dia'] = substr($data['fecha'], 8, 2);
+
+		return $data;
+	}
+
 }

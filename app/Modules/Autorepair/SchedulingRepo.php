@@ -2,6 +2,7 @@
 
 use App\Modules\Base\BaseRepo;
 use App\Modules\AutoRepair\Scheduling;
+use App\Modules\AutoRepair\Appointment;
 
 class SchedulingRepo extends BaseRepo{
 
@@ -21,6 +22,16 @@ class SchedulingRepo extends BaseRepo{
 	public function getAsesor($date, $time)
 	{
 		$sch = Scheduling::where('time', $time)->first();
+		/*$bbb = Appointment::where('fecha', $date)->where('hora', $time)->get();
+		foreach ($bbb as $key => $value) {
+			if ($value->) {
+				# code...
+			} else {
+				# code...
+			}
+			
+		}*/
+
 		$data="<option value=''>Seleccionar</option>";
 		if($sch->a1) {
 			$data.="<option value='1'>Asesor 1</option>";

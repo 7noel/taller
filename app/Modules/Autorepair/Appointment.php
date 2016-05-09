@@ -10,7 +10,7 @@ class Appointment extends Model
 	protected $table = 't_citas';
 	protected $primaryKey = 'idcita';
 	public $timestamps = false;
-	protected $fillable = ['fecha', 'Ano', 'Mes', 'Dia', 'hora', 'CodCliente', 'ruc_clie','nom_clie', 'RUC', 'DniExt', 'DNI', 'Direccion', 'Urbanizacion', 'distrito', 'Provincia', 'Telefonos', 'Celular', 'Contacto1', 'Email', 'placa', 'Marca', 'Modelo', 'Version', 'tipo', 'Color', 'Serie', 'NoMotor', 'Amofab', 'NroChasis', 'AnoModelo', 'asesor', 'nomasesor', 'TipoOrden', 'Preventivode', 'observa1', 'observa2', 'movilidad', 'Distritomov', 'NroOrden', 'Carga', 'destino', 'efectividad', 'Recomenda1', 'Recomenda2'];
+	protected $fillable = ['fecha', 'Ano', 'Mes', 'Dia', 'hora', 'CodCliente', 'ruc_clie','nom_clie', 'RUC', 'DniExt', 'DNI', 'Direccion', 'Urbanizacion', 'distrito', 'Provincia', 'Telefonos', 'Celular', 'Contacto1', 'Email', 'placa', 'Marca', 'Modelo', 'Version', 'tipo', 'Color', 'Serie', 'NoMotor', 'Anofab', 'NroChasis', 'AnoModelo', 'orderasesor', 'asesor', 'nomasesor', 'TipoOrden', 'Preventivode', 'observa1', 'observa2', 'movilidad', 'Distritomov', 'NroOrden', 'Carga', 'destino', 'efectividad', 'Recomenda1', 'Recomenda2'];
 
 	public function scopeName($query, $name){
 		if (trim($name) != "") {
