@@ -4,9 +4,9 @@ body {
 }
 .panel > .panel-heading-custom {
     background-image: none;
-    background-color: black;
+    background-color: #101010;
     color: white;
-    border-color: black;
+    border-color: #101010;
 }
 
 .feature .name{

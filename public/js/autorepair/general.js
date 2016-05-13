@@ -32,7 +32,10 @@ $(document).ready(function(){
 		var time = $('#time-cita').val();
 		loadAsesores(date, time);
 	});
-
+	$('#placa').change(function(){
+		var placa = $(this).val();
+		loadData(placa);
+	});
 });
 function addChecktem (div) {
 	var html = htmlCheckitem();
@@ -69,19 +72,87 @@ function getDataOt () {
 	});
 }
 function loadTimes (date) {
-	var page = "/autorepair/schedulings/ajaxGetTime/" + date;
-	$.get(page, function(data){
-		console.log(data);
+	if (date == "") {
 		$('#time-cita option').remove();
-		$('#time-cita').append(data);
-	});
+		$('#time-cita').append("<option>Seleccionar</option>");
+		$('#orderasesor option').remove();
+		$('#orderasesor').append("<option>Seleccionar</option>");
+	} else{
+		var page = "/autorepair/schedulings/ajaxGetTime/" + date;
+		$.get(page, function(data){
+			console.log(data);
+			$('#time-cita option').remove();
+			$('#time-cita').append(data);
+		});
+	};
 }
-
 function loadAsesores (date, time) {
-	var page = "/autorepair/schedulings/ajaxGetAsesores/" + date + "/" + time;
-	$.get(page, function(data){
-		console.log(data);
-		$('#nasesor option').remove();
-		$('#nasesor').append(data);
-	});
+	if (time == "") {
+		$('#orderasesor option').remove();
+		$('#orderasesor').append("<option>Seleccionar</option>");
+	} else{
+		var page = "/autorepair/schedulings/ajaxGetAsesores/" + date + "/" + time;
+		$.get(page, function(data){
+			console.log(data);
+			$('#orderasesor option').remove();
+			$('#orderasesor').append(data);
+		});
+	};
+}
+function loadData (placa) {
+	if (placa == "") {
+		$('#CodCliente').val("");
+		$('#ruc_clie').val("");
+		$('#nom_clie').val("");
+		$('#RUC').val("");
+		$('#DniExt').val("");
+		$('#DNI').val("");
+		$('#Direccion').val("");
+		$('#Urbanizacion').val("");
+		$('#distrito').val("");
+		$('#Provincia').val("");
+		$('#Telefonos').val("");
+		$('#Celular').val("");
+		$('#Contacto1').val("");
+		$('#Email').val("");
+		$('#Marca').val("");
+		$('#Modelo').val("");
+		$('#Version').val("");
+		$('#tipo').val("");
+		$('#Color').val("");
+		$('#Serie').val("");
+		$('#NoMotor').val("");
+		$('#Anofab').val("");
+		$('#NroChasis').val("");
+		$('#AnoModelo').val("");
+	} else{
+		var page = "/autorepair/vehiculos/ajaxGetData/" + placa;
+		$.get(page, function(data){
+			console.log(data);
+			$('#CodCliente').val(data.CodCliente);
+			$('#ruc_clie').val(data.ruc_clie);
+			$('#nom_clie').val(data.nom_clie);
+			$('#RUC').val(data.RUC);
+			$('#DniExt').val(data.DniExt);
+			$('#DNI').val(data.DNI);
+			$('#Direccion').val(data.Direccion);
+			$('#Urbanizacion').val(data.Urbanizacion);
+			$('#distrito').val(data.distrito);
+			$('#Provincia').val(data.Provincia);
+			$('#Telefonos').val(data.Telefonos);
+			$('#Celular').val(data.Celular);
+			$('#Contacto1').val(data.Contacto1);
+			$('#Email').val(data.Email);
+			$('#Marca').val(data.Marca);
+			$('#Modelo').val(data.Modelo);
+			$('#Version').val(data.Version);
+			$('#tipo').val(data.tipo);
+			$('#Color').val(data.Color);
+			$('#Serie').val(data.Serie);
+			$('#NoMotor').val(data.NoMotor);
+			$('#Anofab').val(data.Anofab);
+			$('#NroChasis').val(data.NroChasis);
+			$('#AnoModelo').val(data.AnoModelo);
+		});
+	};
 }

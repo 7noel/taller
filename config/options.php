@@ -64,6 +64,12 @@ return array(
 			'create' => ['panel'=>'Nueva Cita', 'create'=>'Crear Cita'],
 			'show'   => ['panel'=>'Vizualizando Cita:'],
 			'edit'   => ['panel'=>'Editar Cita: ', 'update'=>'Actualizar Cita', 'delete'=>'Eliminar Cita']
+		],
+		'adviser_schedules' => [
+			'index'  => ['panel'=>'Horarios', 'create'=>'Crear Horario'],
+			'create' => ['panel'=>'Nuevo Horario', 'create'=>'Crear Horario'],
+			'show'   => ['panel'=>'Vizualizando Horario:'],
+			'edit'   => ['panel'=>'Editar Horario: ', 'update'=>'Actualizar Horario', 'delete'=>'Eliminar Horario']
 		]
 	],
 	'humanresources' => [

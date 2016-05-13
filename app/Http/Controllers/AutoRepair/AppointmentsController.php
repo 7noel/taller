@@ -28,8 +28,7 @@ class AppointmentsController extends Controller
 
     public function create()
     {
-
-            $placa=\Session::get('placa2');
+        $placa=\Session::get('placa2');
         
         $efectividad = [''=>'Seleccionar'] + $this->repo->efectividad();
         $asesores = [''=>'Seleccionar'] + $this->repo->asesores();
@@ -42,7 +41,7 @@ class AppointmentsController extends Controller
         $data = \Request::all();
         //dd($data);
         $this->repo->save($data);
-        return \Redirect::route('autorepair.appointment.index');
+        return \Redirect::route('autorepair.appointments.index');
     }
 
     public function show($id)

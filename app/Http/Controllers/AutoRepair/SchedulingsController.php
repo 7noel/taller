@@ -74,5 +74,9 @@ class SchedulingsController extends Controller
     {
         return $this->repo->getAsesor($date, $time);
     }
+    public function ajaxGetClienteByPlate($plate)
+    {
+        return $this->repo->getClienteByPlate($plate);
+    }
 
 }

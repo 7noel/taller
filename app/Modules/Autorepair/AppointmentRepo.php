@@ -33,6 +33,7 @@ class AppointmentRepo extends BaseRepo{
 
 	public function prepareData($data)
 	{
+		$data['reserva'] = 1;
 		$data['Ano'] = substr($data['fecha'], 0, 4);
 		$data['Mes'] = substr($data['fecha'], 5, 2);
 		$data['Dia'] = substr($data['fecha'], 8, 2);

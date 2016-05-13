@@ -243,8 +243,8 @@ class ServiceChecklistsController extends Controller
             ->update(array('status' => $data['status']));
 
         if ($data['status']=='SI') {
-            return redirect($last_page);
-            //return redirect('/autorepair/appointments/create')->with('placa2', $plate);
+            //return redirect($last_page);
+            return redirect('/autorepair/appointments/create')->with('placa2', $plate);
         }
         return redirect($last_page);
         

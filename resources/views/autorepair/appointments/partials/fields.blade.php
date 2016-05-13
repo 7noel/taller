@@ -1,11 +1,11 @@
 					<div class="form-group  form-group-sm">
 						{!! Form::label('fecha','Fecha', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-2">
-							<input type="date" name="fecha" class="form-control" id="date-cita">
+							<input type="date" name="fecha" class="form-control date" id="date-cita">
 						</div>
 						{!! Form::label('hora', 'Hora', ['class'=>'col-sm-1 control-label']) !!}
 						<div class="col-sm-2">
-						{!! Form::select('time', [''=>'Seleccionar'], null, ['class'=>'form-control', 'id'=>'time-cita']) !!}
+						{!! Form::select('hora', [''=>'Seleccionar'], null, ['class'=>'form-control', 'id'=>'time-cita']) !!}
 						</div>
 						{!! Form::label('orderasesor', '#Asesor', ['class'=>'col-sm-1 control-label']) !!}
 						<div class="col-sm-2">
