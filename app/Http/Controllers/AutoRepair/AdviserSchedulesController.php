@@ -63,4 +63,9 @@ class AdviserSchedulesController extends Controller
         if (\Request::ajax()) { return $model; }
         return redirect()->route('autorepair.adviser_schedules.index');
     }
+    
+    public function ajaxGetAsesorByOrder($orderasesor,$date)
+    {
+        return response()->json($this->repo->getAsesorByOrder($orderasesor,$date));
+    }
 }

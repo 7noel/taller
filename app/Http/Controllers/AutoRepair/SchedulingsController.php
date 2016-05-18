@@ -76,7 +76,7 @@ class SchedulingsController extends Controller
     }
     public function ajaxGetClienteByPlate($plate)
     {
-        return $this->repo->getClienteByPlate($plate);
+        return response()->json($this->repo->getClienteByPlate($plate));
     }
 
 }

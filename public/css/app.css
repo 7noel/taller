@@ -6231,7 +6231,7 @@ label,
 .checkbox label {
   font-weight: 300;
 }
-.date{
+._date{
   padding-left: 5px !important;
   padding-right: 5px !important;
 }

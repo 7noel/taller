@@ -36,6 +36,11 @@ $(document).ready(function(){
 		var placa = $(this).val();
 		loadData(placa);
 	});
+	$('#orderasesor').change(function(){
+		var order = $(this).val();
+		var date = $('#date-cita').val();
+		getAsesor(order, date);
+	});
 });
 function addChecktem (div) {
 	var html = htmlCheckitem();
@@ -155,4 +160,12 @@ function loadData (placa) {
 			$('#AnoModelo').val(data.AnoModelo);
 		});
 	};
+}
+function getAsesor (order, date) {
+	var page = "/autorepair/ajaxGetAsesorByOrder/" + order + "/" + date;
+	$.get(page, function(data){
+		console.log(data);
+		$('#asesor').val(data.Codigo);
+		$('#nomasesor').val(data.Nombre);
+	});
 }

@@ -1,15 +1,15 @@
 					<div class="form-group  form-group-sm">
 						{!! Form::label('fecha','Fecha', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-2">
-							<input type="date" name="fecha" class="form-control date" id="date-cita">
+							<input type="date" name="fecha" class="form-control _date" id="date-cita" value= <?php echo (isset($model)) ? $model->fecha : null ; ?> >
 						</div>
 						{!! Form::label('hora', 'Hora', ['class'=>'col-sm-1 control-label']) !!}
 						<div class="col-sm-2">
-						{!! Form::select('hora', [''=>'Seleccionar'], null, ['class'=>'form-control', 'id'=>'time-cita']) !!}
+						{!! Form::select('hora', $times, null, ['class'=>'form-control', 'id'=>'time-cita']) !!}
 						</div>
 						{!! Form::label('orderasesor', '#Asesor', ['class'=>'col-sm-1 control-label']) !!}
 						<div class="col-sm-2">
-						{!! Form::select('orderasesor', [''=>'Seleccionar'], null, ['class'=>'form-control', 'id'=>'orderasesor']) !!}
+						{!! Form::select('orderasesor', $orderasesores, null, ['class'=>'form-control', 'id'=>'orderasesor']) !!}
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
@@ -18,14 +18,14 @@
 						{!! Form::select('efectividad', $efectividad, null, ['class'=>'form-control']) !!}
 						</div>
 						{!! Form::label('asesor', 'asesor', ['class'=>'col-sm-1 control-label']) !!}
-						<div class="col-sm-2">
-						{!! Form::select('asesor', $asesores, null, ['class'=>'form-control']) !!}
+						<div class="col-sm-3">
+						{!! Form::select('asesor', $asesores, null, ['class'=>'form-control', 'readonly'=>'readonly']) !!}
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
 						{!! Form::label('placa', 'Placa', ['class'=>'col-sm-2 control-label']) !!}
 						<div class="col-sm-2">
-						{!! Form::text('placa', $placa, ['class'=>'form-control']) !!}
+						{!! Form::text('placa', isset($model) ? null : $placa, ['class'=>'form-control']) !!}
 						</div>
 						{!! Form::label('tipoot', 'tipoot', ['class'=>'col-sm-1 control-label']) !!}
 						<div class="col-sm-2">
@@ -42,6 +42,7 @@
 						{!! Form::text('description', null, ['class'=>'form-control']) !!}
 						</div>
 					</div>
+					{!! Form::hidden('nomasesor', null, ['id'=>'nomasesor']) !!}
 					{!! Form::hidden('CodCliente', null, ['id'=>'CodCliente']) !!}
 					{!! Form::hidden('ruc_clie', null, ['id'=>'ruc_clie']) !!}
 					{!! Form::hidden('nom_clie', null, ['id'=>'nom_clie']) !!}

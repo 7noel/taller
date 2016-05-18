@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Modules\AutoRepair\AppointmentRepo;
 use App\Modules\AutoRepair\SchedulingRepo;
+use App\Modules\AutoRepair\AdviserScheduleRepo;
 
 class AppointmentsController extends Controller
 {
@@ -33,7 +34,9 @@ class AppointmentsController extends Controller
         $efectividad = [''=>'Seleccionar'] + $this->repo->efectividad();
         $asesores = [''=>'Seleccionar'] + $this->repo->asesores();
         $tipoot = [''=>'Seleccionar'] + $this->repo->tipoot();
-        return view('partials.create', compact('efectividad', 'asesores', 'tipoot','placa'));
+        $times = [''=>'Seleccionar'];
+        $orderasesores = [''=>'Seleccionar'];
+        return view('partials.create', compact('efectividad', 'asesores', 'tipoot','placa', 'times', 'orderasesores'));
     }
 
     public function store()
@@ -52,10 +55,13 @@ class AppointmentsController extends Controller
     public function edit($id)
     {
         $model = $this->repo->findOrFail($id);
-        $model->adviser = $model->adviser->full_name;
-        $groups = $this->checkitemGroupRepo->all();
-        $technicians = $this->employeeRepo->getListTechnicians();
-        return view('partials.edit', compact('model', 'groups', 'technicians'));
+        $times = $this->schedulingRepo->getTime($model->fecha, $model->idcita);
+        $orderasesores = $this->schedulingRepo->getAsesor($model->fecha, $model->hora, $model->idcita);
+        $efectividad = [''=>'Seleccionar'] + $this->repo->efectividad();
+        $asesores = [''=>'Seleccionar'] + $this->repo->asesores();
+        $tipoot = [''=>'Seleccionar'] + $this->repo->tipoot();
+        $placa = '';
+        return view('partials.edit', compact('model', 'placa', 'efectividad', 'asesores', 'tipoot', 'times', 'orderasesores'));
     }
 
     public function update($id)
@@ -72,10 +78,4 @@ class AppointmentsController extends Controller
         if (\Request::ajax()) { return $model; }
         return redirect()->route('autorepair.service_checklists.index');
     }
-    
-    /**
-     * CREA UN PDF EN EL NAVEGADOR
-     * @param  [integer] $id [Es el id del checklist]
-     * @return [pdf]     [Retorna un pdf]
-     */
 }

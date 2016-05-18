@@ -36,6 +36,8 @@ Route::group(['middleware'=>['auth']], function(){
 	Route::get('ajaxGetCar/{catalog_car_id}', ['as' => 'ajaxGetCar','uses' => 'Sales\CatalogCarsController@ajaxGetCar']);
 	Route::get('guard/users/autocomplete', ['as' => 'usersAutocomplete','uses' => 'Security\UsersController@ajaxAutocomplete']);
 	Route::get('autorepair/service_checklists/ajaxGetOt/{order_id}', ['as' => 'ajaxGetOt','uses' => 'AutoRepair\ServiceChecklistsController@ajaxGetOt']);
+
+	Route::get('autorepair/ajaxGetAsesorByOrder/{orderasesor}/{date}', ['as' => 'ajaxGetAsesorByOrder', 'uses' => 'Autorepair\AdviserSchedulesController@ajaxGetAsesorByOrder'] );
 });
 
 Route::group(['prefix'=>'admin', 'middleware'=>['auth', 'permissions'], 'namespace'=>'Admin'], function(){
