@@ -32,6 +32,9 @@ $(document).ready(function(){
 		var time = $('#time-cita').val();
 		loadAsesores(date, time);
 	});
+	if ( $('#placa').val() != '' ) {
+		loadData($('#placa').val());
+	};
 	$('#placa').change(function(){
 		var placa = $(this).val();
 		loadData(placa);
@@ -135,8 +138,8 @@ function loadData (placa) {
 		$.get(page, function(data){
 			console.log(data);
 			$('#CodCliente').val(data.CodCliente);
-			$('#ruc_clie').val(data.ruc_clie);
-			$('#nom_clie').val(data.nom_clie);
+			$('#ruc_clie').val(data.RUC);
+			$('#nom_clie').val(data.RazSocial);
 			$('#RUC').val(data.RUC);
 			$('#DniExt').val(data.DniExt);
 			$('#DNI').val(data.DNI);

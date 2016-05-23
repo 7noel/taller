@@ -42,7 +42,6 @@ class AppointmentsController extends Controller
     public function store()
     {
         $data = \Request::all();
-        //dd($data);
         $this->repo->save($data);
         return \Redirect::route('autorepair.appointments.index');
     }

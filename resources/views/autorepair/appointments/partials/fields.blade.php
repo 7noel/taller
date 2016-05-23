@@ -17,9 +17,9 @@
 						<div class="col-sm-2">
 						{!! Form::select('efectividad', $efectividad, null, ['class'=>'form-control']) !!}
 						</div>
-						{!! Form::label('asesor', 'asesor', ['class'=>'col-sm-1 control-label']) !!}
+						{!! Form::label('nomasesor', 'asesor', ['class'=>'col-sm-1 control-label']) !!}
 						<div class="col-sm-3">
-						{!! Form::select('asesor', $asesores, null, ['class'=>'form-control', 'readonly'=>'readonly']) !!}
+						{!! Form::text('nomasesor', null, ['class'=>'form-control', 'readonly'=>'readonly']) !!}
 						</div>
 					</div>
 					<div class="form-group  form-group-sm">
@@ -42,7 +42,7 @@
 						{!! Form::text('description', null, ['class'=>'form-control']) !!}
 						</div>
 					</div>
-					{!! Form::hidden('nomasesor', null, ['id'=>'nomasesor']) !!}
+					{!! Form::hidden('asesor', null, ['id'=>'asesor']) !!}
 					{!! Form::hidden('CodCliente', null, ['id'=>'CodCliente']) !!}
 					{!! Form::hidden('ruc_clie', null, ['id'=>'ruc_clie']) !!}
 					{!! Form::hidden('nom_clie', null, ['id'=>'nom_clie']) !!}
