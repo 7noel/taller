@@ -3,13 +3,12 @@
 namespace App\Services;
 
 use App\Models\Vehicle;
-use App\Models\VehicleContact;
 use Illuminate\Support\Facades\Auth;
 
 class VehicleService
 {
     /**
-     * Create a new vehicle with optional contacts.
+     * Create a new vehicle with optional relationships.
      *
      * @param  array  $data
      * @return Vehicle
@@ -19,20 +18,20 @@ class VehicleService
         $data['created_by'] = Auth::id();
         $data['updated_by'] = Auth::id();
 
-        $contacts = $data['contacts'] ?? [];
-        unset($data['contacts']);
+        $relationships = $data['relationships'] ?? [];
+        unset($data['relationships']);
 
         $vehicle = Vehicle::create($data);
 
-        if (! empty($contacts)) {
-            $this->syncContacts($vehicle, $contacts);
+        if (! empty($relationships)) {
+            $this->syncRelationships($vehicle, $relationships);
         }
 
         return $vehicle;
     }
 
     /**
-     * Update an existing vehicle with optional contacts.
+     * Update an existing vehicle with optional relationships.
      *
      * @param  Vehicle  $vehicle
      * @param  array  $data
@@ -42,51 +41,54 @@ class VehicleService
     {
         $data['updated_by'] = Auth::id();
 
-        $contacts = $data['contacts'] ?? null;
-        unset($data['contacts']);
+        $relationships = $data['relationships'] ?? null;
+        unset($data['relationships']);
 
         $vehicle->update($data);
 
-        if ($contacts !== null) {
-            $this->syncContacts($vehicle, $contacts);
+        if ($relationships !== null) {
+            $this->syncRelationships($vehicle, $relationships);
         }
 
         return $vehicle;
     }
 
     /**
-     * Delete (soft delete) a vehicle and its contacts.
+     * Delete (soft delete) a vehicle and its relationships.
      *
      * @param  Vehicle  $vehicle
      * @return bool
      */
     public function delete(Vehicle $vehicle): bool
     {
-        $vehicle->contacts()->delete();
+        $vehicle->relationships()->delete();
 
         return $vehicle->delete();
     }
 
     /**
-     * Sync the vehicle contacts (delete existing and recreate).
+     * Sync the vehicle relationships (delete existing and recreate).
      *
      * @param  Vehicle  $vehicle
-     * @param  array  $contacts
+     * @param  array  $relationships
      * @return void
      */
-    protected function syncContacts(Vehicle $vehicle, array $contacts): void
+    protected function syncRelationships(Vehicle $vehicle, array $relationships): void
     {
-        $vehicle->contacts()->delete();
+        $vehicle->relationships()->delete();
 
-        foreach ($contacts as $contact) {
-            $contact['created_by'] = Auth::id();
-            $contact['updated_by'] = Auth::id();
+        foreach ($relationships as $relationship) {
+            // Enforce only one primary commercial contact
+            $relationship['is_primary_commercial'] = $relationship['is_primary_commercial'] ?? false;
 
-            if (empty($contact['company_name'])) {
-                $contact['company_name'] = null;
-            }
-
-            $vehicle->contacts()->create($contact);
+            $vehicle->relationships()->create([
+                'party_id' => $relationship['party_id'],
+                'role' => $relationship['role'],
+                'is_primary_commercial' => $relationship['is_primary_commercial'],
+                'notes' => $relationship['notes'] ?? null,
+                'created_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
         }
     }
 }

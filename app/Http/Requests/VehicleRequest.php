@@ -32,21 +32,23 @@ class VehicleRequest extends FormRequest
                 'regex:/^[A-Z0-9-]+$/',
                 Rule::unique('vehicles', 'plate')->ignore($vehicleId),
             ],
-            'client_id' => ['required', 'exists:clients,id'],
             'brand' => ['required', 'string', 'max:100'],
             'model' => ['required', 'string', 'max:100'],
-            'body_type' => ['required', Rule::in(['sedan', 'suv', 'pickup', 'camioneta', 'camion', 'moto'])],
+            'body_type' => ['nullable', 'string', 'max:50'],
             'color' => ['nullable', 'string', 'max:50'],
             'vin' => ['nullable', 'string', 'max:50'],
             'engine_number' => ['nullable', 'string', 'max:50'],
             'year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            'next_technical_review_date' => ['nullable', 'date'],
+            'technical_review_reminder_days' => ['nullable', 'integer', 'min:1', 'max:90'],
             'establishment_id' => ['required', 'exists:establishments,id'],
-            'contacts' => ['nullable', 'array', 'max:3'],
-            'contacts.*.type' => ['required_with:contacts', Rule::in(['approver', 'driver', 'operator'])],
-            'contacts.*.name' => ['required_with:contacts', 'string', 'max:255'],
-            'contacts.*.phone' => ['nullable', 'string', 'max:20'],
-            'contacts.*.email' => ['nullable', 'email', 'max:255'],
-            'contacts.*.company_name' => ['nullable', 'string', 'max:255'],
+            'relationships' => ['nullable', 'array'],
+            'relationships.*.party_id' => ['required_with:relationships', 'exists:parties,id'],
+            'relationships.*.role' => ['required_with:relationships', Rule::in([
+                'owner', 'driver', 'approver', 'operator', 'billing', 'insurance_company', 'emergency_contact', 'other',
+            ])],
+            'relationships.*.is_primary_commercial' => ['sometimes', 'boolean'],
+            'relationships.*.notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
@@ -61,11 +63,11 @@ class VehicleRequest extends FormRequest
             'plate.required' => 'La placa es obligatoria.',
             'plate.unique' => 'La placa ya está registrada.',
             'plate.regex' => 'La placa solo puede contener letras mayúsculas, números y guiones.',
-            'client_id.required' => 'Debe seleccionar un cliente.',
             'brand.required' => 'La marca es obligatoria.',
             'model.required' => 'El modelo es obligatorio.',
-            'body_type.required' => 'El tipo de carrocería es obligatorio.',
-            'contacts.*.name.required' => 'El nombre del contacto es obligatorio.',
+            'establishment_id.required' => 'El establecimiento es obligatorio.',
+            'relationships.*.party_id.required' => 'Debe seleccionar una party para la relación.',
+            'relationships.*.role.required' => 'Debe seleccionar un rol para la relación.',
         ];
     }
 }

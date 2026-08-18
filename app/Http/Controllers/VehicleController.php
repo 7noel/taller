@@ -62,7 +62,7 @@ class VehicleController extends Controller
     {
         Gate::authorize('view', $vehicle);
 
-        $vehicle->load(['client.ubigeo', 'contacts', 'establishment']);
+        $vehicle->load(['relationships.party.ubigeo', 'establishment']);
 
         return view('vehicles.show', compact('vehicle'));
     }
@@ -75,6 +75,7 @@ class VehicleController extends Controller
         Gate::authorize('update', $vehicle);
 
         $establishments = Establishment::all();
+        $vehicle->load('relationships.party');
 
         return view('vehicles.edit', compact('vehicle', 'establishments'));
     }
@@ -113,19 +114,22 @@ class VehicleController extends Controller
         Gate::authorize('viewAny', Vehicle::class);
 
         $query = Vehicle::query()
-            ->with('client')
+            ->with(['relationships' => fn ($q) => $q->where('role', 'owner')->with('party')])
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = $request->query('q');
                 $q->where('plate', 'like', "%{$term}%")
                     ->orWhere('brand', 'like', "%{$term}%")
                     ->orWhere('model', 'like', "%{$term}%")
-                    ->orWhereHas('client', fn ($c) => $c->where('business_name', 'like', "%{$term}%"));
+                    ->orWhereHas('relationships.party', fn ($p) => $p
+                        ->where('business_name', 'like', "%{$term}%")
+                        ->orWhere('first_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%"));
             })
             ->when($request->filled('id'), function ($q) use ($request) {
                 $q->whereKey($request->query('id'));
             })
             ->orderBy('plate')
-            ->limit($request->integer('limit', 20));
+            ->limit($request->integer('limit', 100));
 
         return response()->json($query->get()
             ->map(fn (Vehicle $vehicle) => [
@@ -134,7 +138,7 @@ class VehicleController extends Controller
                 'brand' => $vehicle->brand,
                 'model' => $vehicle->model,
                 'year' => $vehicle->year,
-                'client_name' => $vehicle->client?->business_name,
+                'owner_name' => $vehicle->relationships->first()?->party?->display_name,
             ]));
     }
 }
