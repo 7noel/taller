@@ -20,6 +20,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('api/parties/search', [PartyController::class, 'search'])->name('api.parties.search');
     Route::post('api/parties/quick-store', [PartyController::class, 'quickStore'])->name('api.parties.quick-store');
     Route::get('api/vehicles/search', [VehicleController::class, 'search'])->name('api.vehicles.search');
+    Route::get('api/brands', [VehicleController::class, 'brands'])->name('api.brands');
+    Route::get('api/models', [VehicleController::class, 'models'])->name('api.models');
     Route::get('api/ubigeo/provincias', [PartyController::class, 'provincias'])->name('api.ubigeo.provincias');
     Route::get('api/ubigeo/distritos', [PartyController::class, 'distritos'])->name('api.ubigeo.distritos');
 });
