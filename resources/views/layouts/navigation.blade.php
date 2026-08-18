@@ -15,8 +15,8 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
-                        {{ __('Clientes') }}
+                    <x-nav-link :href="route('parties.index')" :active="request()->routeIs('parties.*')">
+                        {{ __('Parties') }}
                     </x-nav-link>
                     <x-nav-link :href="route('vehicles.index')" :active="request()->routeIs('vehicles.*')">
                         {{ __('Vehículos') }}
@@ -76,8 +76,8 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('clients.index')" :active="request()->routeIs('clients.*')">
-                {{ __('Clientes') }}
+            <x-responsive-nav-link :href="route('parties.index')" :active="request()->routeIs('parties.*')">
+                {{ __('Parties') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('vehicles.index')" :active="request()->routeIs('vehicles.*')">
                 {{ __('Vehículos') }}
