@@ -43,8 +43,14 @@
                             {{-- Número de documento --}}
                             <div>
                                 <label for="document_number" class="block text-sm font-medium text-gray-700">Número de Documento *</label>
-                                <input type="text" id="document_number" name="document_number" value="{{ old('document_number', $party->document_number) }}" required
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <div class="flex gap-2">
+                                    <input type="text" id="document_number" name="document_number" value="{{ old('document_number', $party->document_number) }}" required
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <button type="button" id="btnSearchDocument" data-party-search-btn
+                                            class="mt-1 inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition whitespace-nowrap">
+                                        🔍 Buscar
+                                    </button>
+                                </div>
                                 @error('document_number') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
@@ -179,6 +185,7 @@
     </div>
 
     @push('scripts')
+    <script src="{{ asset('js/party-helper.js') }}"></script>
     <script>
         // Toggle persona / empresa
         const typeSelect = document.getElementById('type');
@@ -278,6 +285,14 @@
                     distrito.disabled = false;
                 });
         });
+
+        // Consulta DNI/RUC automática
+        if (window.PartyHelper) {
+            window.PartyHelper.init(
+                document.getElementById('document_number'),
+                { button: document.getElementById('btnSearchDocument') }
+            );
+        }
     </script>
     @endpush
 </x-app-layout>

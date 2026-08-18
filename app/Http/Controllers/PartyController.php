@@ -6,6 +6,8 @@ use App\Http\Requests\PartyRequest;
 use App\Models\Party;
 use App\Models\Ubigeo;
 use App\Services\PartyService;
+use App\Services\ReniecSunatService;
+use App\Services\SunatExchangeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -200,5 +202,68 @@ class PartyController extends Controller
             ->get();
 
         return response()->json($distritos);
+    }
+
+    /**
+     * Consultar DNI/RUC desde la API de Reniec/Sunat (apisperu.com).
+     */
+    public function searchByDocument(Request $request, ReniecSunatService $reniecSunat): JsonResponse
+    {
+        Gate::authorize('create', Party::class);
+
+        $request->validate([
+            'document_type' => ['required', 'string', 'in:1,6,DNI,RUC'],
+            'document_number' => ['required', 'string', 'max:11'],
+        ]);
+
+        $result = $reniecSunat->searchByDocument(
+            $request->string('document_type'),
+            $request->string('document_number')
+        );
+
+        if ($result === null) {
+            return response()->json(['error' => 'No se encontraron datos para el documento ingresado.'], 404);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Obtener tipo de cambio SUNAT por fecha o por mes.
+     */
+    public function tipoCambio(Request $request, SunatExchangeService $exchange): JsonResponse
+    {
+        Gate::authorize('viewAny', Party::class);
+
+        $request->validate([
+            'fecha' => ['nullable', 'date', 'date_format:Y-m-d'],
+            'year' => ['nullable', 'integer', 'min:2000', 'max:' . (date('Y') + 1)],
+            'month' => ['nullable', 'integer', 'min:1', 'max:12'],
+        ]);
+
+        if ($request->filled('fecha')) {
+            $result = $exchange->getTipoCambio($request->string('fecha'));
+
+            if ($result === null) {
+                return response()->json(['error' => 'No se encontró tipo de cambio para la fecha indicada.'], 404);
+            }
+
+            return response()->json($result);
+        }
+
+        if ($request->filled('year') && $request->filled('month')) {
+            $result = $exchange->getTipoCambioMes(
+                $request->integer('year'),
+                $request->integer('month')
+            );
+
+            if ($result === null) {
+                return response()->json(['error' => 'No se encontraron tipos de cambio para el mes indicado.'], 404);
+            }
+
+            return response()->json($result);
+        }
+
+        return response()->json(['error' => 'Debe indicar "fecha" o "year" + "month".'], 422);
     }
 }
