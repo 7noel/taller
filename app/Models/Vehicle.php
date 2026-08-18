@@ -25,7 +25,6 @@ class Vehicle extends Model
         'year',
         'next_technical_review_date',
         'technical_review_reminder_days',
-        'establishment_id',
         'created_by',
         'updated_by',
     ];
@@ -49,16 +48,10 @@ class Vehicle extends Model
                 'year',
                 'next_technical_review_date',
                 'technical_review_reminder_days',
-                'establishment_id',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('vehicle');
-    }
-
-    public function establishment()
-    {
-        return $this->belongsTo(Establishment::class);
     }
 
     public function creator()

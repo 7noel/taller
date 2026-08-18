@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\VehicleRequest;
-use App\Models\Establishment;
 use App\Models\Vehicle;
 use App\Services\VehicleService;
 use Illuminate\Http\JsonResponse;
@@ -37,9 +36,7 @@ class VehicleController extends Controller
     {
         Gate::authorize('create', Vehicle::class);
 
-        $establishments = Establishment::all();
-
-        return view('vehicles.create', compact('establishments'));
+        return view('vehicles.create');
     }
 
     /**
@@ -62,7 +59,7 @@ class VehicleController extends Controller
     {
         Gate::authorize('view', $vehicle);
 
-        $vehicle->load(['relationships.party.ubigeo', 'establishment']);
+        $vehicle->load(['relationships.party.ubigeo']);
 
         return view('vehicles.show', compact('vehicle'));
     }
@@ -74,10 +71,9 @@ class VehicleController extends Controller
     {
         Gate::authorize('update', $vehicle);
 
-        $establishments = Establishment::all();
         $vehicle->load('relationships.party');
 
-        return view('vehicles.edit', compact('vehicle', 'establishments'));
+        return view('vehicles.edit', compact('vehicle'));
     }
 
     /**

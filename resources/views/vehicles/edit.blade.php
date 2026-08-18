@@ -17,8 +17,8 @@
                             {{-- Placa --}}
                             <div>
                                 <label for="plate" class="block text-sm font-medium text-gray-700">Placa *</label>
-                                <input type="text" id="plate" name="plate" value="{{ old('plate', $vehicle->plate) }}" required
-                                       placeholder="ABC-123"
+                                <input type="text" id="plate" name="plate" value="{{ old('plate', $vehicle->plate) }}" required maxlength="7"
+                                       placeholder="ABC123"
                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 uppercase">
                                 @error('plate') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -97,23 +97,12 @@
                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
 
-                            {{-- Establecimiento --}}
-                            <div>
-                                <label for="establishment_id" class="block text-sm font-medium text-gray-700">Establecimiento *</label>
-                                <select id="establishment_id" name="establishment_id" required
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    @foreach ($establishments as $est)
-                                        <option value="{{ $est->id }}" @selected(old('establishment_id', $vehicle->establishment_id) == $est->id)>{{ $est->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('establishment_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                            </div>
                         </div>
 
                         {{-- Relaciones (Parties) --}}
                         <div class="mt-8">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-semibold text-gray-900">Relaciones (Parties)</h3>
+                                <h3 class="text-lg font-semibold text-gray-900">Relaciones (Contactos de Vehículo)</h3>
                                 <div class="flex gap-2">
                                     <button type="button" id="add-relationship"
                                             class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-xs font-semibold rounded-md hover:bg-green-700">
@@ -121,11 +110,11 @@
                                     </button>
                                     <button type="button" id="open-party-modal"
                                             class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-md hover:bg-indigo-700">
-                                        + Nueva Party
+                                        + Nuevo Contacto
                                     </button>
                                 </div>
                             </div>
-                            <p class="text-sm text-gray-500 mb-4">Relacione parties (propietario, chofer, aprobador, aseguradora, etc.). Solo una puede ser el contacto comercial principal.</p>
+                            <p class="text-sm text-gray-500 mb-4">Relacione contactos (propietario, chofer, aprobador, aseguradora, etc.). Solo una puede ser el contacto comercial principal.</p>
 
                             <div id="relationships-container" class="space-y-4">
                                 @foreach($vehicle->relationships as $relationship)
@@ -156,7 +145,7 @@
             <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="closePartyModal()"></div>
             <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Crear Nueva Party</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">Crear Nuevo Contacto</h3>
                     <button type="button" onclick="closePartyModal()" class="text-gray-400 hover:text-gray-600">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -220,7 +209,7 @@
                     </button>
                     <button type="button" id="save-party-btn"
                             class="inline-flex items-center px-4 py-2 bg-blue-600 rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                        Guardar Party
+                        Guardar Contacto
                     </button>
                 </div>
             </div>
@@ -258,7 +247,7 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">Party (buscar o seleccionar) *</label>
+                        <label class="block text-sm font-medium text-gray-700">Contacto (buscar o seleccionar) *</label>
                         <select name="relationships[${index}][party_id]" class="relationship-party-select"
                                 data-placeholder="Buscar party por nombre o documento..."
                                 ${party ? `data-selected-id="${party.id}" data-selected-label="${party.display_name}"` : ''} required>
@@ -291,7 +280,7 @@
                 valueField: 'id',
                 labelField: 'display_name',
                 searchField: ['display_name', 'document_number'],
-                placeholder: 'Buscar party por nombre o documento...',
+                placeholder: 'Buscar contacto por nombre o documento...',
                 create: false,
                 load: function(query, callback) {
                     if (!query.length) return callback();
@@ -344,13 +333,16 @@
         }
 
         // ----- Cargar relaciones existentes -----
-        const existingRelationships = @json($vehicle->relationships->map(fn ($rel) => [
-            'party_id' => $rel->party_id,
-            'display_name' => $rel->party?->display_name,
-            'role' => $rel->role,
-            'is_primary_commercial' => (bool) $rel->is_primary_commercial,
-            'notes' => $rel->notes,
-        ]));
+        @php
+            $existingRelationshipsData = $vehicle->relationships->map(fn ($rel) => [
+                'party_id' => $rel->party_id,
+                'display_name' => $rel->party?->display_name,
+                'role' => $rel->role,
+                'is_primary_commercial' => (bool) $rel->is_primary_commercial,
+                'notes' => $rel->notes,
+            ])->values();
+        @endphp
+        const existingRelationships = @json($existingRelationshipsData);
 
         existingRelationships.forEach(rel => {
             addRelationshipRow(
@@ -412,7 +404,7 @@
             .then(({ ok, json }) => {
                 if (!ok) {
                     const errorBox = document.getElementById('party-modal-error');
-                    errorBox.innerHTML = json.errors ? Object.values(json.errors).flat().join('<br>') : (json.message || 'Error al crear la party.');
+                    errorBox.innerHTML = json.errors ? Object.values(json.errors).flat().join('<br>') : (json.message || 'Error al crear el contacto.');
                     errorBox.classList.remove('hidden');
                     return;
                 }
@@ -426,7 +418,7 @@
                 document.getElementById('modal-party-mobile').value = '';
             })
             .catch(() => {
-                document.getElementById('party-modal-error').textContent = 'Error de conexión al crear la party.';
+                document.getElementById('party-modal-error').textContent = 'Error de conexión al crear el contacto.';
                 document.getElementById('party-modal-error').classList.remove('hidden');
             });
         });

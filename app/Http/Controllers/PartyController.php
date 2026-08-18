@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PartyRequest;
-use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\Ubigeo;
 use App\Services\PartyService;
@@ -38,10 +37,9 @@ class PartyController extends Controller
     {
         Gate::authorize('create', Party::class);
 
-        $establishments = Establishment::all();
         $departamentos = Ubigeo::select('departamento')->distinct()->orderBy('departamento')->pluck('departamento');
 
-        return view('parties.create', compact('establishments', 'departamentos'));
+        return view('parties.create', compact('departamentos'));
     }
 
     /**
@@ -64,7 +62,7 @@ class PartyController extends Controller
     {
         Gate::authorize('view', $party);
 
-        $party->load(['ubigeo', 'establishment', 'vehicles']);
+        $party->load(['ubigeo', 'vehicles']);
 
         return view('parties.show', compact('party'));
     }
@@ -76,10 +74,9 @@ class PartyController extends Controller
     {
         Gate::authorize('update', $party);
 
-        $establishments = Establishment::all();
         $departamentos = Ubigeo::select('departamento')->distinct()->orderBy('departamento')->pluck('departamento');
 
-        return view('parties.edit', compact('party', 'establishments', 'departamentos'));
+        return view('parties.edit', compact('party', 'departamentos'));
     }
 
     /**
@@ -160,8 +157,6 @@ class PartyController extends Controller
             'phone' => ['nullable', 'string', 'max:20'],
             'mobile' => ['nullable', 'string', 'max:20'],
         ]);
-
-        $validated['establishment_id'] = auth()->user()->establishment_id ?? 1;
 
         $party = $this->partyService->create($validated);
 

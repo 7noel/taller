@@ -46,7 +46,6 @@ class PartyRequest extends FormRequest
             'insurance_hourly_rate' => ['nullable', 'numeric', 'min:0'],
             'insurance_panel_rate' => ['nullable', 'numeric', 'min:0'],
             'receive_promotions' => ['sometimes', 'boolean'],
-            'establishment_id' => ['required', 'exists:establishments,id'],
         ];
     }
 
@@ -64,7 +63,6 @@ class PartyRequest extends FormRequest
             'document_type.in' => 'El tipo de documento no es válido.',
             'document_number.required' => 'El número de documento es obligatorio.',
             'document_number.unique' => 'El número de documento ya está registrado.',
-            'establishment_id.required' => 'El establecimiento es obligatorio.',
         ];
     }
 }

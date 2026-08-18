@@ -123,9 +123,7 @@ class PartySeeder extends Seeder
         ];
 
         foreach ($parties as $party) {
-            Party::create(array_merge($party, [
-                'establishment_id' => 1,
-            ]));
+            Party::create($party);
         }
     }
 }

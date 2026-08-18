@@ -30,7 +30,6 @@ class Party extends Model
         'insurance_hourly_rate',
         'insurance_panel_rate',
         'receive_promotions',
-        'establishment_id',
         'created_by',
         'updated_by',
     ];
@@ -61,7 +60,6 @@ class Party extends Model
                 'insurance_hourly_rate',
                 'insurance_panel_rate',
                 'receive_promotions',
-                'establishment_id',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -83,11 +81,6 @@ class Party extends Model
     public function ubigeo()
     {
         return $this->belongsTo(Ubigeo::class, 'ubigeo_code', 'code');
-    }
-
-    public function establishment()
-    {
-        return $this->belongsTo(Establishment::class);
     }
 
     public function creator()

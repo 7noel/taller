@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -14,32 +13,18 @@ class VehicleServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->establishment = Establishment::create([
-            'name' => 'Sede Test',
-            'address' => 'Av. Test 123',
-            'phone' => '999999999',
-            'email' => 'test@test.com',
-            'code' => 'TST-001',
-        ]);
-    }
-
     public function test_create_sets_created_by_and_relationships(): void
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
+        $user = User::factory()->create();
         $this->actingAs($user);
 
-        $owner = Party::factory()->create(['establishment_id' => $this->establishment->id]);
+        $owner = Party::factory()->create();
 
         $service = new VehicleService();
         $vehicle = $service->create([
-            'plate' => 'ABC-123',
+            'plate' => 'ABC123',
             'brand' => 'Toyota',
             'model' => 'Corolla',
-            'establishment_id' => $this->establishment->id,
             'relationships' => [
                 [
                     'party_id' => $owner->id,
@@ -58,18 +43,17 @@ class VehicleServiceTest extends TestCase
 
     public function test_update_syncs_relationships(): void
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
+        $user = User::factory()->create();
         $this->actingAs($user);
 
-        $vehicle = Vehicle::factory()->create(['establishment_id' => $this->establishment->id]);
-        $owner = Party::factory()->create(['establishment_id' => $this->establishment->id]);
+        $vehicle = Vehicle::factory()->create();
+        $owner = Party::factory()->create();
 
         $service = new VehicleService();
         $service->update($vehicle, [
             'plate' => $vehicle->plate,
             'brand' => 'Honda',
             'model' => 'Civic',
-            'establishment_id' => $this->establishment->id,
             'relationships' => [
                 [
                     'party_id' => $owner->id,
@@ -88,18 +72,17 @@ class VehicleServiceTest extends TestCase
 
     public function test_delete_soft_deletes_relationships(): void
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
+        $user = User::factory()->create();
         $this->actingAs($user);
 
-        $vehicle = Vehicle::factory()->create(['establishment_id' => $this->establishment->id]);
-        $owner = Party::factory()->create(['establishment_id' => $this->establishment->id]);
+        $vehicle = Vehicle::factory()->create();
+        $owner = Party::factory()->create();
 
         $service = new VehicleService();
         $service->update($vehicle, [
             'plate' => $vehicle->plate,
             'brand' => $vehicle->brand,
             'model' => $vehicle->model,
-            'establishment_id' => $this->establishment->id,
             'relationships' => [
                 [
                     'party_id' => $owner->id,

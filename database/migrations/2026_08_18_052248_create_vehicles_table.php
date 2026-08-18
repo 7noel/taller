@@ -23,13 +23,11 @@ return new class extends Migration
             $table->integer('year')->nullable();
             $table->date('next_technical_review_date')->nullable();
             $table->integer('technical_review_reminder_days')->default(15);
-            $table->unsignedBigInteger('establishment_id');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
-            $table->foreign('establishment_id')->references('id')->on('establishments');
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
 

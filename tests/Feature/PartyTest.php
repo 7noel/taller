@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,22 +13,9 @@ class PartyTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->establishment = Establishment::create([
-            'name' => 'Sede Test',
-            'address' => 'Av. Test 123',
-            'phone' => '999999999',
-            'email' => 'test@test.com',
-            'code' => 'TST-001',
-        ]);
-    }
-
     protected function createUserWithPermissions(array $permissions): User
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
+        $user = User::factory()->create();
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
@@ -76,7 +62,6 @@ class PartyTest extends TestCase
             'phone' => '011234567',
             'mobile' => '987654321',
             'receive_promotions' => true,
-            'establishment_id' => $this->establishment->id,
         ]);
 
         $response->assertRedirect(route('parties.index'));
@@ -97,7 +82,6 @@ class PartyTest extends TestCase
             'document_type' => 'DNI',
             'first_name' => 'Juan',
             'last_name' => 'Pérez',
-            'establishment_id' => $this->establishment->id,
         ]);
 
         $response->assertSessionHasErrors('document_number');
@@ -107,7 +91,7 @@ class PartyTest extends TestCase
     {
         $user = $this->createUserWithPermissions(['ver parties', 'editar parties']);
 
-        $party = Party::factory()->create(['establishment_id' => $this->establishment->id]);
+        $party = Party::factory()->create();
 
         $response = $this->actingAs($user)->put(route('parties.update', $party), [
             'type' => 'person',
@@ -115,7 +99,6 @@ class PartyTest extends TestCase
             'document_number' => $party->document_number,
             'first_name' => 'María',
             'last_name' => 'López',
-            'establishment_id' => $this->establishment->id,
         ]);
 
         $response->assertRedirect(route('parties.index'));
@@ -130,7 +113,7 @@ class PartyTest extends TestCase
     {
         $user = $this->createUserWithPermissions(['ver parties', 'eliminar parties']);
 
-        $party = Party::factory()->create(['establishment_id' => $this->establishment->id]);
+        $party = Party::factory()->create();
 
         $response = $this->actingAs($user)->delete(route('parties.destroy', $party));
 

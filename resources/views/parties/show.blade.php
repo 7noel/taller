@@ -72,10 +72,6 @@
                                     <dt class="text-sm font-medium text-gray-500">Compañía de seguros</dt>
                                     <dd class="mt-1 text-sm text-gray-900">{{ $party->is_insurance_company ? 'Sí' : 'No' }}</dd>
                                 </div>
-                                <div>
-                                    <dt class="text-sm font-medium text-gray-500">Establecimiento</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $party->establishment?->name ?? '—' }}</dd>
-                                </div>
                             </dl>
                         </div>
 

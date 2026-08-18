@@ -28,8 +28,7 @@ class VehicleRequest extends FormRequest
             'plate' => [
                 'required',
                 'string',
-                'max:10',
-                'regex:/^[A-Z0-9-]+$/',
+                'regex:/^[A-Z0-9]{6,7}$/',
                 Rule::unique('vehicles', 'plate')->ignore($vehicleId),
             ],
             'brand' => ['required', 'string', 'max:100'],
@@ -41,7 +40,6 @@ class VehicleRequest extends FormRequest
             'year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
             'next_technical_review_date' => ['nullable', 'date'],
             'technical_review_reminder_days' => ['nullable', 'integer', 'min:1', 'max:90'],
-            'establishment_id' => ['required', 'exists:establishments,id'],
             'relationships' => ['nullable', 'array'],
             'relationships.*.party_id' => ['required_with:relationships', 'exists:parties,id'],
             'relationships.*.role' => ['required_with:relationships', Rule::in([
@@ -62,11 +60,10 @@ class VehicleRequest extends FormRequest
         return [
             'plate.required' => 'La placa es obligatoria.',
             'plate.unique' => 'La placa ya está registrada.',
-            'plate.regex' => 'La placa solo puede contener letras mayúsculas, números y guiones.',
+            'plate.regex' => 'La placa debe tener 6 o 7 caracteres, solo letras y números.',
             'brand.required' => 'La marca es obligatoria.',
             'model.required' => 'El modelo es obligatorio.',
-            'establishment_id.required' => 'El establecimiento es obligatorio.',
-            'relationships.*.party_id.required' => 'Debe seleccionar una party para la relación.',
+            'relationships.*.party_id.required' => 'Debe seleccionar un contacto para la relación.',
             'relationships.*.role.required' => 'Debe seleccionar un rol para la relación.',
         ];
     }

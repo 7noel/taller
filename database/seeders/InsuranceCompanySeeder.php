@@ -73,7 +73,6 @@ class InsuranceCompanySeeder extends Seeder
                     'insurance_hourly_rate' => $company['insurance_hourly_rate'],
                     'insurance_panel_rate' => $company['insurance_panel_rate'],
                     'receive_promotions' => false,
-                    'establishment_id' => 1,
                 ]
             );
         }

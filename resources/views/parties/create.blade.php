@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Nueva Party') }}
+            {{ __('Nuevo Contacto de Vehículo') }}
         </h2>
     </x-slot>
 
@@ -128,18 +128,6 @@
                                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
                                 <input type="email" id="email" name="email" value="{{ old('email') }}"
                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            </div>
-
-                            {{-- Establecimiento --}}
-                            <div>
-                                <label for="establishment_id" class="block text-sm font-medium text-gray-700">Establecimiento *</label>
-                                <select id="establishment_id" name="establishment_id" required
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    @foreach ($establishments as $est)
-                                        <option value="{{ $est->id }}" @selected(old('establishment_id', 1) == $est->id)>{{ $est->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('establishment_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                             {{-- Es aseguradora --}}

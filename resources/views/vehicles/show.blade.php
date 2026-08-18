@@ -69,17 +69,13 @@
                                     <dt class="text-sm font-medium text-gray-500">Días Aviso Revisión</dt>
                                     <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->technical_review_reminder_days }}</dd>
                                 </div>
-                                <div>
-                                    <dt class="text-sm font-medium text-gray-500">Establecimiento</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->establishment?->name ?? '—' }}</dd>
-                                </div>
                             </dl>
                         </div>
 
                         <div>
-                            <h3 class="text-lg font-semibold mb-4">Parties relacionadas</h3>
+                            <h3 class="text-lg font-semibold mb-4">Contactos relacionados</h3>
                             @if($vehicle->relationships->isEmpty())
-                                <p class="text-sm text-gray-500">Sin parties asociadas.</p>
+                                <p class="text-sm text-gray-500">Sin contactos asociados.</p>
                             @else
                                 <div class="space-y-3">
                                     @foreach($vehicle->relationships as $relationship)

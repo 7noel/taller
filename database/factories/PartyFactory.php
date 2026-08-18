@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Establishment;
 use App\Models\Party;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -34,7 +33,6 @@ class PartyFactory extends Factory
             'insurance_hourly_rate' => null,
             'insurance_panel_rate' => null,
             'receive_promotions' => true,
-            'establishment_id' => Establishment::first()?->id ?? 1,
         ];
     }
 

@@ -2,7 +2,6 @@
 
 namespace Tests\Unit;
 
-use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\User;
 use App\Services\PartyService;
@@ -13,22 +12,9 @@ class PartyServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->establishment = Establishment::create([
-            'name' => 'Sede Test',
-            'address' => 'Av. Test 123',
-            'phone' => '999999999',
-            'email' => 'test@test.com',
-            'code' => 'TST-001',
-        ]);
-    }
-
     public function test_create_sets_created_and_updated_by(): void
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
+        $user = User::factory()->create();
         $this->actingAs($user);
 
         $service = new PartyService();
@@ -38,7 +24,6 @@ class PartyServiceTest extends TestCase
             'document_number' => '12345679',
             'first_name' => 'Ana',
             'last_name' => 'Gómez',
-            'establishment_id' => $this->establishment->id,
         ]);
 
         $this->assertEquals($user->id, $party->created_by);
@@ -47,7 +32,7 @@ class PartyServiceTest extends TestCase
 
     public function test_create_person_clears_business_name(): void
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
+        $user = User::factory()->create();
         $this->actingAs($user);
 
         $service = new PartyService();
@@ -58,7 +43,6 @@ class PartyServiceTest extends TestCase
             'first_name' => 'Ana',
             'last_name' => 'Gómez',
             'business_name' => 'Debería quedar null',
-            'establishment_id' => $this->establishment->id,
         ]);
 
         $this->assertNull($party->business_name);
@@ -66,10 +50,10 @@ class PartyServiceTest extends TestCase
 
     public function test_delete_soft_deletes_party(): void
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
+        $user = User::factory()->create();
         $this->actingAs($user);
 
-        $party = Party::factory()->create(['establishment_id' => $this->establishment->id]);
+        $party = Party::factory()->create();
 
         $service = new PartyService();
         $result = $service->delete($party);
