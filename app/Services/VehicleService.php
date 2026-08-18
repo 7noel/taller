@@ -7,14 +7,18 @@ use Illuminate\Support\Facades\Auth;
 
 class VehicleService
 {
-    /**
-     * Create a new vehicle with optional relationships.
-     *
-     * @param  array  $data
-     * @return Vehicle
-     */
+    protected BrandService $brandService;
+    protected VehicleModelService $modelService;
+
+    public function __construct(BrandService $brandService, VehicleModelService $modelService)
+    {
+        $this->brandService = $brandService;
+        $this->modelService = $modelService;
+    }
+
     public function create(array $data): Vehicle
     {
+        $data = $this->normalizeVehicleData($data);
         $data['created_by'] = Auth::id();
         $data['updated_by'] = Auth::id();
 
@@ -30,15 +34,9 @@ class VehicleService
         return $vehicle;
     }
 
-    /**
-     * Update an existing vehicle with optional relationships.
-     *
-     * @param  Vehicle  $vehicle
-     * @param  array  $data
-     * @return Vehicle
-     */
     public function update(Vehicle $vehicle, array $data): Vehicle
     {
+        $data = $this->normalizeVehicleData($data);
         $data['updated_by'] = Auth::id();
 
         $relationships = $data['relationships'] ?? null;
@@ -53,12 +51,6 @@ class VehicleService
         return $vehicle;
     }
 
-    /**
-     * Delete (soft delete) a vehicle and its relationships.
-     *
-     * @param  Vehicle  $vehicle
-     * @return bool
-     */
     public function delete(Vehicle $vehicle): bool
     {
         $vehicle->relationships()->delete();
@@ -66,19 +58,36 @@ class VehicleService
         return $vehicle->delete();
     }
 
-    /**
-     * Sync the vehicle relationships (delete existing and recreate).
-     *
-     * @param  Vehicle  $vehicle
-     * @param  array  $relationships
-     * @return void
-     */
+    public function createFromSunarp(array $data): Vehicle
+    {
+        $brandName = $data['brand'] ?? null;
+        $modelName = $data['model'] ?? null;
+
+        if ($brandName && $modelName) {
+            $brand = $this->brandService->findOrCreateBrand($brandName);
+            $model = $this->modelService->findOrCreateModel($brand->id, $modelName);
+            $data['model_id'] = $model->id;
+        }
+
+        unset($data['brand'], $data['model']);
+
+        return $this->create($data);
+    }
+
+    protected function normalizeVehicleData(array $data): array
+    {
+        $data['plate'] = strtoupper($data['plate'] ?? '');
+        $data['vin'] = isset($data['vin']) ? strtoupper($data['vin']) : null;
+        $data['engine_number'] = isset($data['engine_number']) ? strtoupper($data['engine_number']) : null;
+
+        return $data;
+    }
+
     protected function syncRelationships(Vehicle $vehicle, array $relationships): void
     {
         $vehicle->relationships()->delete();
 
         foreach ($relationships as $relationship) {
-            // Enforce only one primary commercial contact
             $relationship['is_primary_commercial'] = $relationship['is_primary_commercial'] ?? false;
 
             $vehicle->relationships()->create([

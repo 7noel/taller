@@ -16,22 +16,22 @@ class Vehicle extends Model
 
     protected $fillable = [
         'plate',
-        'brand',
-        'model',
-        'body_type',
+        'model_id',
         'color',
         'vin',
         'engine_number',
         'year',
-        'next_technical_review_date',
-        'technical_review_reminder_days',
+        'body_type',
+        'technical_review_date',
+        'review_reminder_days',
+        'establishment_id',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
-        'next_technical_review_date' => 'date',
-        'technical_review_reminder_days' => 'integer',
+        'technical_review_date' => 'date',
+        'review_reminder_days' => 'integer',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -39,19 +39,29 @@ class Vehicle extends Model
         return LogOptions::defaults()
             ->logOnly([
                 'plate',
-                'brand',
-                'model',
-                'body_type',
+                'model_id',
                 'color',
                 'vin',
                 'engine_number',
                 'year',
-                'next_technical_review_date',
-                'technical_review_reminder_days',
+                'body_type',
+                'technical_review_date',
+                'review_reminder_days',
+                'establishment_id',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('vehicle');
+    }
+
+    public function vehicleModel()
+    {
+        return $this->belongsTo(VehicleModel::class, 'model_id');
+    }
+
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class);
     }
 
     public function creator()
@@ -77,21 +87,13 @@ class Vehicle extends Model
             ->withTimestamps();
     }
 
-    /**
-     * The owner party of the vehicle.
-     */
     public function owner()
     {
-        return $this->hasOne(VehicleRelationship::class)
-            ->where('role', 'owner');
+        return $this->hasOne(VehicleRelationship::class)->where('role', 'owner');
     }
 
-    /**
-     * The primary commercial contact.
-     */
     public function primaryCommercial()
     {
-        return $this->hasOne(VehicleRelationship::class)
-            ->where('is_primary_commercial', true);
+        return $this->hasOne(VehicleRelationship::class)->where('is_primary_commercial', true);
     }
 }

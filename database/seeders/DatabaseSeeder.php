@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             EstablishmentSeeder::class,
             UserSeeder::class,
+            BrandModelSeeder::class,
             InsuranceCompanySeeder::class,
             PartySeeder::class,
             VehicleSeeder::class,
