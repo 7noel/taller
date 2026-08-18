@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\VehicleRequest;
 use App\Models\Brand;
 use App\Models\Vehicle;
+use App\Models\VehicleModel;
+use App\Services\BrandService;
+use App\Services\VehicleModelService;
 use App\Services\VehicleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -126,9 +129,34 @@ class VehicleController extends Controller
     public function models(Request $request): JsonResponse
     {
         return response()->json(
-            \App\Models\VehicleModel::where('brand_id', $request->integer('brand_id'))
+            VehicleModel::where('brand_id', $request->integer('brand_id'))
                 ->orderBy('name')
                 ->get(['id', 'name'])
         );
+    }
+
+    public function findOrCreateBrand(Request $request, BrandService $brandService): JsonResponse
+    {
+        Gate::authorize('create', Brand::class);
+
+        $request->validate(['name' => ['required', 'string', 'max:100']]);
+
+        $brand = $brandService->findOrCreateBrand($request->string('name'));
+
+        return response()->json(['id' => $brand->id, 'name' => $brand->name]);
+    }
+
+    public function findOrCreateModel(Request $request, VehicleModelService $modelService): JsonResponse
+    {
+        Gate::authorize('create', VehicleModel::class);
+
+        $request->validate([
+            'brand_id' => ['required', 'exists:brands,id'],
+            'name' => ['required', 'string', 'max:100'],
+        ]);
+
+        $model = $modelService->findOrCreateModel($request->integer('brand_id'), $request->string('name'));
+
+        return response()->json(['id' => $model->id, 'name' => $model->name]);
     }
 }

@@ -79,6 +79,7 @@ class VehicleService
         $data['plate'] = strtoupper($data['plate'] ?? '');
         $data['vin'] = isset($data['vin']) ? strtoupper($data['vin']) : null;
         $data['engine_number'] = isset($data['engine_number']) ? strtoupper($data['engine_number']) : null;
+        $data['color'] = isset($data['color']) ? strtoupper($data['color']) : null;
 
         return $data;
     }

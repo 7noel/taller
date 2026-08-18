@@ -22,6 +22,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('api/vehicles/search', [VehicleController::class, 'search'])->name('api.vehicles.search');
     Route::get('api/brands', [VehicleController::class, 'brands'])->name('api.brands');
     Route::get('api/models', [VehicleController::class, 'models'])->name('api.models');
+    Route::post('api/brands/find-or-create', [VehicleController::class, 'findOrCreateBrand'])->name('api.brands.find-or-create');
+    Route::post('api/models/find-or-create', [VehicleController::class, 'findOrCreateModel'])->name('api.models.find-or-create');
     Route::get('api/ubigeo/provincias', [PartyController::class, 'provincias'])->name('api.ubigeo.provincias');
     Route::get('api/ubigeo/distritos', [PartyController::class, 'distritos'])->name('api.ubigeo.distritos');
 });

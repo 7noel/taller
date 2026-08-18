@@ -21,7 +21,7 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Marca *</label>
-                                <select id="brand_id" class="mt-1 block w-full rounded-md border-gray-300">
+                                <select id="brand_id" name="brand_id" class="mt-1 block w-full rounded-md border-gray-300">
                                     @foreach ($brands as $brand)
                                         <option value="{{ $brand->id }}" @selected($vehicle->vehicleModel?->brand_id == $brand->id)>{{ $brand->name }}</option>
                                     @endforeach
@@ -71,6 +71,12 @@
                             </div>
                         </div>
 
+                        <div class="flex gap-2 items-center mt-6">
+                            <button type="button" id="btnSunarp" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                📸 Obtener datos de Sunarp
+                            </button>
+                        </div>
+
                         <div class="mt-6 flex gap-2">
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-blue-700">Actualizar</button>
                             <a href="{{ route('vehicles.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 rounded-md font-semibold text-xs text-gray-700 uppercase hover:bg-gray-300">Cancelar</a>
@@ -80,6 +86,8 @@
             </div>
         </div>
     </div>
+
+    @include('vehicles._sunarp_modal')
 
     @push('scripts')
     <script>

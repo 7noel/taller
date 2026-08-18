@@ -46,6 +46,18 @@
 - **Commits**: `54ae111` (eliminación esquema anterior), `4775981` (esquema parties/vehicle_relationships/party_contacts + activitylog), `2490422` (factories y seeders), `5878e73` (requests/policies/services/controllers/rutas), `51ddfb7` (vistas), `413eb65` (pruebas), `e626d9b` (bitácora).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
+### 📌 Sesión 5: OCR Sunarp mejorado (Tesseract.js v5) en formularios de vehículos
+- **Fecha**: 18 de agosto de 2026
+- **Tarea**: Implementación completa de OCR para capturas de Sunarp en formularios de vehículos (crear y editar).
+- **Detalles**:
+  - **Tesseract.js v5** cargado desde CDN en `layouts/app.blade.php` (antes era v4 local solo en create).
+  - **Partial compartido** `vehicles/_sunarp_modal.blade.php` reutilizado en `create` y `edit`: previsualización de imagen, `capture="environment"` para cámara móvil, panel de resultados y enlace a `https://sede.sunarp.gob.pe/`.
+  - **Endpoints API**: `POST /api/brands/find-or-create` y `POST /api/models/find-or-create` crean marca/modelo automáticamente (mayúsculas) vía `BrandService` y `VehicleModelService`.
+  - **Bug corregido**: select de marca en `edit.blade.php` no tenía `name="brand_id"`.
+  - **Mutadores en `Vehicle`**: placa, VIN, motor y color en mayúsculas. `VehicleService` normaliza `color`.
+  - **Tests**: **41 passed (99 assertions)**.
+- **Próximos pasos**: Módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
+
 ### 📌 Sesión 4: Refactorización parties/vehículos (brands + models + OCR Sunarp)
 - **Fecha**: 18 de agosto de 2026
 - **Detalle**:

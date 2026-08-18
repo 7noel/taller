@@ -37,6 +37,27 @@ class Vehicle extends Model
             ->useLogName('vehicle');
     }
 
+    // Mutadores: guardar en mayúsculas
+    public function setPlateAttribute($value): void
+    {
+        $this->attributes['plate'] = mb_strtoupper($value ?? '');
+    }
+
+    public function setVinAttribute($value): void
+    {
+        $this->attributes['vin'] = $value ? mb_strtoupper($value) : null;
+    }
+
+    public function setEngineNumberAttribute($value): void
+    {
+        $this->attributes['engine_number'] = $value ? mb_strtoupper($value) : null;
+    }
+
+    public function setColorAttribute($value): void
+    {
+        $this->attributes['color'] = $value ? mb_strtoupper($value) : null;
+    }
+
     public function brand()
     {
         return $this->belongsTo(Brand::class, 'brand_id');
