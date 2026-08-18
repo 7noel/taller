@@ -69,15 +69,6 @@
                                 <label class="block text-sm font-medium text-gray-700">Días Aviso Revisión</label>
                                 <input type="number" name="review_reminder_days" value="{{ old('review_reminder_days', $vehicle->review_reminder_days) }}" min="1" max="90" class="mt-1 block w-full rounded-md border-gray-300">
                             </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700">Establecimiento *</label>
-                                <select name="establishment_id" required class="mt-1 block w-full rounded-md border-gray-300">
-                                    @foreach ($establishments as $est)
-                                        <option value="{{ $est->id }}" @selected(old('establishment_id', $vehicle->establishment_id) == $est->id)>{{ $est->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('establishment_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                            </div>
                         </div>
 
                         <div class="mt-6 flex gap-2">

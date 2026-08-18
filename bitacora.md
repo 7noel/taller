@@ -46,6 +46,19 @@
 - **Commits**: `54ae111` (eliminación esquema anterior), `4775981` (esquema parties/vehicle_relationships/party_contacts + activitylog), `2490422` (factories y seeders), `5878e73` (requests/policies/services/controllers/rutas), `51ddfb7` (vistas), `413eb65` (pruebas), `e626d9b` (bitácora).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
+### 📌 Sesión 4: Refactorización parties/vehículos (brands + models + OCR Sunarp)
+- **Fecha**: 18 de agosto de 2026
+- **Detalle**:
+  - `parties` y `vehicles` **sin `establishment_id`** (los establecimientos se asociarán a presupuestos/inventarios/OTs).
+  - Nuevas tablas `brands` y `models`; `vehicles` ahora usa `brand_id` y `model_id`, `technical_review_date`, `review_reminder_days`.
+  - Modelos `Brand`, `VehicleModel`; servicios `BrandService::findOrCreateBrand()`, `VehicleModelService::findOrCreateModel()`.
+  - `BrandModelSeeder` (17 marcas / 68 modelos), seeders idempotentes, permisos y policies de marcas/modelos.
+  - Vistas con marca/modelo en cascada, modal OCR **Sunarp (Tesseract.js)** que autocompleta marca, modelo, año, color, VIN y motor.
+  - Se eliminó el campo `Establecimiento` de las vistas `create`/`edit` de vehículos y del `VehicleController`.
+  - `db:seed` idempotente verificado; tests: **16 passed**.
+- **Commits**: `00b48d5`, `51b4b50`, `83899dc`, `0181a02`.
+- **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
+
 ### 📝 Nota sobre la bitácora
 A partir de ahora, esta bitácora se actualizará automáticamente por el asistente (DeepSeek) en cada hito importante del desarrollo. Los registros incluirán fecha, tarea realizada, decisiones tomadas y próximos pasos.
 
