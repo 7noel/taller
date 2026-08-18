@@ -73,7 +73,12 @@ class VehicleSeeder extends Seeder
         ];
 
         foreach ($vehicles as $vehicle) {
-            Vehicle::create($vehicle);
+            $plate = $vehicle['plate'];
+            unset($vehicle['plate']);
+            Vehicle::firstOrCreate(
+                ['plate' => $plate],
+                $vehicle
+            );
         }
     }
 }

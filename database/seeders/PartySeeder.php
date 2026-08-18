@@ -123,7 +123,12 @@ class PartySeeder extends Seeder
         ];
 
         foreach ($parties as $party) {
-            Party::create($party);
+            $documentNumber = $party['document_number'];
+            unset($party['document_number']);
+            Party::firstOrCreate(
+                ['document_number' => $documentNumber],
+                $party
+            );
         }
     }
 }

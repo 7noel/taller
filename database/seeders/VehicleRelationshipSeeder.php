@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Party;
+use App\Models\Vehicle;
 use App\Models\VehicleRelationship;
 use Illuminate\Database\Seeder;
 
@@ -10,117 +12,46 @@ class VehicleRelationshipSeeder extends Seeder
     public function run(): void
     {
         $relationships = [
-            // Vehículo 1 (ABC-123): dueño Juan Pérez, chofer Pedro Huamán, aseguradora Rímac
-            [
-                'vehicle_id' => 1,
-                'party_id' => 1,
-                'role' => 'owner',
-                'is_primary_commercial' => true,
-                'notes' => 'Cliente principal y aprobador.',
-            ],
-            [
-                'vehicle_id' => 1,
-                'party_id' => 6,
-                'role' => 'driver',
-                'is_primary_commercial' => false,
-                'notes' => 'Chofer habitual.',
-            ],
-            [
-                'vehicle_id' => 1,
-                'party_id' => 11,
-                'role' => 'insurance_company',
-                'is_primary_commercial' => false,
-                'notes' => 'Póliza todo riesgo.',
-            ],
+            // Vehículo ABC123 (Toyota Corolla): dueño Juan Pérez, chofer Pedro Huamán, aseguradora Rímac
+            ['plate' => 'ABC123', 'document_number' => '12345678', 'role' => 'owner', 'is_primary' => true, 'notes' => 'Cliente principal y aprobador.'],
+            ['plate' => 'ABC123', 'document_number' => '69874521', 'role' => 'driver', 'is_primary' => false, 'notes' => 'Chofer habitual.'],
+            ['plate' => 'ABC123', 'document_number' => '20100039202', 'role' => 'insurance_company', 'is_primary' => false, 'notes' => 'Póliza todo riesgo.'],
 
-            // Vehículo 2 (XYZ-456): dueño Transportes del Norte, operador Roberto, aseguradora Pacífico
-            [
-                'vehicle_id' => 2,
-                'party_id' => 3,
-                'role' => 'owner',
-                'is_primary_commercial' => true,
-                'notes' => 'Flota corporativa.',
-            ],
-            [
-                'vehicle_id' => 2,
-                'party_id' => 3,
-                'role' => 'operator',
-                'is_primary_commercial' => false,
-                'notes' => 'Operador de la flota.',
-            ],
-            [
-                'vehicle_id' => 2,
-                'party_id' => 12,
-                'role' => 'insurance_company',
-                'is_primary_commercial' => false,
-                'notes' => null,
-            ],
+            // Vehículo XYZ456 (Nissan Frontier): dueño Transportes del Norte, aseguradora Pacífico
+            ['plate' => 'XYZ456', 'document_number' => '20123456789', 'role' => 'owner', 'is_primary' => true, 'notes' => 'Flota corporativa.'],
+            ['plate' => 'XYZ456', 'document_number' => '20123456789', 'role' => 'operator', 'is_primary' => false, 'notes' => 'Operador de la flota.'],
+            ['plate' => 'XYZ456', 'document_number' => '20100047218', 'role' => 'insurance_company', 'is_primary' => false, 'notes' => null],
 
-            // Vehículo 3 (DEF-789): dueña María López, aprobador Carlos Ramírez
-            [
-                'vehicle_id' => 3,
-                'party_id' => 2,
-                'role' => 'owner',
-                'is_primary_commercial' => true,
-                'notes' => 'Cliente particular.',
-            ],
-            [
-                'vehicle_id' => 3,
-                'party_id' => 4,
-                'role' => 'approver',
-                'is_primary_commercial' => false,
-                'notes' => 'Contacto de aprobación de presupuestos.',
-            ],
+            // Vehículo DEF789 (Hyundai Tucson): dueña María López, aprobador Carlos Ramírez
+            ['plate' => 'DEF789', 'document_number' => '87654321', 'role' => 'owner', 'is_primary' => true, 'notes' => 'Cliente particular.'],
+            ['plate' => 'DEF789', 'document_number' => '45678912', 'role' => 'approver', 'is_primary' => false, 'notes' => 'Contacto de aprobación de presupuestos.'],
 
-            // Vehículo 4 (GHI-101): dueño Carlos Ramírez, aseguradora Mapfre
-            [
-                'vehicle_id' => 4,
-                'party_id' => 4,
-                'role' => 'owner',
-                'is_primary_commercial' => true,
-                'notes' => null,
-            ],
-            [
-                'vehicle_id' => 4,
-                'party_id' => 13,
-                'role' => 'insurance_company',
-                'is_primary_commercial' => false,
-                'notes' => 'Póliza terceros completo.',
-            ],
+            // Vehículo GHI1234 (Kia Sportage): dueño Carlos Ramírez, aseguradora Mapfre
+            ['plate' => 'GHI1234', 'document_number' => '45678912', 'role' => 'owner', 'is_primary' => true, 'notes' => null],
+            ['plate' => 'GHI1234', 'document_number' => '20100194372', 'role' => 'insurance_company', 'is_primary' => false, 'notes' => 'Póliza terceros completo.'],
 
-            // Vehículo 5 (JKL-202): dueño Pedro Huamán, cobranza Proseg, aseguradora La Positiva
-            [
-                'vehicle_id' => 5,
-                'party_id' => 6,
-                'role' => 'owner',
-                'is_primary_commercial' => true,
-                'notes' => 'Dueño y contacto principal.',
-            ],
-            [
-                'vehicle_id' => 5,
-                'party_id' => 10,
-                'role' => 'billing',
-                'is_primary_commercial' => false,
-                'notes' => 'Empresa que factura los servicios.',
-            ],
-            [
-                'vehicle_id' => 5,
-                'party_id' => 14,
-                'role' => 'insurance_company',
-                'is_primary_commercial' => false,
-                'notes' => null,
-            ],
-            [
-                'vehicle_id' => 5,
-                'party_id' => 9,
-                'role' => 'emergency_contact',
-                'is_primary_commercial' => false,
-                'notes' => 'Contacto de emergencia.',
-            ],
+            // Vehículo JKL202 (Honda Civic): dueño Pedro Huamán, cobranza Proseg, aseguradora La Positiva, emergencia Ana Mendoza
+            ['plate' => 'JKL202', 'document_number' => '69874521', 'role' => 'owner', 'is_primary' => true, 'notes' => 'Dueño y contacto principal.'],
+            ['plate' => 'JKL202', 'document_number' => '20678912345', 'role' => 'billing', 'is_primary' => false, 'notes' => 'Empresa que factura los servicios.'],
+            ['plate' => 'JKL202', 'document_number' => '20100041921', 'role' => 'insurance_company', 'is_primary' => false, 'notes' => null],
+            ['plate' => 'JKL202', 'document_number' => '001234567', 'role' => 'emergency_contact', 'is_primary' => false, 'notes' => 'Contacto de emergencia.'],
         ];
 
-        foreach ($relationships as $relationship) {
-            VehicleRelationship::create($relationship);
+        foreach ($relationships as $rel) {
+            $vehicle = Vehicle::where('plate', $rel['plate'])->first();
+            $party = Party::where('document_number', $rel['document_number'])->first();
+
+            if (! $vehicle || ! $party) {
+                continue;
+            }
+
+            VehicleRelationship::firstOrCreate(
+                ['vehicle_id' => $vehicle->id, 'party_id' => $party->id, 'role' => $rel['role']],
+                [
+                    'is_primary_commercial' => $rel['is_primary'],
+                    'notes' => $rel['notes'],
+                ]
+            );
         }
     }
 }
