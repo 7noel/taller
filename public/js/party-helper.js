@@ -96,7 +96,7 @@
             const businessName = document.querySelector('input[name="business_name"]');
             if (businessName && data.business_name) businessName.value = data.business_name.toUpperCase();
 
-            const address = document.querySelector('textarea[name="address"]');
+            const address = document.querySelector('input[name="address"]');
             if (address && data.address) address.value = data.address.toUpperCase();
 
             await autoFillUbigeo(data);

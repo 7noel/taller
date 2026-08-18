@@ -31,7 +31,7 @@
                             {{-- Número de documento --}}
                             <div>
                                 <label for="document_number" class="block text-sm font-medium text-gray-700">Número de Documento *</label>
-                                <div class="flex gap-2">
+<div class="flex gap-2 items-stretch">
                                     <input type="text" id="document_number" name="document_number" value="{{ old('document_number') }}" required
                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <button type="button" id="btnSearchDocument" data-party-search-btn
@@ -100,8 +100,8 @@
                             {{-- Dirección --}}
                             <div>
                                 <label for="address" class="block text-sm font-medium text-gray-700">Dirección</label>
-                                <textarea id="address" name="address" rows="2"
-                                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('address') }}</textarea>
+<input type="text" id="address" name="address" value="{{ old('address') }}"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5">
                             </div>
 
                             {{-- Teléfono --}}
