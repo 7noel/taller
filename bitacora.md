@@ -46,6 +46,13 @@
 - **Commits**: `54ae111` (eliminación esquema anterior), `4775981` (esquema parties/vehicle_relationships/party_contacts + activitylog), `2490422` (factories y seeders), `5878e73` (requests/policies/services/controllers/rutas), `51ddfb7` (vistas), `413eb65` (pruebas), `e626d9b` (bitácora).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
+### 📌 Sesión 8: Ajustes búsqueda DNI/RUC (ubigeo desde BD) y UI
+- **Fecha**: 18 de agosto de 2026
+- **Detalles**:
+  - `getRuc` usa código `ubigeo` para obtener departamento/provincia/distrito desde la tabla local `ubigeos` (fallback JSON).
+  - `autoFillUbigeo` JS: cascada secuencial departamento → provincia → distrito (por `ubigeo_code` exacto). Copiado a `public/js/`.
+  - Vistas create/edit: select documento junto al número; tarifas aseguradora en `(USD)`.
+
 ### 📌 Sesión 7: Tipo de documento con códigos SUNAT + búsqueda API corregida
 - **Fecha**: 18 de agosto de 2026
 - **Tarea**: Eliminar el campo `type` de `parties` (BD), usar códigos SUNAT en `document_type` (1=DNI, 6=RUC, 4=CEX, 7=PAS, A=Céd. Diplomática), y corregir la consulta DNI/RUC a la API `dniruc.apisperu.com`.

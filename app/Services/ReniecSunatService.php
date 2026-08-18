@@ -71,14 +71,33 @@ class ReniecSunatService
 
             $data = $response->json();
 
-            if (empty($data) || ($data['success'] ?? false) !== true) {
+            // Igual que el JS original: aceptar cualquier respuesta no vacía
+            if (empty($data)) {
                 return null;
             }
 
-            $department = mb_strtoupper($data['departamento'] ?? '');
-            $province = mb_strtoupper($data['provincia'] ?? '');
-            $district = mb_strtoupper($data['distrito'] ?? '');
-            $direccion = mb_strtoupper($data['direccion'] ?? '');
+            // Nombre: RUC de empresa usa "razonSocial"; persona natural usa "nombre_o_razon_social"
+            $businessName = $data['razonSocial'] ?? $data['nombre_o_razon_social'] ?? '';
+
+            // Domicilio fiscal puede venir en plano o anidado
+            $domicilio = $data['domicilio_fiscal'] ?? $data;
+
+            $ubigeoCode = $domicilio['ubigeo'] ?? $data['ubigeo'] ?? null;
+
+            // Obtener departamento/provincia/distrito desde la tabla local ubigeos cuando exista el código
+            $ubigeo = $ubigeoCode ? \App\Models\Ubigeo::where('code', $ubigeoCode)->first() : null;
+
+            if ($ubigeo) {
+                $department = mb_strtoupper($ubigeo->departamento);
+                $province = mb_strtoupper($ubigeo->provincia);
+                $district = mb_strtoupper($ubigeo->distrito);
+            } else {
+                $department = mb_strtoupper($domicilio['departamento'] ?? '');
+                $province = mb_strtoupper($domicilio['provincia'] ?? '');
+                $district = mb_strtoupper($domicilio['distrito'] ?? '');
+            }
+
+            $direccion = mb_strtoupper($domicilio['direccion'] ?? '');
 
             // Limpiar dirección: quitar el sufijo " DEPARTAMENTO PROVINCIA DISTRITO"
             foreach ([$department, $province, $district] as $part) {
@@ -90,12 +109,12 @@ class ReniecSunatService
             return [
                 'document_type' => '6', // RUC (código SUNAT)
                 'document_number' => $data['ruc'] ?? $ruc,
-                'business_name' => mb_strtoupper($data['razonSocial'] ?? ''),
+                'business_name' => mb_strtoupper($businessName),
                 'address' => $direccion,
                 'department' => $department,
                 'province' => $province,
                 'district' => $district,
-                'ubigeo_code' => $data['ubigeo'] ?? null,
+                'ubigeo_code' => $domicilio['ubigeo'] ?? $data['ubigeo'] ?? null,
             ];
         } catch (\Exception $e) {
             return null;

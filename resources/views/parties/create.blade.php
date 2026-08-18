@@ -14,7 +14,7 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {{-- Tipo de documento (códigos SUNAT) --}}
-                            <div class="md:col-span-2">
+                            <div>
                                 <label for="document_type" class="block text-sm font-medium text-gray-700">Tipo de Documento *</label>
                                 <select id="document_type" name="document_type" required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -136,13 +136,13 @@
                             {{-- Tarifas aseguradora (ocultas por defecto) --}}
                             <div id="insurance-fields" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
                                 <div>
-                                    <label for="insurance_hourly_rate" class="block text-sm font-medium text-gray-700">Precio Hora Hombre (S/)</label>
+<label for="insurance_hourly_rate" class="block text-sm font-medium text-gray-700">Precio Hora Hombre (USD)</label>
                                     <input type="number" step="0.01" min="0" id="insurance_hourly_rate" name="insurance_hourly_rate"
                                            value="{{ old('insurance_hourly_rate') }}"
                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 </div>
                                 <div>
-                                    <label for="insurance_panel_rate" class="block text-sm font-medium text-gray-700">Precio Paño de Pintura (S/)</label>
+<label for="insurance_panel_rate" class="block text-sm font-medium text-gray-700">Precio Paño de Pintura (USD)</label>
                                     <input type="number" step="0.01" min="0" id="insurance_panel_rate" name="insurance_panel_rate"
                                            value="{{ old('insurance_panel_rate') }}"
                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">

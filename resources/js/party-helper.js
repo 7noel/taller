@@ -39,38 +39,47 @@
     }
 
     async function autoFillUbigeo(data) {
-        if (!data.department || !data.province || !data.district) return;
-
-        if (!data.ubigeo_code) {
-            try {
-                const distRes = await fetch(`/api/ubigeo/distritos?departamento=${encodeURIComponent(data.department)}&provincia=${encodeURIComponent(data.province)}`);
-                if (distRes.ok) {
-                    const distritos = await distRes.json();
-                    const match = distritos.find(d => d.distrito.toUpperCase() === data.district.toUpperCase());
-                    if (match) data.ubigeo_code = match.code;
-                }
-            } catch (e) { console.error(e); }
-        }
-
         const depSelect = document.querySelector('select[name="departamento"]');
         const provSelect = document.querySelector('select[name="provincia"]');
         const distSelect = document.querySelector('select[name="ubigeo_code"]');
+        if (!depSelect || !provSelect || !distSelect) return;
 
-        if (depSelect) {
-            selectOption(depSelect, data.department);
-            await new Promise(r => setTimeout(r, 100));
-        }
-        if (provSelect) {
-            selectOption(provSelect, data.province);
-            await new Promise(r => setTimeout(r, 100));
-        }
-        if (distSelect) {
-            selectOption(distSelect, data.district);
-            if (data.ubigeo_code) {
-                const opt = [...distSelect.options].find(o => o.value === data.ubigeo_code);
-                if (opt) distSelect.value = opt.value;
-            }
-        }
+        // 1. Seleccionar departamento
+        if (!data.department || !selectOption(depSelect, data.department)) return;
+
+        // 2. Cargar provincias según departamento
+        const provincesRes = await fetch(`/api/ubigeo/provincias?departamento=${encodeURIComponent(depSelect.value)}`);
+        if (!provincesRes.ok) return;
+        const provinces = await provincesRes.json();
+        provSelect.innerHTML = '<option value="">Seleccionar...</option>';
+        provinces.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p;
+            provSelect.appendChild(opt);
+        });
+        provSelect.disabled = false;
+
+        if (!data.province || !selectOption(provSelect, data.province)) return;
+
+        // 3. Cargar distritos según provincia
+        const districtsRes = await fetch(`/api/ubigeo/distritos?departamento=${encodeURIComponent(depSelect.value)}&provincia=${encodeURIComponent(provSelect.value)}`);
+        if (!districtsRes.ok) return;
+        const districts = await districtsRes.json();
+        distSelect.innerHTML = '<option value="">Seleccionar...</option>';
+        districts.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.code;
+            opt.textContent = d.distrito;
+            distSelect.appendChild(opt);
+        });
+        distSelect.disabled = false;
+
+        // 4. Seleccionar distrito por código ubigeo exacto
+        const match = data.ubigeo_code
+            ? [...distSelect.options].find(o => o.value === data.ubigeo_code)
+            : [...distSelect.options].find(o => o.text.toUpperCase() === (data.district || '').toUpperCase());
+        if (match) distSelect.value = match.value;
     }
 
     async function fillForm(data) {
