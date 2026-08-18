@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Brand;
+use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -14,9 +17,22 @@ class VehicleTest extends TestCase
 {
     use RefreshDatabase;
 
+    private Establishment $establishment;
+    private VehicleModel $model;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->establishment = Establishment::create([
+            'name' => 'Sede Test', 'address' => 'Av. Test', 'phone' => '999', 'email' => 't@t.com', 'code' => 'TST',
+        ]);
+        $brand = Brand::create(['name' => 'TOYOTA']);
+        $this->model = VehicleModel::create(['brand_id' => $brand->id, 'name' => 'COROLLA']);
+    }
+
     protected function createUserWithPermissions(array $permissions): User
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
@@ -39,12 +55,12 @@ class VehicleTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('vehicles.store'), [
             'plate' => 'ABC123',
-            'brand' => 'Toyota',
-            'model' => 'Corolla',
+            'model_id' => $this->model->id,
+            'establishment_id' => $this->establishment->id,
             'body_type' => 'sedan',
             'color' => 'Blanco',
             'year' => 2019,
-            'technical_review_reminder_days' => 15,
+            'review_reminder_days' => 15,
             'relationships' => [
                 ['party_id' => $owner->id, 'role' => 'owner', 'is_primary_commercial' => 1, 'notes' => 'Dueño'],
                 ['party_id' => $driver->id, 'role' => 'driver', 'is_primary_commercial' => 0, 'notes' => null],
@@ -53,7 +69,7 @@ class VehicleTest extends TestCase
 
         $response->assertRedirect(route('vehicles.index'));
 
-        $this->assertDatabaseHas('vehicles', ['plate' => 'ABC123', 'brand' => 'Toyota']);
+        $this->assertDatabaseHas('vehicles', ['plate' => 'ABC123', 'model_id' => $this->model->id]);
         $this->assertDatabaseHas('vehicle_relationships', ['role' => 'owner', 'is_primary_commercial' => 1]);
         $this->assertDatabaseHas('vehicle_relationships', ['role' => 'driver', 'is_primary_commercial' => 0]);
     }
@@ -62,12 +78,12 @@ class VehicleTest extends TestCase
     {
         $user = $this->createUserWithPermissions(['crear vehículos']);
 
-        Vehicle::factory()->create(['plate' => 'XYZ999']);
+        Vehicle::factory()->create(['plate' => 'XYZ999', 'model_id' => $this->model->id, 'establishment_id' => $this->establishment->id]);
 
         $response = $this->actingAs($user)->post(route('vehicles.store'), [
             'plate' => 'XYZ999',
-            'brand' => 'Nissan',
-            'model' => 'Sentra',
+            'model_id' => $this->model->id,
+            'establishment_id' => $this->establishment->id,
         ]);
 
         $response->assertSessionHasErrors('plate');
@@ -77,23 +93,23 @@ class VehicleTest extends TestCase
     {
         $user = $this->createUserWithPermissions(['ver vehículos', 'editar vehículos']);
 
-        $vehicle = Vehicle::factory()->create();
+        $vehicle = Vehicle::factory()->create(['model_id' => $this->model->id, 'establishment_id' => $this->establishment->id]);
 
         $response = $this->actingAs($user)->put(route('vehicles.update', $vehicle), [
             'plate' => $vehicle->plate,
-            'brand' => 'Honda',
-            'model' => 'Civic',
+            'model_id' => $this->model->id,
+            'establishment_id' => $this->establishment->id,
         ]);
 
         $response->assertRedirect(route('vehicles.index'));
-        $this->assertDatabaseHas('vehicles', ['id' => $vehicle->id, 'brand' => 'Honda']);
+        $this->assertDatabaseHas('vehicles', ['id' => $vehicle->id, 'model_id' => $this->model->id]);
     }
 
     public function test_vehicle_can_be_deleted(): void
     {
         $user = $this->createUserWithPermissions(['ver vehículos', 'eliminar vehículos']);
 
-        $vehicle = Vehicle::factory()->create();
+        $vehicle = Vehicle::factory()->create(['model_id' => $this->model->id, 'establishment_id' => $this->establishment->id]);
 
         $response = $this->actingAs($user)->delete(route('vehicles.destroy', $vehicle));
 
