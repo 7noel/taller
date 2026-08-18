@@ -13,30 +13,40 @@
   - Usuario administrador creado: `admin@taller.com` / `password`.
   - Layout base con Tailwind, Tabulator, ApexCharts y Tom Select configurado por CDN.
   - Autenticación básica con Laravel Breeze (adaptada a CDN).
-- **Próximos pasos**: Desarrollar el módulo de Clientes.
+- **Próximos pasos**: Desarrollar el módulo de Parties y Vehículos con el nuevo modelo de relaciones.
 
-### 📌 Sesión 2: Módulo de Clientes y Vehículos
+### 📌 Sesión 2 (sustituida): Primer esquema de Clientes/Vehículos
 - **Fecha**: 18 de agosto de 2026
-- **Tarea**: Desarrollo del módulo de Clientes y Vehículos (CRUD completo).
+- **Detalle**: El primer esquema con `clients` y `vehicle_contacts` fue **reemplazado en la Sesión 3** por el nuevo modelo de "Partes Interesadas" (Parties) con `vehicle_relationships`. Los archivos del esquema anterior se eliminaron.
+
+### 📌 Sesión 3: Módulo de Parties y Vehículos (nuevo modelo de relaciones)
+- **Fecha**: 18 de agosto de 2026
+- **Tarea**: Desarrollo del módulo de Parties (personas/empresas) y Vehículos con el nuevo modelo de "Partes Interesadas" y "Relaciones de Vehículo", reemplazando al modelo anterior de clients/vehicle_contacts.
 - **Detalles**:
-  - Migraciones creadas: `clients`, `vehicles`, `vehicle_contacts` (con SoftDeletes y FKs).
-  - Modelos: `Client`, `Vehicle`, `VehicleContact` con relaciones y `SoftDeletes`.
-  - Fábricas y seeders de ejemplo (5 clientes, 3 vehículos, 4 contactos).
-  - Form Requests: `ClientRequest`, `VehicleRequest` con validación en español.
-  - Policies: `ClientPolicy`, `VehiclePolicy` registradas en `AppServiceProvider` (permisos Spatie).
-  - Services: `ClientService`, `VehicleService` con lógica de negocio y auditoría (created_by/updated_by).
-  - Controladores con métodos resource + búsqueda AJAX para Tabulator/Tom Select.
-  - Vistas Blade responsive: index (Tabulator), create, edit (selects ubigeo en cascada), show — para clientes y vehículos.
-  - Contactos dinámicos del vehículo (máx. 3: aprobador, chofer, operador).
-  - Navegación actualizada con enlaces a Clientes y Vehículos.
+  - **Instalación**: `spatie/laravel-activitylog` para auditoría (versión compatible con PHP 8.2).
+  - **Migraciones nuevas**: `parties` (type, document_type, document_number, first_name/last_name/business_name, ubigeo, tarifas aseguradora, receive_promotions, FK establishment/ubigeo, created_by/updated_by, SoftDeletes), `vehicle_relationships` (vehicle_id, party_id, role enum owner/driver/approver/operator/billing/insurance_company/emergency_contact/other, is_primary_commercial, notes, SoftDeletes), `party_contacts` (contactos de una party, is_primary, SoftDeletes), `activity_log` (3 migraciones del paquete).
+  - **Vehículos actualizados**: sin `client_id`, con `next_technical_review_date`, `technical_review_reminder_days` (default 15), `body_type` nullable.
+  - **Modelos**: `Party`, `Vehicle` (actualizado), `VehicleRelationship`, `PartyContact` — todos con SoftDeletes y trait `LogsActivity` para auditoría.
+  - **Factories**: `PartyFactory` (person/company/insuranceCompany), `VehicleFactory` (actualizada), `VehicleRelationshipFactory`, `PartyContactFactory`.
+  - **Seeders**: `InsuranceCompanySeeder` (Rímac, Pacífico, Mapfre, La Positiva, Protecta, Interseguro con RUC y tarifas), `PartySeeder` (10 parties de ejemplo), `VehicleSeeder` (5 vehículos), `VehicleRelationshipSeeder` (14 relaciones; 5 vehículos con contacto comercial principal = true).
+  - **Permisos**: `ver/crear/editar/eliminar parties` y `ver/crear/editar/eliminar vehículos`. Administrador tiene todos; Asesor ver/crear/editar.
+  - **Form Requests**: `PartyRequest` (validación condicional persona/empresa), `VehicleRequest` (placa única + validación de `relationships.*`).
+  - **Policies**: `PartyPolicy`, `VehiclePolicy` registradas en `AppServiceProvider`.
+  - **Services**: `PartyService`, `VehicleService` (con sincronización de `vehicle_relationships` y auditoría created_by/updated_by).
+  - **Controladores**: `PartyController` (resource + search AJAX + quickStore + provincias/distritos ubigeo), `VehicleController` (resource + search incluyendo propietario).
+  - **Rutas**: `Route::resource('parties')`, `Route::resource('vehicles')`, `api/parties/search`, `api/parties/quick-store`, `api/vehicles/search`, `api/ubigeo/provincias|distritos` — bajo middleware `auth` + `verified`.
+  - **Vistas**: `parties/index` (Tabulator), `parties/create|edit` (formulario 2 columnas, toggle persona/empresa, cascada ubigeo, tarifas aseguradora), `parties/show`; `vehicles/index` (con Propietario vía relación), `vehicles/create|edit` (sección de relaciones dinámicas con Tom Select, modal para crear party nueva vía AJAX, checkbox único "contacto comercial principal"), `vehicles/show` (badges de rol y contacto principal).
+  - **Navegación**: enlace "Parties" reemplaza a "Clientes".
+  - **Pruebas**: `tests/Feature/PartyTest` (6 pruebas), `tests/Feature/VehicleTest` (4 pruebas), `tests/Unit/PartyServiceTest` (3), `tests/Unit/VehicleServiceTest` (3) — **10 pruebas del módulo pasan (27 assertions)**.
 - **Decisiones**:
-  - Rutas resource bajo middleware `auth` + `verified`.
-  - Búsqueda AJAX en `api/clients/search` y `api/vehicles/search`.
-  - Ubigeo con 3 selects en cascada (departamento → provincia → distrito).
-- **Commits**: `39c2455` (migraciones/modelos/seeders), `b358af0` (requests/policies/services/controllers), `e36601b` (vistas).
+  - Las parties reemplazan completamente a `clients`; los vehículos se relacionan mediante `vehicle_relationships` (muchos roles posibles por vehículo).
+  - `is_primary_commercial` solo puede estar marcada en una relación por vehículo (enforced en service y en JS).
+  - `display_name` en `Party` retorna razón social (empresa) o nombre completo (persona).
+  - Se ejecutó `migrate:fresh --seed` para aplicar el nuevo esquema.
+- **Commits**: pendientes (se harán en esta sesión).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
-### � Nota sobre la bitácora
+### 📝 Nota sobre la bitácora
 A partir de ahora, esta bitácora se actualizará automáticamente por el asistente (DeepSeek) en cada hito importante del desarrollo. Los registros incluirán fecha, tarea realizada, decisiones tomadas y próximos pasos.
 
 ---
