@@ -79,15 +79,6 @@
                                 <input type="number" name="review_reminder_days" value="{{ old('review_reminder_days', 15) }}" min="1" max="90" class="mt-1 block w-full rounded-md border-gray-300">
                             </div>
 
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700">Establecimiento *</label>
-                                <select name="establishment_id" required class="mt-1 block w-full rounded-md border-gray-300">
-                                    @foreach ($establishments as $est)
-                                        <option value="{{ $est->id }}">{{ $est->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('establishment_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                            </div>
                         </div>
 
                         <div class="flex gap-2 items-center mt-6">
@@ -106,7 +97,27 @@
         </div>
     </div>
 
+    {{-- Modal OCR Sunarp --}}
+    <div id="sunarp-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75" onclick="closeSunarp()"></div>
+            <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Obtener Datos de Sunarp</h3>
+                    <button type="button" onclick="closeSunarp()" class="text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+                <div class="space-y-4">
+                    <input type="file" id="sunarp-image" accept="image/*" class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <button type="button" id="sunarp-process" class="inline-flex items-center px-4 py-2 bg-yellow-500 rounded-md font-semibold text-xs text-white uppercase hover:bg-yellow-600">Procesar OCR</button>
+                    <div id="sunarp-spinner" class="hidden text-sm text-gray-600">Procesando imagen... (puede tardar unos segundos)</div>
+                    <div id="sunarp-result" class="hidden text-sm text-green-700">Datos detectados y aplicados al formulario.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <script>
     // Cargar modelos según marca
     const brandSelect = document.getElementById('brand_id');
@@ -123,6 +134,56 @@
             opt.textContent = m.name;
             modelSelect.appendChild(opt);
         });
+    });
+
+    // ----- OCR Sunarp -----
+    const sunarpModal = document.getElementById('sunarp-modal');
+    function openSunarp() { sunarpModal.classList.remove('hidden'); }
+    function closeSunarp() { sunarpModal.classList.add('hidden'); }
+    document.getElementById('btn-sunarp').addEventListener('click', (e) => { e.preventDefault(); openSunarp(); });
+
+    // Autocompletar marca/modelo por nombre
+    function selectBrandModel(brandName, modelName) {
+        if (!brandName) return;
+        const bOpt = [...brandSelect.options].find(o => o.text.toUpperCase() === brandName.toUpperCase());
+        if (bOpt) { brandSelect.value = bOpt.value; brandSelect.dispatchEvent(new Event('change')); }
+        if (modelName) {
+            const mOpt = [...modelSelect.options].find(o => o.text.toUpperCase() === modelName.toUpperCase());
+            if (mOpt) modelSelect.value = mOpt.value;
+        }
+    }
+
+    document.getElementById('sunarp-process').addEventListener('click', async function() {
+        const file = document.getElementById('sunarp-image').files[0];
+        if (!file) { alert('Seleccione una imagen'); return; }
+        this.disabled = true;
+        document.getElementById('sunarp-spinner').classList.remove('hidden');
+        try {
+            const { data } = await Tesseract.recognize(file, 'eng+spa');
+            const text = data.text.toUpperCase();
+            const clean = (m) => m ? m[1].trim() : null;
+            const brand = clean(text.match(/(?:MARCA|MARCA\/MODELO)[:\s]*([A-Z0-9\.\-\s]{2,12})/i)) || clean(text.match(/(TOYOTA|HYUNDAI|KIA|CHEVROLET|FORD|NISSAN|HONDA|VOLKSWAGEN|MITSUBISHI|MAZDA|SUBARU|RENAULT|PEUGEOT|CITROEN|FIAT|JEEP|SUZUKI)/i));
+            const model = clean(text.match(/(?:MODELO)[:\s]*([A-Z0-9\-]{2,20})/i));
+            const color = clean(text.match(/(?:COLOR)[:\s]*([A-ZÑÁÉÍÓÚ\s]{3,15})/i));
+            const vin = clean(text.match(/(?:VIN|NUMERO DE VIN|N\s?VIN)[:\s]*([A-Z0-9]{17})/i)) || clean(text.match(/[A-HJ-NPR-Z0-9]{17}/i));
+            const engine = clean(text.match(/(?:MOTOR|NRO MOTOR|N\.? MOTOR)[:\s]*([A-Z0-9\-]{6,15})/i));
+            const year = clean(text.match(/(?:A[ÑN]O|FABRICACION)[:\s]*([0-9]{4})/i));
+
+            // Aplicar a campos
+            if (brand) selectBrandModel(brand, model);
+            if (color) document.querySelector('input[name="color"]').value = color;
+            if (vin) document.querySelector('input[name="vin"]').value = vin;
+            if (engine) document.querySelector('input[name="engine_number"]').value = engine;
+            if (year) document.querySelector('input[name="year"]').value = year;
+
+            document.getElementById('sunarp-result').classList.remove('hidden');
+            setTimeout(closeSunarp, 2000);
+        } catch (err) {
+            alert('No se pudo procesar la imagen: ' + err.message);
+        } finally {
+            this.disabled = false;
+            document.getElementById('sunarp-spinner').classList.add('hidden');
+        }
     });
     </script>
     @endpush

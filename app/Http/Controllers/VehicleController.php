@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\VehicleRequest;
 use App\Models\Brand;
-use App\Models\Establishment;
 use App\Models\Vehicle;
 use App\Services\VehicleService;
 use Illuminate\Http\JsonResponse;
@@ -33,9 +32,8 @@ class VehicleController extends Controller
         Gate::authorize('create', Vehicle::class);
 
         $brands = Brand::with('models')->orderBy('name')->get();
-        $establishments = Establishment::orderBy('name')->get();
 
-        return view('vehicles.create', compact('brands', 'establishments'));
+        return view('vehicles.create', compact('brands'));
     }
 
     public function store(VehicleRequest $request)
@@ -62,10 +60,9 @@ class VehicleController extends Controller
         Gate::authorize('update', $vehicle);
 
         $brands = Brand::with('models')->orderBy('name')->get();
-        $establishments = Establishment::orderBy('name')->get();
         $vehicle->load('relationships.party');
 
-        return view('vehicles.edit', compact('vehicle', 'brands', 'establishments'));
+        return view('vehicles.edit', compact('vehicle', 'brands'));
     }
 
     public function update(VehicleRequest $request, Vehicle $vehicle)
