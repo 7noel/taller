@@ -134,6 +134,8 @@ class ClientController extends Controller
                 'business_name' => $client->business_name,
                 'document_number' => $client->document_number,
                 'document_type' => $client->document_type,
+                'phone' => $client->phone,
+                'email' => $client->email,
                 'vehicles_count' => $client->vehicles_count ?? $client->vehicles->count(),
             ]));
     }
