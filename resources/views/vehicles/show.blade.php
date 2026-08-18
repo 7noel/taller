@@ -35,11 +35,11 @@
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Marca</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->brand }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->vehicleModel?->brand?->name ?? '—' }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Modelo</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->model }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->vehicleModel?->name ?? '—' }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Tipo de Carrocería</dt>
@@ -63,11 +63,11 @@
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Próxima Revisión Técnica</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->next_technical_review_date?->format('d/m/Y') ?? '—' }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->technical_review_date?->format('d/m/Y') ?? '—' }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Días Aviso Revisión</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->technical_review_reminder_days }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $vehicle->review_reminder_days }}</dd>
                                 </div>
                             </dl>
                         </div>
