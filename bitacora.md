@@ -46,6 +46,18 @@
 - **Commits**: `54ae111` (eliminación esquema anterior), `4775981` (esquema parties/vehicle_relationships/party_contacts + activitylog), `2490422` (factories y seeders), `5878e73` (requests/policies/services/controllers/rutas), `51ddfb7` (vistas), `413eb65` (pruebas), `e626d9b` (bitácora).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
+### 📌 Sesión 6: Consulta DNI/RUC (apisperu.com) y Tipo de Cambio SUNAT
+- **Fecha**: 18 de agosto de 2026
+- **Tarea**: Integración de consulta de DNI/RUC vía API `apisperu.com` con autocompletado de formularios de Parties, y servicio de tipo de cambio SUNAT.
+- **Detalles**:
+  - **`ReniecSunatService`**: métodos `getDni($dni)` y `getRuc($ruc)` usando `Http` facade con token de apisperu.com. Devuelve datos normalizados en mayúsculas o `null` en error.
+  - **`SunatExchangeService`**: métodos `getTipoCambio($fecha)` y `getTipoCambioMes($year, $month)` usando la API de `apis.net.pe`.
+  - **Endpoints**: `POST /api/party/search-by-document` y `GET /api/tipo-cambio` (protegidos por `auth` + `Gate`).
+  - **`resources/js/party-helper.js`** (también copiado a `public/js/`): JS vanilla con `fetch`, autocompleta `first_name`/`last_name` (DNI) o `business_name`/`address`/ubigeo (RUC) en mayúsculas.
+  - **Vistas `parties/create` y `edit`**: botón "🔍 Buscar" junto a `document_number`, consulta automática al perder el foco (blur) con 8 dígitos (DNI) o 11 (RUC).
+  - Los tokens se mantienen en el backend (`env`), nunca expuestos al frontend.
+- **Próximos pasos**: Módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
+
 ### 📌 Sesión 5: OCR Sunarp mejorado (Tesseract.js v5) en formularios de vehículos
 - **Fecha**: 18 de agosto de 2026
 - **Tarea**: Implementación completa de OCR para capturas de Sunarp en formularios de vehículos (crear y editar).
