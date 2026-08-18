@@ -43,7 +43,7 @@
   - `is_primary_commercial` solo puede estar marcada en una relación por vehículo (enforced en service y en JS).
   - `display_name` en `Party` retorna razón social (empresa) o nombre completo (persona).
   - Se ejecutó `migrate:fresh --seed` para aplicar el nuevo esquema.
-- **Commits**: pendientes (se harán en esta sesión).
+- **Commits**: `54ae111` (eliminación esquema anterior), `4775981` (esquema parties/vehicle_relationships/party_contacts + activitylog), `2490422` (factories y seeders), `5878e73` (requests/policies/services/controllers/rutas), `51ddfb7` (vistas), `413eb65` (pruebas), `e626d9b` (bitácora).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
 ### 📝 Nota sobre la bitácora
