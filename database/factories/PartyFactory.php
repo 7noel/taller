@@ -33,7 +33,6 @@ class PartyFactory extends Factory
             'insurance_hourly_rate' => null,
             'insurance_panel_rate' => null,
             'receive_promotions' => true,
-            'establishment_id' => \App\Models\Establishment::first()?->id ?? 1,
         ];
     }
 

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Brand;
-use App\Models\Establishment;
 use App\Models\Vehicle;
 use App\Models\VehicleModel;
 use Illuminate\Database\Seeder;
@@ -12,11 +11,6 @@ class VehicleSeeder extends Seeder
 {
     public function run(): void
     {
-        $establishment = Establishment::first() ?? Establishment::create([
-            'name' => 'Sede Central', 'address' => 'Av. Principal 123',
-            'phone' => '987654321', 'email' => 'central@taller.com', 'code' => '001',
-        ]);
-
         $vehicles = [
             ['plate' => 'ABC123', 'brand' => 'TOYOTA', 'model' => 'COROLLA', 'body_type' => 'sedan', 'color' => 'Blanco', 'vin' => 'JTDBT123456789012', 'engine_number' => '2ZR1234567', 'year' => 2019, 'technical_review_date' => now()->addMonths(6)->toDateString(), 'review_reminder_days' => 15],
             ['plate' => 'XYZ456', 'brand' => 'NISSAN', 'model' => 'FRONTIER', 'body_type' => 'pickup', 'color' => 'Gris', 'vin' => 'JN8BUT1A123456789', 'engine_number' => 'YD25987654', 'year' => 2020, 'technical_review_date' => now()->addMonths(3)->toDateString(), 'review_reminder_days' => 10],
@@ -32,8 +26,8 @@ class VehicleSeeder extends Seeder
 
             $brand = Brand::firstOrCreate(['name' => $brandName]);
             $model = VehicleModel::firstOrCreate(['brand_id' => $brand->id, 'name' => $modelName]);
+            $vehicle['brand_id'] = $brand->id;
             $vehicle['model_id'] = $model->id;
-            $vehicle['establishment_id'] = $establishment->id;
 
             Vehicle::firstOrCreate(['plate' => $vehicle['plate']], $vehicle);
         }

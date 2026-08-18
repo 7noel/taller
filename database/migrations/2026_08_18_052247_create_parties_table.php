@@ -25,14 +25,12 @@ return new class extends Migration
             $table->decimal('insurance_hourly_rate', 12, 2)->nullable();
             $table->decimal('insurance_panel_rate', 12, 2)->nullable();
             $table->boolean('receive_promotions')->default(true);
-            $table->unsignedBigInteger('establishment_id');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('ubigeo_code')->references('code')->on('ubigeos')->nullOnDelete();
-            $table->foreign('establishment_id')->references('id')->on('establishments');
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
 

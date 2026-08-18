@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('vehicles', function (Blueprint $table) {
             $table->id();
             $table->string('plate')->unique();
+            $table->unsignedBigInteger('brand_id');
             $table->unsignedBigInteger('model_id');
             $table->string('color')->nullable();
             $table->string('vin')->nullable();
@@ -19,14 +20,13 @@ return new class extends Migration
             $table->string('body_type')->nullable();
             $table->date('technical_review_date')->nullable();
             $table->integer('review_reminder_days')->default(15);
-            $table->unsignedBigInteger('establishment_id');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
+            $table->foreign('brand_id')->references('id')->on('brands');
             $table->foreign('model_id')->references('id')->on('models');
-            $table->foreign('establishment_id')->references('id')->on('establishments');
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
 

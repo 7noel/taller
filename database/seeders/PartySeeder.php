@@ -127,7 +127,7 @@ class PartySeeder extends Seeder
             unset($party['document_number']);
             Party::firstOrCreate(
                 ['document_number' => $documentNumber],
-                array_merge($party, ['establishment_id' => 1])
+                $party
             );
         }
     }

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Brand;
-use App\Models\Establishment;
 use App\Models\Vehicle;
 use App\Models\VehicleModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -23,6 +22,7 @@ class VehicleFactory extends Factory
                 $this->faker->bothify('???###'),
                 $this->faker->bothify('???####'),
             ])),
+            'brand_id' => $brand->id,
             'model_id' => $model->id,
             'color' => $this->faker->safeColorName(),
             'vin' => strtoupper($this->faker->bothify('??????##############')),
@@ -31,7 +31,6 @@ class VehicleFactory extends Factory
             'body_type' => $this->faker->randomElement(['sedan', 'suv', 'pickup', 'camioneta', 'camion', 'moto']),
             'technical_review_date' => $this->faker->dateTimeBetween('now', '+1 year')->format('Y-m-d'),
             'review_reminder_days' => 15,
-            'establishment_id' => Establishment::first()?->id ?? 1,
         ];
     }
 }

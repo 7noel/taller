@@ -15,18 +15,9 @@ class Vehicle extends Model
     use LogsActivity;
 
     protected $fillable = [
-        'plate',
-        'model_id',
-        'color',
-        'vin',
-        'engine_number',
-        'year',
-        'body_type',
-        'technical_review_date',
-        'review_reminder_days',
-        'establishment_id',
-        'created_by',
-        'updated_by',
+        'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
+        'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+        'created_by', 'updated_by',
     ];
 
     protected $casts = [
@@ -38,30 +29,22 @@ class Vehicle extends Model
     {
         return LogOptions::defaults()
             ->logOnly([
-                'plate',
-                'model_id',
-                'color',
-                'vin',
-                'engine_number',
-                'year',
-                'body_type',
-                'technical_review_date',
-                'review_reminder_days',
-                'establishment_id',
+                'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
+                'year', 'body_type', 'technical_review_date', 'review_reminder_days',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('vehicle');
     }
 
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class, 'brand_id');
+    }
+
     public function vehicleModel()
     {
         return $this->belongsTo(VehicleModel::class, 'model_id');
-    }
-
-    public function establishment()
-    {
-        return $this->belongsTo(Establishment::class);
     }
 
     public function creator()
@@ -90,10 +73,5 @@ class Vehicle extends Model
     public function owner()
     {
         return $this->hasOne(VehicleRelationship::class)->where('role', 'owner');
-    }
-
-    public function primaryCommercial()
-    {
-        return $this->hasOne(VehicleRelationship::class)->where('is_primary_commercial', true);
     }
 }

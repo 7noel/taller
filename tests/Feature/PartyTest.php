@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,19 +13,9 @@ class PartyTest extends TestCase
 {
     use RefreshDatabase;
 
-    private Establishment $establishment;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->establishment = Establishment::create([
-            'name' => 'Sede Test', 'address' => 'Av. Test', 'phone' => '999', 'email' => 't@t.com', 'code' => 'TST',
-        ]);
-    }
-
     protected function createUserWithPermissions(array $permissions): User
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
+        $user = User::factory()->create();
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
@@ -42,46 +31,31 @@ class PartyTest extends TestCase
 
     private function createParty(): Party
     {
-        return Party::factory()->create(['establishment_id' => $this->establishment->id]);
+        return Party::factory()->create();
     }
 
     public function test_index_requires_ver_parties_permission(): void
     {
         $user = $this->createUserWithPermissions(['ver parties']);
-
-        $response = $this->actingAs($user)->get(route('parties.index'));
-
-        $response->assertOk();
-        $response->assertViewIs('parties.index');
+        $this->actingAs($user)->get(route('parties.index'))->assertOk()->assertViewIs('parties.index');
     }
 
     public function test_unauthorized_user_cannot_access_parties(): void
     {
-        $user = User::factory()->create(['establishment_id' => $this->establishment->id]);
-
-        $response = $this->actingAs($user)->get(route('parties.index'));
-
-        $response->assertForbidden();
+        $user = User::factory()->create();
+        $this->actingAs($user)->get(route('parties.index'))->assertForbidden();
     }
 
     public function test_party_can_be_created(): void
     {
         $user = $this->createUserWithPermissions(['ver parties', 'crear parties']);
 
-        $response = $this->actingAs($user)->post(route('parties.store'), [
-            'type' => 'person',
-            'document_type' => 'DNI',
-            'document_number' => '12345678',
-            'first_name' => 'Juan',
-            'last_name' => 'Pérez',
-            'email' => 'juan@example.com',
-            'phone' => '011234567',
-            'mobile' => '987654321',
-            'receive_promotions' => true,
-            'establishment_id' => $this->establishment->id,
-        ]);
+        $this->actingAs($user)->post(route('parties.store'), [
+            'type' => 'person', 'document_type' => 'DNI', 'document_number' => '12345678',
+            'first_name' => 'Juan', 'last_name' => 'Pérez', 'email' => 'juan@example.com',
+            'phone' => '011234567', 'mobile' => '987654321', 'receive_promotions' => true,
+        ])->assertRedirect(route('parties.index'));
 
-        $response->assertRedirect(route('parties.index'));
         $this->assertDatabaseHas('parties', ['document_number' => '12345678', 'first_name' => 'Juan']);
     }
 
@@ -89,15 +63,9 @@ class PartyTest extends TestCase
     {
         $user = $this->createUserWithPermissions(['crear parties']);
 
-        $response = $this->actingAs($user)->post(route('parties.store'), [
-            'type' => 'person',
-            'document_type' => 'DNI',
-            'first_name' => 'Juan',
-            'last_name' => 'Pérez',
-            'establishment_id' => $this->establishment->id,
-        ]);
-
-        $response->assertSessionHasErrors('document_number');
+        $this->actingAs($user)->post(route('parties.store'), [
+            'type' => 'person', 'document_type' => 'DNI', 'first_name' => 'Juan', 'last_name' => 'Pérez',
+        ])->assertSessionHasErrors('document_number');
     }
 
     public function test_party_can_be_updated(): void
@@ -105,16 +73,11 @@ class PartyTest extends TestCase
         $user = $this->createUserWithPermissions(['ver parties', 'editar parties']);
         $party = $this->createParty();
 
-        $response = $this->actingAs($user)->put(route('parties.update', $party), [
-            'type' => 'person',
-            'document_type' => 'DNI',
-            'document_number' => $party->document_number,
-            'first_name' => 'María',
-            'last_name' => 'López',
-            'establishment_id' => $this->establishment->id,
-        ]);
+        $this->actingAs($user)->put(route('parties.update', $party), [
+            'type' => 'person', 'document_type' => 'DNI', 'document_number' => $party->document_number,
+            'first_name' => 'María', 'last_name' => 'López',
+        ])->assertRedirect(route('parties.index'));
 
-        $response->assertRedirect(route('parties.index'));
         $this->assertDatabaseHas('parties', ['id' => $party->id, 'first_name' => 'María']);
     }
 
@@ -123,9 +86,7 @@ class PartyTest extends TestCase
         $user = $this->createUserWithPermissions(['ver parties', 'eliminar parties']);
         $party = $this->createParty();
 
-        $response = $this->actingAs($user)->delete(route('parties.destroy', $party));
-
-        $response->assertRedirect(route('parties.index'));
+        $this->actingAs($user)->delete(route('parties.destroy', $party))->assertRedirect(route('parties.index'));
         $this->assertSoftDeleted('parties', ['id' => $party->id]);
     }
 }
