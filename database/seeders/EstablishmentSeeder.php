@@ -9,12 +9,14 @@ class EstablishmentSeeder extends Seeder
 {
     public function run()
     {
-        Establishment::create([
-            'name' => 'Sede Central',
-            'address' => 'Av. Principal 123',
-            'phone' => '987654321',
-            'email' => 'central@taller.com',
-            'code' => '001',
-        ]);
+        Establishment::firstOrCreate(
+            ['code' => '001'],
+            [
+                'name' => 'Sede Central',
+                'address' => 'Av. Principal 123',
+                'phone' => '987654321',
+                'email' => 'central@taller.com',
+            ]
+        );
     }
 }

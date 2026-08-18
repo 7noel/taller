@@ -61,19 +61,21 @@ class InsuranceCompanySeeder extends Seeder
         ];
 
         foreach ($companies as $company) {
-            Party::create([
-                'type' => 'company',
-                'document_type' => 'RUC',
-                'document_number' => $company['document_number'],
-                'business_name' => $company['business_name'],
-                'email' => $company['email'],
-                'phone' => $company['phone'],
-                'is_insurance_company' => true,
-                'insurance_hourly_rate' => $company['insurance_hourly_rate'],
-                'insurance_panel_rate' => $company['insurance_panel_rate'],
-                'receive_promotions' => false,
-                'establishment_id' => 1,
-            ]);
+            Party::firstOrCreate(
+                ['document_number' => $company['document_number']],
+                [
+                    'type' => 'company',
+                    'document_type' => 'RUC',
+                    'business_name' => $company['business_name'],
+                    'email' => $company['email'],
+                    'phone' => $company['phone'],
+                    'is_insurance_company' => true,
+                    'insurance_hourly_rate' => $company['insurance_hourly_rate'],
+                    'insurance_panel_rate' => $company['insurance_panel_rate'],
+                    'receive_promotions' => false,
+                    'establishment_id' => 1,
+                ]
+            );
         }
     }
 }

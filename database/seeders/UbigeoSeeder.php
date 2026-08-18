@@ -9,7 +9,7 @@ class UbigeoSeeder extends Seeder {
 	public function run()
 	{
 		\DB::statement("
-INSERT INTO `ubigeos` (`code`, `departamento`, `provincia`, `distrito`) VALUES
+INSERT IGNORE INTO `ubigeos` (`code`, `departamento`, `provincia`, `distrito`) VALUES
 ('010101','AMAZONAS','CHACHAPOYAS','CHACHAPOYAS'),
 ('010102','AMAZONAS','CHACHAPOYAS','ASUNCIÓN'),
 ('010103','AMAZONAS','CHACHAPOYAS','BALSAS'),
@@ -1001,7 +1001,7 @@ INSERT INTO `ubigeos` (`code`, `departamento`, `provincia`, `distrito`) VALUES
 			");
 // 987
 		\DB::statement("
-INSERT INTO `ubigeos` (`code`, `departamento`, `provincia`, `distrito`) VALUES
+INSERT IGNORE INTO `ubigeos` (`code`, `departamento`, `provincia`, `distrito`) VALUES
 ('110102','ICA','ICA','LA TINGUIÑA'),
 ('110103','ICA','ICA','LOS AQUIJES'),
 ('110104','ICA','ICA','OCUCAJE'),
