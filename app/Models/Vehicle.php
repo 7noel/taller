@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Vehicle extends Model
 {
+    use HasFactory;
     use SoftDeletes;
+    use LogsActivity;
 
     protected $fillable = [
         'plate',
-        'client_id',
         'brand',
         'model',
         'body_type',
@@ -19,14 +23,37 @@ class Vehicle extends Model
         'vin',
         'engine_number',
         'year',
+        'next_technical_review_date',
+        'technical_review_reminder_days',
         'establishment_id',
         'created_by',
         'updated_by',
     ];
 
-    public function client()
+    protected $casts = [
+        'next_technical_review_date' => 'date',
+        'technical_review_reminder_days' => 'integer',
+    ];
+
+    public function getActivitylogOptions(): LogOptions
     {
-        return $this->belongsTo(Client::class);
+        return LogOptions::defaults()
+            ->logOnly([
+                'plate',
+                'brand',
+                'model',
+                'body_type',
+                'color',
+                'vin',
+                'engine_number',
+                'year',
+                'next_technical_review_date',
+                'technical_review_reminder_days',
+                'establishment_id',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('vehicle');
     }
 
     public function establishment()
@@ -44,8 +71,34 @@ class Vehicle extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    public function contacts()
+    public function relationships()
     {
-        return $this->hasMany(VehicleContact::class);
+        return $this->hasMany(VehicleRelationship::class);
+    }
+
+    public function parties()
+    {
+        return $this->belongsToMany(Party::class, 'vehicle_relationships')
+            ->withPivot(['role', 'is_primary_commercial', 'notes'])
+            ->wherePivotNull('deleted_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * The owner party of the vehicle.
+     */
+    public function owner()
+    {
+        return $this->hasOne(VehicleRelationship::class)
+            ->where('role', 'owner');
+    }
+
+    /**
+     * The primary commercial contact.
+     */
+    public function primaryCommercial()
+    {
+        return $this->hasOne(VehicleRelationship::class)
+            ->where('is_primary_commercial', true);
     }
 }
