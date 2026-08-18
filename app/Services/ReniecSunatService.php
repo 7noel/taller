@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 class ReniecSunatService
 {
-    protected string $baseUrl = 'https://api.apisperu.com/api/v1';
+    protected string $baseUrl = 'https://dniruc.apisperu.com/api/v1';
     protected string $token;
 
     public function __construct()
@@ -19,15 +19,15 @@ class ReniecSunatService
      */
     public function getDni(string $dni): ?array
     {
-        if (strlen($dni) !== 8 || !ctype_digit($dni)) {
+        // El DNI tiene 8 dígitos y puede empezar con cero
+        if (! preg_match('/^\d{8}$/', $dni)) {
             return null;
         }
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->token,
-                'Accept' => 'application/json',
-            ])->get("{$this->baseUrl}/dni/{$dni}");
+            $response = Http::withOptions(['verify' => false])
+                ->acceptJson()
+                ->get("{$this->baseUrl}/dni/{$dni}", ['token' => $this->token]);
 
             if ($response->failed()) {
                 return null;
@@ -40,11 +40,11 @@ class ReniecSunatService
             }
 
             return [
-                'document_type' => 'DNI',
+                'document_type' => '1', // DNI (código SUNAT)
                 'document_number' => $data['dni'] ?? $dni,
-                'first_name' => mb_strtoupper($data['nombres'] ?? ''),
+                // Formato: apellidos primero, luego nombre
                 'last_name' => trim(mb_strtoupper(($data['apellidoPaterno'] ?? '') . ' ' . ($data['apellidoMaterno'] ?? ''))),
-                'type' => 'person',
+                'first_name' => mb_strtoupper($data['nombres'] ?? ''),
             ];
         } catch (\Exception $e) {
             return null;
@@ -56,15 +56,14 @@ class ReniecSunatService
      */
     public function getRuc(string $ruc): ?array
     {
-        if (strlen($ruc) !== 11 || !ctype_digit($ruc)) {
+        if (! preg_match('/^\d{11}$/', $ruc)) {
             return null;
         }
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->token,
-                'Accept' => 'application/json',
-            ])->get("{$this->baseUrl}/ruc/{$ruc}");
+            $response = Http::withOptions(['verify' => false])
+                ->acceptJson()
+                ->get("{$this->baseUrl}/ruc/{$ruc}", ['token' => $this->token]);
 
             if ($response->failed()) {
                 return null;
@@ -76,16 +75,27 @@ class ReniecSunatService
                 return null;
             }
 
+            $department = mb_strtoupper($data['departamento'] ?? '');
+            $province = mb_strtoupper($data['provincia'] ?? '');
+            $district = mb_strtoupper($data['distrito'] ?? '');
+            $direccion = mb_strtoupper($data['direccion'] ?? '');
+
+            // Limpiar dirección: quitar el sufijo " DEPARTAMENTO PROVINCIA DISTRITO"
+            foreach ([$department, $province, $district] as $part) {
+                if ($part !== '') {
+                    $direccion = str_replace(" {$part}", '', $direccion);
+                }
+            }
+
             return [
-                'document_type' => 'RUC',
+                'document_type' => '6', // RUC (código SUNAT)
                 'document_number' => $data['ruc'] ?? $ruc,
                 'business_name' => mb_strtoupper($data['razonSocial'] ?? ''),
-                'address' => mb_strtoupper($data['direccion'] ?? ''),
-                'department' => mb_strtoupper($data['departamento'] ?? ''),
-                'province' => mb_strtoupper($data['provincia'] ?? ''),
-                'district' => mb_strtoupper($data['distrito'] ?? ''),
+                'address' => $direccion,
+                'department' => $department,
+                'province' => $province,
+                'district' => $district,
                 'ubigeo_code' => $data['ubigeo'] ?? null,
-                'type' => 'company',
             ];
         } catch (\Exception $e) {
             return null;
@@ -93,13 +103,14 @@ class ReniecSunatService
     }
 
     /**
-     * Consultar DNI o RUC según el tipo de documento.
+     * Consultar DNI o RUC según el código de documento SUNAT.
+     * 1=DNI, 6=RUC.
      */
     public function searchByDocument(string $documentType, string $documentNumber): ?array
     {
         return match ($documentType) {
-            '1', 'DNI' => $this->getDni($documentNumber),
-            '6', 'RUC' => $this->getRuc($documentNumber),
+            '1' => $this->getDni($documentNumber),
+            '6' => $this->getRuc($documentNumber),
             default => null,
         };
     }

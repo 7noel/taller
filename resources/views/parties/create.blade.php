@@ -13,28 +13,17 @@
                         @csrf
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {{-- Tipo --}}
-                            <div>
-                                <label for="type" class="block text-sm font-medium text-gray-700">Tipo *</label>
-                                <select id="type" name="type" required
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Seleccionar...</option>
-                                    <option value="person" @selected(old('type', 'person') === 'person')>Persona</option>
-                                    <option value="company" @selected(old('type') === 'company')>Empresa</option>
-                                </select>
-                                @error('type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                            </div>
-
-                            {{-- Tipo de documento --}}
-                            <div>
+                            {{-- Tipo de documento (códigos SUNAT) --}}
+                            <div class="md:col-span-2">
                                 <label for="document_type" class="block text-sm font-medium text-gray-700">Tipo de Documento *</label>
                                 <select id="document_type" name="document_type" required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">Seleccionar...</option>
-                                    <option value="DNI" @selected(old('document_type') == 'DNI')>DNI</option>
-                                    <option value="RUC" @selected(old('document_type') == 'RUC')>RUC</option>
-                                    <option value="PAS" @selected(old('document_type') == 'PAS')>Pasaporte</option>
-                                    <option value="CEX" @selected(old('document_type') == 'CEX')>Carné de Extranjería</option>
+                                    <option value="1" @selected(old('document_type') == '1')>DNI</option>
+                                    <option value="6" @selected(old('document_type') == '6')>RUC</option>
+                                    <option value="4" @selected(old('document_type') == '4')>Carné de Extranjería</option>
+                                    <option value="7" @selected(old('document_type') == '7')>Pasaporte</option>
+                                    <option value="A" @selected(old('document_type') == 'A')>Cédula Diplomática</option>
                                 </select>
                                 @error('document_type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -188,18 +177,18 @@
     @push('scripts')
     <script src="{{ asset('js/party-helper.js') }}"></script>
     <script>
-        // Toggle persona / empresa
-        const typeSelect = document.getElementById('type');
+        // Toggle persona / empresa según tipo de documento (1=DNI, 6=RUC)
+        const docTypeSelect = document.getElementById('document_type');
         const personFields = document.getElementById('person-fields');
         const companyFields = document.getElementById('company-fields');
 
         function toggleTypeFields() {
-            const isPerson = typeSelect.value === 'person';
-            personFields.classList.toggle('hidden', !isPerson);
-            companyFields.classList.toggle('hidden', isPerson);
+            const isCompany = docTypeSelect.value === '6';
+            personFields.classList.toggle('hidden', isCompany);
+            companyFields.classList.toggle('hidden', !isCompany);
         }
 
-        typeSelect.addEventListener('change', toggleTypeFields);
+        docTypeSelect.addEventListener('change', toggleTypeFields);
         toggleTypeFields();
 
         // Mostrar/ocultar campos de tarifas si es aseguradora

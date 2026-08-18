@@ -18,8 +18,7 @@ class PartyServiceTest extends TestCase
         $this->actingAs($user);
 
         $party = (new PartyService())->create([
-            'type' => 'person',
-            'document_type' => 'DNI',
+            'document_type' => '1',
             'document_number' => '12345679',
             'first_name' => 'Ana',
             'last_name' => 'Gómez',
@@ -35,8 +34,7 @@ class PartyServiceTest extends TestCase
         $this->actingAs($user);
 
         $party = (new PartyService())->create([
-            'type' => 'person',
-            'document_type' => 'DNI',
+            'document_type' => '1',
             'document_number' => '12345678',
             'first_name' => 'Ana',
             'last_name' => 'Gómez',

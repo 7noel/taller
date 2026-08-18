@@ -56,12 +56,12 @@ class PartyService
      */
     protected function normalizeData(array $data): array
     {
-        // For persons, clear business_name; for companies, clear first/last name
-        if (($data['type'] ?? 'person') === 'person') {
-            $data['business_name'] = null;
-        } else {
+        // RUC (6) = empresa sin nombre/apellido; los demás documentos son personas sin razón social
+        if (($data['document_type'] ?? '1') === '6') {
             $data['first_name'] = null;
             $data['last_name'] = null;
+        } else {
+            $data['business_name'] = null;
         }
 
         $data['is_insurance_company'] = $data['is_insurance_company'] ?? false;

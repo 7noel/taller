@@ -22,9 +22,6 @@ class PartyController extends Controller
         $this->partyService = $partyService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         Gate::authorize('viewAny', Party::class);
@@ -32,9 +29,6 @@ class PartyController extends Controller
         return view('parties.index');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
         Gate::authorize('create', Party::class);
@@ -44,9 +38,6 @@ class PartyController extends Controller
         return view('parties.create', compact('departamentos'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(PartyRequest $request)
     {
         Gate::authorize('create', Party::class);
@@ -57,9 +48,6 @@ class PartyController extends Controller
             ->with('success', 'Party creada correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Party $party): View
     {
         Gate::authorize('view', $party);
@@ -69,9 +57,6 @@ class PartyController extends Controller
         return view('parties.show', compact('party'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Party $party): View
     {
         Gate::authorize('update', $party);
@@ -81,9 +66,6 @@ class PartyController extends Controller
         return view('parties.edit', compact('party', 'departamentos'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(PartyRequest $request, Party $party)
     {
         Gate::authorize('update', $party);
@@ -94,9 +76,6 @@ class PartyController extends Controller
             ->with('success', 'Party actualizada correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Party $party)
     {
         Gate::authorize('delete', $party);
@@ -107,9 +86,6 @@ class PartyController extends Controller
             ->with('success', 'Party eliminada correctamente.');
     }
 
-    /**
-     * AJAX search for parties (Tom Select / Tabulator).
-     */
     public function search(Request $request): JsonResponse
     {
         Gate::authorize('viewAny', Party::class);
@@ -125,14 +101,13 @@ class PartyController extends Controller
             ->when($request->filled('id'), function ($q) use ($request) {
                 $q->whereKey($request->query('id'));
             })
-            ->orderByRaw("COALESCE(business_name, CONCAT(first_name, ' ', last_name))")
+            ->orderByRaw("COALESCE(business_name, CONCAT(last_name, ' ', first_name))")
             ->limit($request->integer('limit', 20));
 
         return response()->json($query->get()
             ->map(fn (Party $party) => [
                 'id' => $party->id,
                 'display_name' => $party->display_name,
-                'type' => $party->type,
                 'document_type' => $party->document_type,
                 'document_number' => $party->document_number,
                 'phone' => $party->mobile ?: $party->phone,
@@ -141,16 +116,12 @@ class PartyController extends Controller
             ]));
     }
 
-    /**
-     * Create a party quickly from the vehicle form (AJAX).
-     */
     public function quickStore(Request $request): JsonResponse
     {
         Gate::authorize('create', Party::class);
 
         $validated = $request->validate([
-            'type' => ['required', 'in:person,company'],
-            'document_type' => ['required', 'in:DNI,RUC,PAS,CEX'],
+            'document_type' => ['required', 'in:1,6,4,7,A'],
             'document_number' => ['required', 'string', 'max:20', 'unique:parties,document_number'],
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
@@ -165,15 +136,11 @@ class PartyController extends Controller
         return response()->json([
             'id' => $party->id,
             'display_name' => $party->display_name,
-            'type' => $party->type,
             'document_type' => $party->document_type,
             'document_number' => $party->document_number,
         ], 201);
     }
 
-    /**
-     * AJAX for ubigeo cascading selects.
-     */
     public function provincias(Request $request): JsonResponse
     {
         $departamento = $request->query('departamento');
@@ -187,9 +154,6 @@ class PartyController extends Controller
         return response()->json($provincias);
     }
 
-    /**
-     * AJAX for ubigeo cascading selects.
-     */
     public function distritos(Request $request): JsonResponse
     {
         $departamento = $request->query('departamento');
@@ -204,15 +168,12 @@ class PartyController extends Controller
         return response()->json($distritos);
     }
 
-    /**
-     * Consultar DNI/RUC desde la API de Reniec/Sunat (apisperu.com).
-     */
     public function searchByDocument(Request $request, ReniecSunatService $reniecSunat): JsonResponse
     {
         Gate::authorize('create', Party::class);
 
         $request->validate([
-            'document_type' => ['required', 'string', 'in:1,6,DNI,RUC'],
+            'document_type' => ['required', 'string', 'in:1,6'],
             'document_number' => ['required', 'string', 'max:11'],
         ]);
 
@@ -228,9 +189,6 @@ class PartyController extends Controller
         return response()->json($result);
     }
 
-    /**
-     * Obtener tipo de cambio SUNAT por fecha o por mes.
-     */
     public function tipoCambio(Request $request, SunatExchangeService $exchange): JsonResponse
     {
         Gate::authorize('viewAny', Party::class);

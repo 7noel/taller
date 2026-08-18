@@ -74,24 +74,16 @@
     }
 
     async function fillForm(data) {
-        if (data.type === 'person') {
-            const typeSelect = document.querySelector('select[name="type"]');
-            if (typeSelect) {
-                selectOption(typeSelect, 'person');
-                typeSelect.dispatchEvent(new Event('change'));
-            }
-            const firstName = document.querySelector('input[name="first_name"]');
+        // DNI (1): apellidos primero, luego nombre
+        if (data.document_type === '1') {
             const lastName = document.querySelector('input[name="last_name"]');
-            if (firstName && data.first_name) firstName.value = data.first_name.toUpperCase();
+            const firstName = document.querySelector('input[name="first_name"]');
             if (lastName && data.last_name) lastName.value = data.last_name.toUpperCase();
+            if (firstName && data.first_name) firstName.value = data.first_name.toUpperCase();
         }
 
-        if (data.type === 'company') {
-            const typeSelect = document.querySelector('select[name="type"]');
-            if (typeSelect) {
-                selectOption(typeSelect, 'company');
-                typeSelect.dispatchEvent(new Event('change'));
-            }
+        // RUC (6): empresa
+        if (data.document_type === '6') {
             const businessName = document.querySelector('input[name="business_name"]');
             if (businessName && data.business_name) businessName.value = data.business_name.toUpperCase();
 
@@ -107,25 +99,32 @@
 
         const form = documentNumberInput.closest('form');
         const typeSelect = form?.querySelector('select[name="document_type"]');
+        const btn = options.button || document.querySelector('[data-party-search-btn]');
+
+        function toggleSearchBtn() {
+            const docType = (typeSelect?.value || options.documentType || '').trim();
+            if (btn) btn.disabled = !['1', '6'].includes(docType);
+        }
 
         async function handleSearch() {
-            const docType = (typeSelect?.value || options.documentType || '').toUpperCase();
+            const docType = (typeSelect?.value || options.documentType || '').trim();
             const docNumber = documentNumberInput.value.trim();
 
-            if (docType === 'DNI' && docNumber.length !== 8) {
-                alert('El DNI debe tener 8 dígitos.');
-                return;
-            }
-            if (docType === 'RUC' && docNumber.length !== 11) {
-                alert('El RUC debe tener 11 dígitos.');
-                return;
-            }
-            if (!['DNI', 'RUC'].includes(docType)) {
-                alert('Seleccione DNI o RUC para consultar automáticamente.');
+            if (docType === '1') {
+                if (!/^\d{8}$/.test(docNumber)) {
+                    alert('El DNI debe tener 8 dígitos (puede empezar con cero).');
+                    return;
+                }
+            } else if (docType === '6') {
+                if (!/^\d{11}$/.test(docNumber)) {
+                    alert('El RUC debe tener 11 dígitos.');
+                    return;
+                }
+            } else {
+                alert('Seleccione DNI o RUC para poder buscar.');
                 return;
             }
 
-            const btn = options.button || document.querySelector('[data-party-search-btn]');
             if (btn) btn.disabled = true;
 
             try {
@@ -136,19 +135,25 @@
                 alert(error.message || 'Error al consultar el documento.');
             } finally {
                 if (btn) btn.disabled = false;
+                toggleSearchBtn();
             }
         }
 
+        // Al perder el foco, consultar automáticamente
         documentNumberInput.addEventListener('blur', function () {
-            const docType = (typeSelect?.value || options.documentType || '').toUpperCase();
+            const docType = (typeSelect?.value || options.documentType || '').trim();
             const len = documentNumberInput.value.trim().length;
-            if ((docType === 'DNI' && len === 8) || (docType === 'RUC' && len === 11)) {
+            if ((docType === '1' && len === 8) || (docType === '6' && len === 11)) {
                 handleSearch();
             }
         });
 
-        if (options.button) {
-            options.button.addEventListener('click', (e) => {
+        // Toggle del botón según tipo de documento
+        typeSelect?.addEventListener('change', toggleSearchBtn);
+        toggleSearchBtn();
+
+        if (btn) {
+            btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 handleSearch();
             });

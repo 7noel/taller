@@ -11,8 +11,7 @@ class PartySeeder extends Seeder
     {
         $parties = [
             [
-                'type' => 'person',
-                'document_type' => 'DNI',
+                'document_type' => '1',
                 'document_number' => '12345678',
                 'first_name' => 'Juan Carlos',
                 'last_name' => 'Pérez Gutiérrez',
@@ -22,8 +21,7 @@ class PartySeeder extends Seeder
                 'address' => 'Av. Los Rosales 123, San Isidro',
             ],
             [
-                'type' => 'person',
-                'document_type' => 'DNI',
+                'document_type' => '1',
                 'document_number' => '87654321',
                 'first_name' => 'María Fernanda',
                 'last_name' => 'López Ruiz',
@@ -33,8 +31,7 @@ class PartySeeder extends Seeder
                 'address' => 'Jr. Los Laureles 456, Miraflores',
             ],
             [
-                'type' => 'company',
-                'document_type' => 'RUC',
+                'document_type' => '6',
                 'document_number' => '20123456789',
                 'business_name' => 'Transportes del Norte S.A.C.',
                 'email' => 'contacto@transportesnorte.com',
@@ -43,8 +40,7 @@ class PartySeeder extends Seeder
                 'address' => 'Av. Industrial 789, Callao',
             ],
             [
-                'type' => 'person',
-                'document_type' => 'DNI',
+                'document_type' => '1',
                 'document_number' => '45678912',
                 'first_name' => 'Carlos Alberto',
                 'last_name' => 'Ramírez Torres',
@@ -54,8 +50,7 @@ class PartySeeder extends Seeder
                 'address' => 'Av. Primavera 890, Surco',
             ],
             [
-                'type' => 'person',
-                'document_type' => 'DNI',
+                'document_type' => '1',
                 'document_number' => '75234198',
                 'first_name' => 'Lucía',
                 'last_name' => 'Gómez Salas',
@@ -66,8 +61,7 @@ class PartySeeder extends Seeder
                 'receive_promotions' => true,
             ],
             [
-                'type' => 'person',
-                'document_type' => 'DNI',
+                'document_type' => '1',
                 'document_number' => '69874521',
                 'first_name' => 'Pedro Pablo',
                 'last_name' => 'Huamán Vilca',
@@ -77,8 +71,7 @@ class PartySeeder extends Seeder
                 'address' => 'Av. Los Álamos 654, Los Olivos',
             ],
             [
-                'type' => 'person',
-                'document_type' => 'PAS',
+                'document_type' => '7',
                 'document_number' => 'A1234567',
                 'first_name' => 'Andrés Felipe',
                 'last_name' => 'Sánchez Mendoza',
@@ -88,8 +81,7 @@ class PartySeeder extends Seeder
                 'address' => 'Jr. Los Claveles 789, San Borja',
             ],
             [
-                'type' => 'company',
-                'document_type' => 'RUC',
+                'document_type' => '6',
                 'document_number' => '20512345678',
                 'business_name' => 'Distribuidora Automotriz Lima S.A.',
                 'email' => 'ventas@dalima.com',
@@ -99,8 +91,7 @@ class PartySeeder extends Seeder
                 'receive_promotions' => true,
             ],
             [
-                'type' => 'person',
-                'document_type' => 'CEX',
+                'document_type' => '4',
                 'document_number' => '001234567',
                 'first_name' => 'Ana Belén',
                 'last_name' => 'Mendoza Ríos',
@@ -110,8 +101,7 @@ class PartySeeder extends Seeder
                 'address' => 'Calle Las Gardenias 100, Santiago de Surco',
             ],
             [
-                'type' => 'company',
-                'document_type' => 'RUC',
+                'document_type' => '6',
                 'document_number' => '20678912345',
                 'business_name' => 'Empresa de Seguridad Proseg S.A.C.',
                 'email' => 'info@proseg.com',

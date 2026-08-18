@@ -64,8 +64,7 @@ class InsuranceCompanySeeder extends Seeder
             Party::firstOrCreate(
                 ['document_number' => $company['document_number']],
                 [
-                    'type' => 'company',
-                    'document_type' => 'RUC',
+                    'document_type' => '6',
                     'business_name' => $company['business_name'],
                     'email' => $company['email'],
                     'phone' => $company['phone'],

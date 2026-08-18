@@ -46,6 +46,20 @@
 - **Commits**: `54ae111` (eliminación esquema anterior), `4775981` (esquema parties/vehicle_relationships/party_contacts + activitylog), `2490422` (factories y seeders), `5878e73` (requests/policies/services/controllers/rutas), `51ddfb7` (vistas), `413eb65` (pruebas), `e626d9b` (bitácora).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
+### 📌 Sesión 7: Tipo de documento con códigos SUNAT + búsqueda API corregida
+- **Fecha**: 18 de agosto de 2026
+- **Tarea**: Eliminar el campo `type` de `parties` (BD), usar códigos SUNAT en `document_type` (1=DNI, 6=RUC, 4=CEX, 7=PAS, A=Céd. Diplomática), y corregir la consulta DNI/RUC a la API `dniruc.apisperu.com`.
+- **Detalles**:
+  - **Migración**: elimina columna `type`; `document_type` pasa de ENUM a `string(10)` (idempotente, convierte datos existentes DNI/RUC/PAS/CEX a 1/6/7/4).
+  - **`ReniecSunatService`**: URL corregida a `https://dniruc.apisperu.com/api/v1` con `?token=` (query param). DNI valida 8 dígitos (permite cero inicial); RUC 11 dígitos. DNI devuelve `last_name` (apellidos) primero y `first_name` (nombres). RUC limpia dirección quitando sufijo " depto provincia distrito".
+  - **`Party`**: `display_name` = `razón social` si existe, si no `apellidos nombre`; nuevo accessor `document_type_label`.
+  - **`PartyService::normalizeData`**: RUC (`document_type === '6'`) limpia `first/last_name`; otros limpian `business_name`.
+  - **Vistas `create/edit`**: campo "Tipo" eliminado; select de documento con códigos SUNAT; form toggle persona/empresa según `document_type`; botón "🔍 Buscar" habilitado solo para DNI(1)/RUC(6).
+  - **JS `party-helper.js`**: envía `1`/`6`; valida 8/11 dígitos; autocompleta apellidos en `last_name`; botón toggle por tipo de documento.
+  - **Seeders/factory/tests**: actualizados a códigos SUNAT sin `type`.
+  - **Verificación**: `migrate` OK, `db:seed` OK (9 seeders), tests **41 passed (99 assertions)**.
+- **Próximos pasos**: Módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
+
 ### 📌 Sesión 6: Consulta DNI/RUC (apisperu.com) y Tipo de Cambio SUNAT
 - **Fecha**: 18 de agosto de 2026
 - **Tarea**: Integración de consulta de DNI/RUC vía API `apisperu.com` con autocompletado de formularios de Parties, y servicio de tipo de cambio SUNAT.

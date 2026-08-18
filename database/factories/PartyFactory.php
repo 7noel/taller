@@ -18,9 +18,8 @@ class PartyFactory extends Factory
     public function definition(): array
     {
         return [
-            'type' => 'person',
-            'document_type' => 'DNI',
-            'document_number' => 'dni_' . $this->faker->unique()->numerify('########'),
+            'document_type' => '1',
+            'document_number' => $this->faker->unique()->numerify('########'),
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
             'business_name' => null,
@@ -39,8 +38,7 @@ class PartyFactory extends Factory
     public function person(): static
     {
         return $this->state(fn (array $attributes) => [
-            'type' => 'person',
-            'document_type' => $this->faker->randomElement(['DNI', 'PAS', 'CEX']),
+            'document_type' => $this->faker->randomElement(['1', '7', '4']),
             'document_number' => $this->faker->unique()->numerify('########'),
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
@@ -51,8 +49,7 @@ class PartyFactory extends Factory
     public function company(): static
     {
         return $this->state(fn (array $attributes) => [
-            'type' => 'company',
-            'document_type' => 'RUC',
+            'document_type' => '6',
             'document_number' => $this->faker->unique()->numerify('20###########'),
             'first_name' => null,
             'last_name' => null,

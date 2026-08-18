@@ -51,7 +51,7 @@ class PartyTest extends TestCase
         $user = $this->createUserWithPermissions(['ver parties', 'crear parties']);
 
         $this->actingAs($user)->post(route('parties.store'), [
-            'type' => 'person', 'document_type' => 'DNI', 'document_number' => '12345678',
+            'document_type' => '1', 'document_number' => '12345678',
             'first_name' => 'Juan', 'last_name' => 'Pérez', 'email' => 'juan@example.com',
             'phone' => '011234567', 'mobile' => '987654321', 'receive_promotions' => true,
         ])->assertRedirect(route('parties.index'));
@@ -64,7 +64,7 @@ class PartyTest extends TestCase
         $user = $this->createUserWithPermissions(['crear parties']);
 
         $this->actingAs($user)->post(route('parties.store'), [
-            'type' => 'person', 'document_type' => 'DNI', 'first_name' => 'Juan', 'last_name' => 'Pérez',
+            'document_type' => '1', 'first_name' => 'Juan', 'last_name' => 'Pérez',
         ])->assertSessionHasErrors('document_number');
     }
 
@@ -74,7 +74,7 @@ class PartyTest extends TestCase
         $party = $this->createParty();
 
         $this->actingAs($user)->put(route('parties.update', $party), [
-            'type' => 'person', 'document_type' => 'DNI', 'document_number' => $party->document_number,
+            'document_type' => '1', 'document_number' => $party->document_number,
             'first_name' => 'María', 'last_name' => 'López',
         ])->assertRedirect(route('parties.index'));
 

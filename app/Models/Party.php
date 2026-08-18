@@ -13,7 +13,7 @@ class Party extends Model
     use HasFactory, SoftDeletes, LogsActivity;
 
     protected $fillable = [
-        'type', 'document_type', 'document_number', 'first_name', 'last_name',
+        'document_type', 'document_number', 'first_name', 'last_name',
         'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code',
         'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate',
         'receive_promotions', 'created_by', 'updated_by',
@@ -27,13 +27,29 @@ class Party extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['type', 'document_type', 'document_number', 'first_name', 'last_name', 'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code', 'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate', 'receive_promotions'])
+            ->logOnly(['document_type', 'document_number', 'first_name', 'last_name', 'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code', 'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate', 'receive_promotions'])
             ->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('party');
     }
 
     public function getDisplayNameAttribute(): string
     {
-        return $this->type === 'company' ? ($this->business_name ?? $this->document_number) : trim("{$this->first_name} {$this->last_name}");
+        if ($this->business_name) {
+            return $this->business_name;
+        }
+
+        return trim("{$this->last_name} {$this->first_name}");
+    }
+
+    public function getDocumentTypeLabelAttribute(): string
+    {
+        return match ($this->document_type) {
+            '1' => 'DNI',
+            '6' => 'RUC',
+            '4' => 'CEX',
+            '7' => 'PAS',
+            'A' => 'Cédula Diplomática',
+            default => $this->document_type ?? '',
+        };
     }
 
     public function ubigeo() { return $this->belongsTo(Ubigeo::class, 'ubigeo_code', 'code'); }

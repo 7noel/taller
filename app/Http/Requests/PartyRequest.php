@@ -23,11 +23,10 @@ class PartyRequest extends FormRequest
     public function rules(): array
     {
         $partyId = $this->route('party')?->id;
-        $type = $this->input('type', 'person');
 
         return [
-            'type' => ['required', Rule::in(['person', 'company'])],
-            'document_type' => ['required', Rule::in(['DNI', 'RUC', 'PAS', 'CEX'])],
+            // Códigos SUNAT: 1=DNI, 6=RUC, 4=CEX, 7=PAS, A=Cédula diplomática
+            'document_type' => ['required', Rule::in(['1', '6', '4', '7', 'A'])],
             'document_number' => [
                 'required',
                 'string',
@@ -57,8 +56,6 @@ class PartyRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'type.required' => 'El tipo de party es obligatorio.',
-            'type.in' => 'El tipo de party no es válido.',
             'document_type.required' => 'El tipo de documento es obligatorio.',
             'document_type.in' => 'El tipo de documento no es válido.',
             'document_number.required' => 'El número de documento es obligatorio.',

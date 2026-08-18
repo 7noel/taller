@@ -31,13 +31,13 @@
                             <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Tipo</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $party->type === 'company' ? 'Empresa' : 'Persona' }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $party->document_type === '6' ? 'Empresa' : 'Persona' }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Documento</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $party->document_type }} {{ $party->document_number }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">{{ $party->document_type_label }} {{ $party->document_number }}</dd>
                                 </div>
-                                @if($party->type === 'company')
+                                @if($party->document_type === '6')
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Razón Social</dt>
                                     <dd class="mt-1 text-sm text-gray-900">{{ $party->business_name }}</dd>
