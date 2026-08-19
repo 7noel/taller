@@ -46,6 +46,15 @@
 - **Commits**: `54ae111` (eliminación esquema anterior), `4775981` (esquema parties/vehicle_relationships/party_contacts + activitylog), `2490422` (factories y seeders), `5878e73` (requests/policies/services/controllers/rutas), `51ddfb7` (vistas), `413eb65` (pruebas), `e626d9b` (bitácora).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
+### 📌 Sesión 9: Gestión de sesiones, perfil de usuario y renovación automática
+- **Fecha**: 18 de agosto de 2026
+- **Detalles**:
+  - `navigation.blade.php` reescrito con dropdown vanilla JS/Tailwind (Mi Perfil, Cerrar sesión).
+  - Vista `profile/edit.blade.php` unificada (nombre, email, teléfono, contraseña).
+  - `ProfileController::update` valida y actualiza con `Hash::make`.
+  - Ruta `GET /api/keep-alive` (auth).
+  - Interceptor 419 (recarga) y keep-alive cada 5 min en `app.blade.php`.
+
 ### 📌 Sesión 8: Ajustes búsqueda DNI/RUC (ubigeo desde BD) y UI
 - **Fecha**: 18 de agosto de 2026
 - **Detalles**:

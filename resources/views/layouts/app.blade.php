@@ -38,6 +38,29 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+    // Interceptor para errores 419 (CSRF expirado): recarga la página para renovar token
+    document.addEventListener('DOMContentLoaded', function () {
+        const originalFetch = window.fetch;
+        window.fetch = function (...args) {
+            return originalFetch.apply(this, args).then(response => {
+                if (response.status === 419) {
+                    location.reload();
+                    return Promise.reject('Session expired');
+                }
+                return response;
+            });
+        };
+    });
+
+    // Renovar sesión cada 5 minutos mientras la página esté abierta
+    setInterval(function () {
+        fetch('/api/keep-alive', {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).catch(() => {});
+    }, 300000);
+    </script>
     @stack('scripts')
 </body>
 </html>
