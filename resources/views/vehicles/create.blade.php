@@ -81,10 +81,12 @@
                         </div>
 
                         <div class="flex gap-2 items-center mt-6">
-                            <button type="button" id="btnSunarp" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                                📸 Obtener datos de Sunarp
+                            <button type="button" id="btnSunarp" class="bg-blue-600 font-semibold text-xs text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                📸 OBTENER DATOS DE SUNAT
                             </button>
                         </div>
+
+                        @include('vehicles._relationships')
 
                         <div class="mt-6 flex gap-2">
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-blue-700">Guardar</button>
