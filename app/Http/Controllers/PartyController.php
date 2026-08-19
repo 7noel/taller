@@ -52,7 +52,7 @@ class PartyController extends Controller
     {
         Gate::authorize('view', $party);
 
-        $party->load(['ubigeo', 'vehicles']);
+        $party->load(['ubigeo', 'vehicles.vehicleModel.brand']);
 
         return view('parties.show', compact('party'));
     }

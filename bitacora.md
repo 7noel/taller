@@ -46,6 +46,16 @@
 - **Commits**: `54ae111` (eliminación esquema anterior), `4775981` (esquema parties/vehicle_relationships/party_contacts + activitylog), `2490422` (factories y seeders), `5878e73` (requests/policies/services/controllers/rutas), `51ddfb7` (vistas), `413eb65` (pruebas), `e626d9b` (bitácora).
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
+### 📌 Corrección: Vista de detalle de parte (vehículos relacionados)
+- **Fecha**: 18 de agosto de 2026
+- **Tarea**: Se corrigió `parties/show.blade.php` para mostrar los vehículos relacionados de forma legible y profesional.
+- **Detalles**:
+  - Tabla con placa (enlace a detalle), marca, modelo, año, color, rol y si es contacto comercial principal.
+  - Badges de colores según rol (owner, driver, approver, operator, otros).
+  - Se usa `$vehicle->pivot->role` y `$vehicle->pivot->is_primary_commercial`.
+  - `PartyController::show` carga `vehicles.vehicleModel.brand`.
+  - Manejo de valores nulos.
+
 ### 📌 Sesión 9: Gestión de sesiones, perfil de usuario y renovación automática
 - **Fecha**: 18 de agosto de 2026
 - **Detalles**:
