@@ -72,44 +72,34 @@
                             @if($party->vehicles->isEmpty())
                                 <p class="text-sm text-gray-500">Sin vehículos asociados.</p>
                             @else
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full bg-white rounded-lg shadow">
-                                        <thead class="bg-gray-100">
-                                            <tr>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Placa</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Marca</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Modelo</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Año</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Color</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Rol</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">Principal</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200">
-                                            @foreach($party->vehicles as $vehicle)
-                                                @php
-                                                    $role = $vehicle->pivot->role ?? 'Sin rol';
-                                                    $isPrimary = $vehicle->pivot->is_primary_commercial ?? false;
-                                                @endphp
-                                                <tr>
-                                                    <td class="px-4 py-2"><a href="{{ route('vehicles.show', $vehicle) }}" class="text-blue-600 hover:underline">{{ $vehicle->plate }}</a></td>
-                                                    <td class="px-4 py-2">{{ $vehicle->vehicleModel?->brand?->name ?? 'No especificado' }}</td>
-                                                    <td class="px-4 py-2">{{ $vehicle->vehicleModel?->name ?? 'No especificado' }}</td>
-                                                    <td class="px-4 py-2">{{ $vehicle->year ?? '-' }}</td>
-                                                    <td class="px-4 py-2">{{ $vehicle->color ?? '-' }}</td>
-                                                    <td class="px-4 py-2"><span class="px-2 py-1 text-xs font-medium rounded-full
-                                                        @switch($role)
-                                                            @case('owner') bg-blue-100 text-blue-700 @break
-                                                            @case('driver') bg-green-100 text-green-700 @break
-                                                            @case('approver') bg-yellow-100 text-yellow-700 @break
-                                                            @case('operator') bg-purple-100 text-purple-700 @break
-                                                            @default bg-gray-100 text-gray-700
-                                                        @endswitch">{{ ucfirst($role) }}</span></td>
-                                                    <td class="px-4 py-2 text-center">@if($isPrimary)<span class="text-yellow-500" title="Contacto comercial principal">⭐</span>@else<span class="text-gray-300">-</span>@endif</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
+                                <div class="grid grid-cols-1 gap-3">
+                                    @foreach($party->vehicles as $vehicle)
+                                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <a href="{{ route('vehicles.show', $vehicle) }}" class="font-semibold text-blue-600 hover:underline">{{ $vehicle->plate }}</a>
+                                                @if($vehicle->pivot->is_primary_commercial ?? false)
+                                                    <span class="text-yellow-500" title="Contacto comercial principal">⭐</span>
+                                                @endif
+                                            </div>
+                                            <div class="text-sm text-gray-600">
+                                                {{ $vehicle->vehicleModel?->brand?->name ?? 'No especificado' }} · {{ $vehicle->vehicleModel?->name ?? 'No especificado' }}
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                @if($vehicle->year) Año: {{ $vehicle->year }} · @endif
+                                                @if($vehicle->color) Color: {{ $vehicle->color }} @endif
+                                            </div>
+                                            <span class="inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full
+                                                @switch($vehicle->pivot->role)
+                                                    @case('owner') bg-blue-100 text-blue-700 @break
+                                                    @case('driver') bg-green-100 text-green-700 @break
+                                                    @case('approver') bg-yellow-100 text-yellow-700 @break
+                                                    @case('operator') bg-purple-100 text-purple-700 @break
+                                                    @default bg-gray-100 text-gray-700
+                                                @endswitch">
+                                                {{ \App\Models\VehicleRelationship::roleLabels()[$vehicle->pivot->role] ?? ucfirst($vehicle->pivot->role ?? 'Sin rol') }}
+                                            </span>
+                                        </div>
+                                    @endforeach
                                 </div>
                             @endif
                         </div>

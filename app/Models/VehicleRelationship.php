@@ -43,6 +43,25 @@ class VehicleRelationship extends Model
             ->useLogName('vehicle_relationship');
     }
 
+    public static function roleLabels(): array
+    {
+        return [
+            'owner' => 'Propietario',
+            'driver' => 'Conductor',
+            'approver' => 'Aprobador',
+            'operator' => 'Operador',
+            'billing' => 'Facturación',
+            'insurance_company' => 'Compañía de seguros',
+            'emergency_contact' => 'Contacto de emergencia',
+            'other' => 'Otro',
+        ];
+    }
+
+    public function getRoleLabelAttribute(): string
+    {
+        return self::roleLabels()[$this->role] ?? ucfirst($this->role ?? 'Sin rol');
+    }
+
     public function vehicle()
     {
         return $this->belongsTo(Vehicle::class);
