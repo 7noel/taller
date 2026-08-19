@@ -36,7 +36,7 @@
                                     <input type="text" id="document_number" name="document_number" value="{{ old('document_number', $party->document_number) }}" required
                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <button type="button" id="btnSearchDocument" data-party-search-btn
-                                            class="mt-1 inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition whitespace-nowrap">
+                                            class="mt-1 inline-flex items-center px-3 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition whitespace-nowrap">
                                         🔍 Buscar
                                     </button>
                                 </div>
@@ -100,7 +100,7 @@
                             <div>
                                 <label for="address" class="block text-sm font-medium text-gray-700">Dirección</label>
 <input type="text" id="address" name="address" value="{{ old('address', $party->address) }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5">
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
 
                             {{-- Teléfono --}}

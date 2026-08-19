@@ -44,10 +44,8 @@
         const distSelect = document.querySelector('select[name="ubigeo_code"]');
         if (!depSelect || !provSelect || !distSelect) return;
 
-        // 1. Seleccionar departamento
         if (!data.department || !selectOption(depSelect, data.department)) return;
 
-        // 2. Cargar provincias según departamento
         const provincesRes = await fetch(`/api/ubigeo/provincias?departamento=${encodeURIComponent(depSelect.value)}`);
         if (!provincesRes.ok) return;
         const provinces = await provincesRes.json();
@@ -62,7 +60,6 @@
 
         if (!data.province || !selectOption(provSelect, data.province)) return;
 
-        // 3. Cargar distritos según provincia
         const districtsRes = await fetch(`/api/ubigeo/distritos?departamento=${encodeURIComponent(depSelect.value)}&provincia=${encodeURIComponent(provSelect.value)}`);
         if (!districtsRes.ok) return;
         const districts = await districtsRes.json();
@@ -75,7 +72,6 @@
         });
         distSelect.disabled = false;
 
-        // 4. Seleccionar distrito por código ubigeo exacto
         const match = data.ubigeo_code
             ? [...distSelect.options].find(o => o.value === data.ubigeo_code)
             : [...distSelect.options].find(o => o.text.toUpperCase() === (data.district || '').toUpperCase());
@@ -83,7 +79,6 @@
     }
 
     async function fillForm(data) {
-        // DNI (1): apellidos primero, luego nombre
         if (data.document_type === '1') {
             const lastName = document.querySelector('input[name="last_name"]');
             const firstName = document.querySelector('input[name="first_name"]');
@@ -91,7 +86,6 @@
             if (firstName && data.first_name) firstName.value = data.first_name.toUpperCase();
         }
 
-        // RUC (6): empresa
         if (data.document_type === '6') {
             const businessName = document.querySelector('input[name="business_name"]');
             if (businessName && data.business_name) businessName.value = data.business_name.toUpperCase();
@@ -147,15 +141,6 @@
                 toggleSearchBtn();
             }
         }
-
-        // Al perder el foco, consultar automáticamente
-        documentNumberInput.addEventListener('blur', function () {
-            const docType = (typeSelect?.value || options.documentType || '').trim();
-            const len = documentNumberInput.value.trim().length;
-            if ((docType === '1' && len === 8) || (docType === '6' && len === 11)) {
-                handleSearch();
-            }
-        });
 
         // Toggle del botón según tipo de documento
         typeSelect?.addEventListener('change', toggleSearchBtn);
