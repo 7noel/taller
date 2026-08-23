@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             PartySeeder::class,
             VehicleSeeder::class,
             VehicleRelationshipSeeder::class,
+            ChecklistItemsSeeder::class,
+            CheckInSeeder::class,
         ]);
     }
 }

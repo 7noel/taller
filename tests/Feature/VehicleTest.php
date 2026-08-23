@@ -88,4 +88,62 @@ class VehicleTest extends TestCase
         $this->actingAs($user)->delete(route('vehicles.destroy', $vehicle))->assertRedirect(route('vehicles.index'));
         $this->assertSoftDeleted('vehicles', ['id' => $vehicle->id]);
     }
+
+    public function test_vehicle_fails_with_multiple_owners(): void
+    {
+        $user = $this->createUserWithPermissions(['crear vehículos']);
+        $owner1 = Party::factory()->create();
+        $owner2 = Party::factory()->create();
+
+        $this->actingAs($user)->post(route('vehicles.store'), [
+            'plate' => 'ABC124',
+            'brand_id' => $this->model->brand_id,
+            'model_id' => $this->model->id,
+            'relationships' => [
+                ['party_id' => $owner1->id, 'role' => 'owner', 'is_primary_commercial' => 1],
+                ['party_id' => $owner2->id, 'role' => 'owner', 'is_primary_commercial' => 0],
+            ],
+        ])->assertSessionHasErrors('relationships');
+
+        $this->assertDatabaseMissing('vehicles', ['plate' => 'ABC124']);
+    }
+
+    public function test_vehicle_fails_with_multiple_primary_contacts(): void
+    {
+        $user = $this->createUserWithPermissions(['crear vehículos']);
+        $contact1 = Party::factory()->create();
+        $contact2 = Party::factory()->create();
+
+        $this->actingAs($user)->post(route('vehicles.store'), [
+            'plate' => 'ABC125',
+            'brand_id' => $this->model->brand_id,
+            'model_id' => $this->model->id,
+            'relationships' => [
+                ['party_id' => $contact1->id, 'role' => 'driver', 'is_primary_commercial' => 1],
+                ['party_id' => $contact2->id, 'role' => 'approver', 'is_primary_commercial' => 1],
+            ],
+        ])->assertSessionHasErrors('relationships');
+
+        $this->assertDatabaseMissing('vehicles', ['plate' => 'ABC125']);
+    }
+
+    public function test_vehicle_allows_roles_other_than_owner_and_primary(): void
+    {
+        $user = $this->createUserWithPermissions(['ver vehículos', 'crear vehículos']);
+        $driver = Party::factory()->create();
+        $approver = Party::factory()->create();
+
+        $this->actingAs($user)->post(route('vehicles.store'), [
+            'plate' => 'ABC126',
+            'brand_id' => $this->model->brand_id,
+            'model_id' => $this->model->id,
+            'relationships' => [
+                ['party_id' => $driver->id, 'role' => 'driver', 'is_primary_commercial' => 0],
+                ['party_id' => $approver->id, 'role' => 'approver', 'is_primary_commercial' => 0],
+            ],
+        ])->assertRedirect(route('vehicles.index'));
+
+        $this->assertDatabaseHas('vehicle_relationships', ['role' => 'driver']);
+        $this->assertDatabaseHas('vehicle_relationships', ['role' => 'approver']);
+    }
 }

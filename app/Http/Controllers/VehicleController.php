@@ -117,8 +117,48 @@ class VehicleController extends Controller
                 'brand' => $vehicle->vehicleModel?->brand?->name,
                 'model' => $vehicle->vehicleModel?->name,
                 'year' => $vehicle->year,
+                'color' => $vehicle->color,
+                'vin' => $vehicle->vin,
+                'engine_number' => $vehicle->engine_number,
+                'body_type' => $vehicle->body_type,
                 'owner_name' => $vehicle->relationships->first()?->party?->display_name,
             ]));
+    }
+
+    public function quickStore(Request $request): JsonResponse
+    {
+        Gate::authorize('create', Vehicle::class);
+
+        $request->validate([
+            'plate' => ['required', 'string', 'min:3', 'max:7', 'unique:vehicles,plate'],
+            'brand_id' => ['required', 'exists:brands,id'],
+            'model_id' => ['required', 'exists:models,id'],
+            'color' => ['nullable', 'string', 'max:50'],
+            'vin' => ['nullable', 'string', 'max:20'],
+            'engine_number' => ['nullable', 'string', 'max:30'],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:2100'],
+            'body_type' => ['nullable', 'string', 'max:50'],
+            'technical_review_date' => ['nullable', 'date'],
+        ], [
+            'plate.required' => 'La placa es obligatoria.',
+            'plate.unique' => 'Esa placa ya está registrada.',
+            'brand_id.required' => 'Seleccione la marca.',
+            'model_id.required' => 'Seleccione el modelo.',
+        ]);
+
+        $vehicle = $this->vehicleService->create($request->all());
+
+        return response()->json([
+            'id' => $vehicle->id,
+            'plate' => $vehicle->plate,
+            'brand' => $vehicle->vehicleModel?->brand?->name,
+            'model' => $vehicle->vehicleModel?->name,
+            'year' => $vehicle->year,
+            'color' => $vehicle->color,
+            'vin' => $vehicle->vin,
+            'engine_number' => $vehicle->engine_number,
+            'body_type' => $vehicle->body_type,
+        ], 201);
     }
 
     public function brands(Request $request): JsonResponse

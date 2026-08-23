@@ -42,4 +42,27 @@ class VehicleRequest extends FormRequest
             'model_id.required' => 'Debe seleccionar un modelo.',
         ];
     }
+
+    public function withValidator(\Illuminate\Contracts\Validation\Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $relationships = $this->input('relationships', []);
+
+            if (! is_array($relationships)) {
+                return;
+            }
+
+            $owners = collect($relationships)->filter(fn ($rel) => ($rel['role'] ?? null) === 'owner');
+
+            if ($owners->count() > 1) {
+                $validator->errors()->add('relationships', 'Solo puede haber un propietario por vehículo.');
+            }
+
+            $primary = collect($relationships)->filter(fn ($rel) => ! empty($rel['is_primary_commercial'] ?? false));
+
+            if ($primary->count() > 1) {
+                $validator->errors()->add('relationships', 'Solo puede haber un contacto comercial principal por vehículo.');
+            }
+        });
+    }
 }

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <rect width="800" height="400" fill="#f0fdf4"/>
+  <!-- Ruedas -->
+  <circle cx="240" cy="280" r="55" fill="#1f2937"/>
+  <circle cx="240" cy="280" r="35" fill="#9ca3af"/>
+  <circle cx="600" cy="280" r="55" fill="#1f2937"/>
+  <circle cx="600" cy="280" r="35" fill="#9ca3af"/>
+  <!-- Cuadro -->
+  <path d="M260 230 L330 180 L380 170 L500 215 L560 230" stroke="#4b5563" stroke-width="10" fill="none"/>
+  <!-- Tanque -->
+  <path d="M330 180 Q390 155 430 175 L380 205 L330 190 Z" fill="#ef4444" stroke="#cc2222" stroke-width="2"/>
+  <!-- Asiento -->
+  <path d="M430 175 L500 200 Q520 210 540 225 L490 230 L420 205 Z" fill="#7c3aed" stroke="#5b21b6" stroke-width="2"/>
+  <!-- Horquilla -->
+  <path d="M240 280 L300 200 Q310 185 320 175" stroke="#4b5563" stroke-width="8" fill="none"/>
+  <!-- Manubrio -->
+  <path d="M300 185 L340 170" stroke="#4b5563" stroke-width="8"/>
+  <circle cx="305" cy="183" r="6" fill="#1f2937"/>
+  <circle cx="335" cy="170" r="6" fill="#1f2937"/>
+  <!-- Faro -->
+  <circle cx="330" cy="172" r="8" fill="#facc15"/>
+  <!-- Escape -->
+  <path d="M560 230 L620 260" stroke="#6b7280" stroke-width="8"/>
+</svg>

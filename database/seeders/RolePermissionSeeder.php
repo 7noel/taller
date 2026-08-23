@@ -22,6 +22,7 @@ class RolePermissionSeeder extends Seeder
             'ver vehículos', 'crear vehículos', 'editar vehículos', 'eliminar vehículos',
             'ver marcas', 'crear marcas', 'editar marcas', 'eliminar marcas',
             'ver modelos', 'crear modelos', 'editar modelos', 'eliminar modelos',
+            'ver inventarios', 'crear inventarios', 'editar inventarios', 'eliminar inventarios', 'aprobar inventarios',
         ];
         foreach ($permissions as $perm) {
             Permission::firstOrCreate(['name' => $perm]);
@@ -36,6 +37,7 @@ class RolePermissionSeeder extends Seeder
             'ver vehículos', 'crear vehículos', 'editar vehículos',
             'ver marcas', 'crear marcas', 'editar marcas',
             'ver modelos', 'crear modelos', 'editar modelos',
+            'ver inventarios', 'crear inventarios', 'editar inventarios',
         ]);
     }
 }

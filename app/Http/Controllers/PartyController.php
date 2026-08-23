@@ -11,6 +11,7 @@ use App\Services\SunatExchangeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PartyController extends Controller
@@ -98,6 +99,10 @@ class PartyController extends Controller
                     ->orWhere('first_name', 'like', "%{$term}%")
                     ->orWhere('last_name', 'like', "%{$term}%");
             })
+            ->when($request->filled('document_type') && $request->filled('document_number'), function ($q) use ($request) {
+                $q->where('document_type', $request->query('document_type'))
+                    ->where('document_number', $request->query('document_number'));
+            })
             ->when($request->filled('id'), function ($q) use ($request) {
                 $q->whereKey($request->query('id'));
             })
@@ -110,9 +115,16 @@ class PartyController extends Controller
                 'display_name' => $party->display_name,
                 'document_type' => $party->document_type,
                 'document_number' => $party->document_number,
-                'phone' => $party->mobile ?: $party->phone,
+                'first_name' => $party->first_name,
+                'last_name' => $party->last_name,
+                'business_name' => $party->business_name,
+                'phone' => $party->phone,
+                'mobile' => $party->mobile,
+                'display_phone' => $party->mobile ?: $party->phone,
                 'email' => $party->email,
                 'is_insurance_company' => $party->is_insurance_company,
+                'ubigeo_code' => $party->ubigeo_code,
+                'address' => $party->address,
             ]));
     }
 
@@ -120,15 +132,21 @@ class PartyController extends Controller
     {
         Gate::authorize('create', Party::class);
 
+        $roles = ['owner', 'driver', 'approver', 'operator', 'billing', 'insurance_company', 'emergency_contact', 'other'];
+
         $validated = $request->validate([
+            'role' => ['nullable', Rule::in($roles)],
             'document_type' => ['required', 'in:1,6,4,7,A'],
-            'document_number' => ['required', 'string', 'max:20', 'unique:parties,document_number'],
-            'first_name' => ['nullable', 'string', 'max:255'],
-            'last_name' => ['nullable', 'string', 'max:255'],
-            'business_name' => ['nullable', 'string', 'max:255'],
+            'document_number' => ['required', 'string', 'max:20', Rule::unique('parties')->where('document_type', $request->input('document_type'))->ignore($request->input('id'))],
+            'first_name' => [$request->input('document_type') === '6' ? 'nullable' : 'required_without:last_name', 'string', 'max:255'],
+            'last_name' => [$request->input('document_type') === '6' ? 'nullable' : 'required_without:first_name', 'string', 'max:255'],
+            'business_name' => [$request->input('document_type') === '6' ? 'required' : 'nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'mobile' => ['nullable', 'string', 'max:20'],
+            'mobile' => [$request->has('role') ? 'required' : 'nullable', 'string', 'max:20'],
+            'ubigeo_code' => ['nullable', 'string', 'size:6', 'exists:ubigeos,code'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'is_insurance_company' => ['nullable', 'boolean'],
         ]);
 
         $party = $this->partyService->create($validated);
@@ -139,6 +157,34 @@ class PartyController extends Controller
             'document_type' => $party->document_type,
             'document_number' => $party->document_number,
         ], 201);
+    }
+
+    public function resolveUbigeo(Request $request): JsonResponse
+    {
+        $request->validate(['code' => ['required', 'string', 'size:6']]);
+
+        $ubigeo = Ubigeo::where('code', $request->string('code'))->first();
+
+        if (!$ubigeo) {
+            return response()->json(['error' => 'Código de ubigeo no encontrado.'], 404);
+        }
+
+        return response()->json([
+            'code' => $ubigeo->code,
+            'departamento' => $ubigeo->departamento,
+            'provincia' => $ubigeo->provincia,
+            'distrito' => $ubigeo->distrito,
+        ]);
+    }
+
+    public function departamentos(): JsonResponse
+    {
+        return response()->json(
+            Ubigeo::select('departamento')
+                ->distinct()
+                ->orderBy('departamento')
+                ->pluck('departamento')
+        );
     }
 
     public function provincias(Request $request): JsonResponse
@@ -166,6 +212,41 @@ class PartyController extends Controller
             ->get();
 
         return response()->json($distritos);
+    }
+
+    public function quickUpdate(Request $request, Party $party): JsonResponse
+    {
+        Gate::authorize('update', $party);
+
+        $validated = $request->validate([
+            'document_type' => ['nullable', 'string', 'max:10'],
+            'document_number' => ['nullable', 'string', 'max:20'],
+            'first_name' => ['nullable', 'string', 'max:150'],
+            'last_name' => ['nullable', 'string', 'max:150'],
+            'business_name' => ['nullable', 'string', 'max:200'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'mobile' => ['nullable', 'string', 'max:30'],
+            'ubigeo_code' => ['nullable', 'string', 'size:6', 'exists:ubigeos,code'],
+            'address' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $party->update(array_merge($validated, ['updated_by' => auth()->id()]));
+
+        return response()->json([
+            'id' => $party->id,
+            'display_name' => $party->display_name,
+            'document_type' => $party->document_type,
+            'document_number' => $party->document_number,
+            'first_name' => $party->first_name,
+            'last_name' => $party->last_name,
+            'business_name' => $party->business_name,
+            'email' => $party->email,
+            'phone' => $party->phone,
+            'mobile' => $party->mobile,
+            'ubigeo_code' => $party->ubigeo_code,
+            'address' => $party->address,
+        ]);
     }
 
     public function searchByDocument(Request $request, ReniecSunatService $reniecSunat): JsonResponse

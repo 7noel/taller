@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <rect width="800" height="400" fill="#eef2f7"/>
+  <!-- Cabina -->
+  <path d="M70 280 L85 165 Q92 120 170 110 L250 105 Q290 112 300 150 L330 160 Q520 165 560 195 L710 260 Q725 290 690 290 L90 290 Q60 290 70 280 Z" fill="#8b5cf6" stroke="#4c1d95" stroke-width="2"/>
+  <!-- Remolque -->
+  <path d="M300 130 L300 270 L680 270 L680 170 Q660 150 620 145 L320 135 Z" fill="#c4b5fd" stroke="#4c1d95" stroke-width="2"/>
+  <!-- Ruedas cabina -->
+  <circle cx="180" cy="290" r="45" fill="#1f2937"/>
+  <circle cx="180" cy="290" r="25" fill="#9ca3af"/>
+  <!-- Ruedas remolque -->
+  <circle cx="430" cy="290" r="45" fill="#1f2937"/>
+  <circle cx="430" cy="290" r="22" fill="#9ca3af"/>
+  <circle cx="590" cy="290" r="45" fill="#1f2937"/>
+  <circle cx="590" cy="290" r="22" fill="#9ca3af"/>
+  <rect x="72" y="180" width="22" height="20" rx="3" fill="#f8fafc"/>
+  <rect x="250" y="245" width="18" height="20" rx="3" fill="#facc15"/>
+  <path d="M95 155 L115 125 Q150 100 220 98 L260 105 L270 155 L100 155 Z" fill="#93c5fd" stroke="#4c1d95" stroke-width="2"/>
+</svg>

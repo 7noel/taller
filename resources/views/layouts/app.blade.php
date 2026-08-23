@@ -9,6 +9,136 @@
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style type="text/tailwindcss">
+        @layer base {
+            input[type='text'],
+            input[type='number'],
+            input[type='date'],
+            input[type='email'],
+            input[type='tel'],
+            input[type='password'],
+            select,
+            textarea {
+                @apply block w-full rounded-md border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm
+                       focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500;
+            }
+            select {
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+                background-position: right 0.5rem center;
+                background-repeat: no-repeat;
+                background-size: 1.5em 1.5em;
+                padding-right: 2.5rem;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                appearance: none;
+            }
+            select[multiple] {
+                background-image: none;
+                padding-right: 0.75rem;
+            }
+            input[type='checkbox'],
+            input[type='radio'] {
+                @apply h-4 w-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500;
+            }
+            input[type='checkbox']:checked,
+            input[type='radio']:checked {
+                @apply border-transparent bg-current;
+            }
+        }
+    </style>
+    <style type="text/tailwindcss">
+        /* ===== Tom Select: estilos consistentes con Tailwind ===== */
+        .ts-wrapper .ts-control,
+        .ts-wrapper.single .ts-control,
+        .ts-wrapper.multi .ts-control {
+            @apply flex w-full rounded-md border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm
+                   focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500;
+            min-height: 2.5rem;
+            align-items: center;
+        }
+        .ts-wrapper .ts-control > input {
+            font-size: 0.875rem;
+            padding: 0;
+            border: 0;
+            box-shadow: none;
+        }
+        .ts-wrapper .ts-control,
+        .ts-wrapper.focus .ts-control,
+        .ts-control:hover {
+            border-color: #d1d5db;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+        .ts-wrapper.focus .ts-control {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgb(59 130 246 / 0.5);
+        }
+        .ts-wrapper .ts-dropdown {
+            @apply rounded-md border-gray-300 bg-white text-sm text-gray-900 shadow-sm;
+        }
+        .ts-wrapper .ts-dropdown .ts-dropdown-content .option {
+            @apply cursor-pointer px-3 py-2 text-gray-700;
+            border-left: 3px solid transparent;
+            transition: background-color 0.2s ease, color 0.2s ease, border-left-color 0.2s ease;
+        }
+        .ts-wrapper .ts-dropdown .ts-dropdown-content .option:hover {
+            background-color: #f1f3f5;
+            color: #212529;
+        }
+        .ts-wrapper .ts-dropdown .ts-dropdown-content .option.active,
+        .ts-wrapper .ts-dropdown .ts-dropdown-content .option.selected {
+            background-color: #e7f1ff;
+            border-left-color: #0d6efd;
+            color: #212529;
+        }
+        .ts-wrapper .ts-dropdown .ts-dropdown-content .option.active .suboption,
+        .ts-wrapper .ts-dropdown .ts-dropdown-content .option.selected .suboption {
+            color: #495057;
+        }
+        .ts-wrapper .ts-dropdown .ts-dropdown-content .option .suboption {
+            @apply block text-xs;
+            color: #6c757d;
+        }
+        .ts-wrapper .ts-dropdown .ts-dropdown-content .no-results {
+            @apply px-3 py-2 text-gray-500;
+        }
+        .ts-wrapper .ts-item {
+            @apply bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md text-sm;
+        }
+        /* ===== Single mode estricto: 1 línea, sin cursor parpadeante ===== */
+        .ts-wrapper.single .ts-control {
+            height: 2.5rem;
+            min-height: 2.5rem;
+            max-height: 2.5rem;
+            overflow: hidden;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        .ts-wrapper.single .ts-control .item {
+            @apply text-sm text-gray-900;
+            background: transparent;
+            padding: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 60%;
+        }
+        /* Oculta el input interno (cursor) sin sacarlo del flujo: se mantiene 1 línea */
+        .ts-wrapper.single.has-items .ts-control > input {
+            visibility: hidden;
+            width: 0;
+            padding: 0;
+            flex: 0 0 0;
+        }
+        /* Al abrir el dropdown: el input reaparece en la MISMA línea, listo para escribir */
+        .ts-wrapper.single.has-items.dropdown-active .ts-control > input {
+            visibility: visible;
+            width: auto;
+            flex: 1 1 0%;
+            min-width: 40px;
+        }
+    </style>
     <!-- Tabulator CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/6.2.0/css/tabulator.min.css" rel="stylesheet">
     <!-- Tom Select CSS -->

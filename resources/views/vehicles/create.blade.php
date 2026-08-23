@@ -81,8 +81,8 @@
                         </div>
 
                         <div class="flex gap-2 items-center mt-6">
-                            <button type="button" id="btnSunarp" class="bg-blue-600 font-semibold text-xs text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                                📸 OBTENER DATOS DE SUNAT
+                            <button type="button" id="btnSunarp" class="inline-flex items-center gap-2 bg-blue-600 font-semibold text-xs text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                📸 OBTENER DATOS DE SUNARP
                             </button>
                         </div>
 

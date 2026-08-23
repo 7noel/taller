@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <rect width="800" height="400" fill="#f3f4f6"/>
+  <!-- Cuerpo del sedán -->
+  <path d="M100 280 L120 180 Q130 130 200 120 L560 100 Q640 105 660 170 L700 260 Q710 290 680 290 L120 290 Q90 290 100 280 Z" fill="#9ca3af" stroke="#4b5563" stroke-width="2"/>
+  <!-- Cabina -->
+  <path d="M220 130 L260 80 Q300 55 380 55 L460 65 Q530 80 550 140 L550 130 Q500 110 400 105 Q300 100 230 130 Z" fill="#d1d5db" stroke="#4b5563" stroke-width="2"/>
+  <!-- Ruedas -->
+  <circle cx="230" cy="290" r="45" fill="#1f2937"/>
+  <circle cx="230" cy="290" r="25" fill="#9ca3af"/>
+  <circle cx="590" cy="290" r="45" fill="#1f2937"/>
+  <circle cx="590" cy="290" r="25" fill="#9ca3af"/>
+  <!-- Faros -->
+  <rect x="650" y="180" width="25" height="20" rx="3" fill="#facc15"/>
+  <rect x="95" y="185" width="20" height="18" rx="3" fill="#f8fafc"/>
+  <!-- Ventanas -->
+  <path d="M235 130 L270 95 Q300 78 370 78 L420 80 Q470 85 530 115 L540 140 L240 140 Z" fill="#93c5fd" stroke="#4b5563" stroke-width="2"/>
+</svg>

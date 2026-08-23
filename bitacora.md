@@ -123,6 +123,60 @@
 - **Commits**: `00b48d5`, `51b4b50`, `83899dc`, `0181a02`.
 - **Próximos pasos**: Desarrollar el módulo de Inventario vehicular (ingreso, checklist, daños, fotos).
 
+### 📌 Correcciones y mejoras: Inventario Vehicular (check-in)
+- **Fecha**: 19 de agosto de 2026
+- **Tarea**: Corregir error `Attempt to read property "soat_expiration" on null` en `check-ins/create` y aplicar mejoras de UX solicitadas.
+- **Detalles**:
+  - **Bug corregido**: en `_form.blade.php` los campos de fechas usaban `$checkIn->soat_expiration?->format(...)` que fallaba en modo creación (cuando `$checkIn` es null). Corregido a `$checkIn?->soat_expiration?->format(...)` (doble null-safe).
+  - **Checklist con botones**: se reemplazó el `<select>` por 4 botones circulares (✓ verde = bueno, ▲ ámbar = regular, ✕ rojo = malo, ● negro = no aplica) con estado activo (fondo de color, símbolo blanco) e inactivo (borde + símbolo del color). Se agregó leyenda explicativa. Layout responsive: 1 columna en móvil (nombre arriba, botones a la derecha, nota debajo) y 3 columnas en PC.
+  - **Categoría oculta**: se eliminó la columna "Categoría" del checklist tanto en el formulario como en el detalle (se mantiene en BD `check_in_checklist_items.category` para uso futuro).
+  - **Lado del vehículo oculto en daños**: se ocultó el select "Lado" en `_damages.blade.php`, se quitaron las referencias al lado en la lista de daños del formulario, en el JS al hacer clic (se fija `side = 'front'`) y en el detalle (`show`). La columna `side` se mantiene en `check_in_damages` con default `'front'` en `CheckInService::syncDamages` (validación ya no exige side) para uso futuro cuando se soporten imágenes por lado.
+  - **Mockups JPG**: los usuarios pueden colocar imágenes `{body_type}.jpg` en `public/images/mockups/` (ej. `sedan.jpg`, `suv.jpg`, `pickup.jpg`, `camioneta.jpg`, `camion.jpg`, `moto.jpg`). El sistema busca `.jpg` → `.jpeg` → `.png` → `.svg` en ese orden.
+- **Verificación**: `php artisan view:cache` OK (Blade compila sin errores) y las **15 pruebas del módulo CheckIn siguen pasando (40 assertions)**.
+- **Próximos pasos**: Módulo de presupuestos.
+
+### 📌 Módulo de Inventario Vehicular
+- **Fecha**: 19 de agosto de 2026
+- **Tarea**: Implementación del módulo de inventario (check-in) con checklist, daños (mockup simple), fotos y flujo de estados.
+- **Detalles**:
+  - **Migraciones y modelos**: `check_ins`, `check_in_checklist_items`, `check_in_checklist_results`, `check_in_damages`, `check_in_photos`.
+    - `CheckIn` con relaciones: Vehicle, Party (client_id / insurance_company_id), Establishment, User (created_by/updated_by), hasMany checklistResults/damages/photos. SoftDeletes + LogsActivity.
+    - Catálogo de checklist con categorías (EXTERIOR, MOTOR, INTERIOR, HERRAMIENTAS/EMERGENCIA).
+  - **Controladores, servicios, políticas**:
+    - `CheckInController`: CRUD completo + `approve()`, `reject()`, `sendToClient()`, `search()` (API Tabulator), `contacts()` (relaciones del vehículo), `uploadPhoto()`, `destroyPhoto()`, `insuranceCompanies()`.
+    - `CheckInService`: lógica transaccional (sync checklist, daños, contactos como vehicle_relationships), flujo de estados.
+    - `CheckInPolicy` con permisos `ver/crear/editar/eliminar/aprobar inventarios` (Administrador: todos; Asesor: ver/crear/editar).
+    - `CheckInRequest` con validaciones (vehículo no duplicado en estado abierto, aseguradora debe ser compañía de seguros, checklist/daños dinámicos).
+  - **Vistas**: listado con Tabulator (filtros placa/cliente/estado/rango de fechas), formulario con secciones (vehículo/propietario con autocompletado por placa, contactos del vehículo, datos de ingreso, checklist con "ver solo regulares y malos", daños con mockup clickeable y coordenadas %, fotos con subida AJAX), detalle con pestañas (General, Checklist, Daños, Fotos) y botones de estado.
+  - **Seeders**: `ChecklistItemsSeeder` lee del CSV real (`C:\Users\Noel\Downloads\checklist_details.csv`) con parser que sanea la línea partida "PALANCA DE GATA" y fallback manual; `CheckInSeeder` crea 3 inventarios de ejemplo.
+  - **Mockups**: SVGs placeholder en `public/images/mockups/` (sedan, suv, pickup, camioneta, camion, moto). El sistema busca `{body_type}.jpg` luego `.svg` y si no existe muestra mensaje con dropdowns.
+  - **Almacenamiento**: `php artisan storage:link` creado para fotos en `storage/app/public/check-in-photos/`.
+  - **Rutas**: `Route::resource('check-ins')` + POST approve/reject/send-to-client + API search/contacts/insurance-companies/photos.
+  - **Navegación**: enlace "Inventario" agregado al menú principal.
+  - **Pruebas**: `tests/Feature/CheckInTest` (9 pruebas), `tests/Unit/CheckInServiceTest` (6) — **15 pruebas del módulo pasan (40 assertions)**. Suite completa: 55 passed, 1 fail preexistente de `ProfileTest` (Laravel Breeze estándar, sin relación con el módulo).
+- **Próximos pasos**: Módulo de presupuestos.
+
+### 📌 Auditoría y estandarización de autocompletados (selección única)
+- **Fecha**: 22 de agosto de 2026
+- **Tarea**: Auditoría integral de todos los componentes de autocompletado (Tom Select) del frontend y corrección de la confusión visual de "selección múltiple simultánea" en el modal "Buscar / Registrar contacto" y demás dropdowns de búsqueda.
+- **Diagnóstico (causa raíz)**:
+  1. **CSS**: en `resources/views/layouts/app.blade.php`, los estados `:hover` y `.active` de las opciones del dropdown de Tom Select usaban exactamente el mismo estilo (`bg-blue-50 text-blue-800`). Al pasar el cursor sobre una opción mientras otra estaba activa (cursor/teclado), ambas se veían igual → apariencia de selección múltiple simultánea.
+  2. **JS**: ningún Tom Select definía `closeAfterSelect: true` ni `maxItems: 1`. El dropdown permanecía abierto tras seleccionar y el contenedor no forzaba el modo "single" → reforzaba la confusión visual.
+- **Archivos modificados**:
+  - `resources/views/layouts/app.blade.php`: estados separados — `:hover` = gris claro sutil (`bg-gray-100`), `.active` = azul claro (`bg-blue-50`), `.selected` = azul sólido (`bg-blue-600`) con check SVG y subopciones en texto azul claro.
+  - `resources/views/vehicles/_relationships.blade.php`: TomSelect del campo "Contacto" (`#rel-party-id`) ahora con `closeAfterSelect: true` y `maxItems: 1`.
+  - `resources/views/check-ins/_form-scripts.blade.php`: TomSelect de vehículo (`#vehicle_id`) y aseguradora (`#insurance_company_id`) ahora con `closeAfterSelect: true` y `maxItems: 1`.
+  - `resources/views/check-ins/index.blade.php`: TomSelect de filtro de cliente (`#f-client`) ahora con `closeAfterSelect: true` y `maxItems: 1`.
+- **Comportamiento nuevo de los autocompletados**:
+  - Al hacer clic en una opción: el menú se cierra automáticamente (`closeAfterSelect`).
+  - Solo se puede seleccionar UNA opción a la vez (`maxItems: 1`).
+  - La opción seleccionada muestra fondo azul sólido con check; el hover sobre otras opciones es solo un resaltado gris temporal.
+  - El CSS garantiza que nunca se marquen múltiples elementos simultáneamente.
+- **Verificación**: los 4 componentes Tom Select del proyecto (cliente, vehículo, aseguradora, contacto/party) fueron estandarizados. No se alteró la funcionalidad de los formularios (`rel-party-id` sigue alimentando `party_id`; el filtro de cliente sigue refrescando Tabulator).
+- **Corrección adicional (single estricto)**: campo "Contacto" se expandía en dos líneas con cursor parpadeante. CSS: altura fija 2.5rem, item plano, input oculto tras seleccionar. JS: blur()+close() en item_add (4 TomSelect) y clear() en type (Contacto).
+- **Corrección adicional (cursor same-line al re-buscar)**: `.ts-control` ahora `flex`; input oculto con `visibility` + reaparece en la misma línea; `dropdown_open` con `setTextValue('')` + cursor al inicio en los 4 TomSelect. Estándar en `.clinerules/03-frontend.md`.
+- **Próximos pasos**: continuar con el módulo de presupuestos.
+
 ### 📝 Nota sobre la bitácora
 A partir de ahora, esta bitácora se actualizará automáticamente por el asistente (DeepSeek) en cada hito importante del desarrollo. Los registros incluirán fecha, tarea realizada, decisiones tomadas y próximos pasos.
 

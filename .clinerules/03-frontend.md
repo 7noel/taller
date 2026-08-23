@@ -2,13 +2,13 @@
 
 ## Estilos y componentes
 - Usar **Tailwind CSS** para todos los estilos (clases utilitarias).
-- **Tabulator** para tablas dinámicas: búsqueda, paginación, filtros, ordenamiento.
-- **ApexCharts** para gráficos (KPIs, reportes).
-- **Tom Select** para autocompletado y selección de datos (clientes, vehículos, repuestos, servicios).
+- **Tabulator** para tablas dinámicas: busqueda, paginacion, filtros, ordenamiento.
+- **ApexCharts** para graficos (KPIs, reportes).
+- **Tom Select** para autocompletado y seleccion de datos (clientes, vehiculos, repuestos, servicios). Todos los autocompletados deben ser **seleccion unica estricta** (ver patron estandar abajo).
 
 ## Vistas
 - Todas las vistas deben heredar del layout base (`layouts/app.blade.php`) que ya contiene las CDN.
-- Usar secciones `@section('content')` para el contenido principal, y `@push('scripts')` para JavaScript específico de cada vista.
+- Usar secciones `@section('content')` para el contenido principal, y `@push('scripts')` para JavaScript especifico de cada vista.
 
 ## Ejemplos de uso
 - Para una tabla de clientes:
@@ -24,7 +24,7 @@
 </script>
 ```
 
-- Para un gráfico:
+- Para un grafico:
 ```blade
 <div id="sales-chart"></div>
 <script>
@@ -46,7 +46,17 @@
 </script>
 ```
 
+## Estandar de autocompletado (Tom Select - seleccion unica estricta)
+
+Configuracion obligatoria: `maxItems: 1`, `closeAfterSelect: true`, `create: false`, `copyClassesToDropdown: false`.
+
+Handlers obligatorios:
+- `item_add`: llamar `blur()` y `close()` para quitar el cursor y cerrar el dropdown al seleccionar.
+- `dropdown_open`: si ya hay un item seleccionado, llamar `setTextValue('')` y colocar el cursor al inicio con `setSelectionRange(0,0)`, para que al reabrir la busqueda el texto previo no se mezcle ni el cursor salte de linea.
+
+El CSS global en `layouts/app.blade.php` fuerza una sola linea (altura 2.5rem), oculta el cursor interno cuando hay seleccion y lo muestra en la misma linea al abrir el dropdown. No se debe usar `display:none` ni `display:block` en el input interno: usar `visibility` + `flex` para no romper la linea.
+
 ## Responsive
-- Diseño mobile-first. Usar clases de Tailwind para diferentes tamaños (sm:, md:, lg:).
-- Tablas de Tabulator se adaptan automáticamente con `responsiveLayout: 'collapse'`.
-- Formularios en columnas que se apilan en móvil (grid-cols-1 md:grid-cols-2).
+- Diseno mobile-first. Usar clases de Tailwind para diferentes tamanos (sm:, md:, lg:).
+- Tablas de Tabulator se adaptan automaticamente con `responsiveLayout: 'collapse'`.
+- Formularios en columnas que se apilan en movil (grid-cols-1 md:grid-cols-2).
