@@ -1,0 +1,829 @@
+========================================================================
+ CONTEXTO DEL PROYECTO LARAVEL - MÓDULO USUARIOS / ROLES / PERMISOS (RBAC)
+ Generado para un chat nuevo con DeepSeek.
+ Actualizado: agosto 2026
+========================================================================
+
+------------------------------------------------------------------------
+ 1. VERSIONES EXACTAS
+------------------------------------------------------------------------
+- PHP: 8.3.30 (CLI, ZTS Visual C++ 2019)
+- Laravel Framework: 12.66.0
+- Paquetes de producción (composer.json require):
+  - php ^8.2
+  - laravel/framework ^12.0
+  - laravel/tinker ^2.10.1
+  - spatie/laravel-activitylog ^4.12   (auditoría)
+  - spatie/laravel-permission ^8.3     (RBAC: roles y permisos)
+- Paquetes de desarrollo (require-dev):
+  - fakerphp/faker ^1.23
+  - laravel/breeze ^2.4                (auth por sesión web: login/register/forgot)
+  - laravel/pail ^1.2.2
+  - laravel/pint ^1.13
+  - laravel/sail ^1.41
+  - mockery/mockery ^1.6
+  - nunomaduro/collision ^8.6
+  - phpunit/phpunit ^11.5.3
+- IMPORTANTE:
+  - NO se usa Sanctum, Passport ni JWT. NO hay autenticación por tokens API.
+  - NO se usa Spatie/laratrust. El RBAC es con spatie/laravel-permission.
+  - NO existe routes/api.php. Las "API" internas (fetch desde JS) están dentro
+    de routes/web.php bajo middleware ['auth','verified'].
+
+- Frontend (TODO por CDN, sin Vite/Mix en producción):
+  - Tailwind CSS (CDN)
+  - Tabulator 6.2 (tablas dinámicas)
+  - ApexCharts (gráficos)
+  - Tom Select 2.3.1 (autocompletados)
+  - Tesseract.js 5 (OCR)
+
+------------------------------------------------------------------------
+ 2. MODELOS ACTUALES (código completo)
+------------------------------------------------------------------------
+
+// app/Models/User.php
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable, HasRoles;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'establishment_id',
+        'phone',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class);
+    }
+}
+
+// app/Models/Party.php  (Clientes / contactos / aseguradoras)
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+
+class Party extends Model
+{
+    use HasFactory, SoftDeletes, LogsActivity;
+
+    protected $fillable = [
+        'document_type', 'document_number', 'first_name', 'last_name',
+        'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code',
+        'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate',
+        'receive_promotions', 'created_by', 'updated_by',
+    ];
+
+    protected $casts = [
+        'is_insurance_company' => 'boolean',
+        'receive_promotions' => 'boolean',
+    ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['document_type', 'document_number', 'first_name', 'last_name', 'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code', 'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate', 'receive_promotions'])
+            ->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('party');
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->business_name) {
+            return $this->business_name;
+        }
+        return trim("{$this->last_name} {$this->first_name}");
+    }
+
+    public function getDocumentTypeLabelAttribute(): string
+    {
+        return match ($this->document_type) {
+            '1' => 'DNI',
+            '6' => 'RUC',
+            '4' => 'CEX',
+            '7' => 'PAS',
+            'A' => 'Cédula Diplomática',
+            default => $this->document_type ?? '',
+        };
+    }
+
+    public static function generateTemporaryDocumentNumber(): string
+    {
+        return 'TMP' . now()->format('YmdHis') . random_int(10, 99);
+    }
+
+    public function hasTemporaryDocument(): bool
+    {
+        return str_starts_with((string) $this->document_number, 'TMP');
+    }
+
+    public function ubigeo() { return $this->belongsTo(Ubigeo::class, 'ubigeo_code', 'code'); }
+    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function updater() { return $this->belongsTo(User::class, 'updated_by'); }
+    public function contacts() { return $this->hasMany(PartyContact::class); }
+    public function vehicleRelationships() { return $this->hasMany(VehicleRelationship::class); }
+    public function vehicles() { return $this->belongsToMany(Vehicle::class, 'vehicle_relationships')->withPivot(['role', 'is_primary_commercial', 'notes'])->wherePivotNull('deleted_at')->withTimestamps(); }
+}
+
+// app/Models/Vehicle.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+
+class Vehicle extends Model
+{
+    use HasFactory;
+    use SoftDeletes;
+    use LogsActivity;
+
+    protected $fillable = [
+        'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
+        'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+        'created_by', 'updated_by',
+    ];
+
+    protected $casts = [
+        'technical_review_date' => 'date',
+        'review_reminder_days' => 'integer',
+    ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
+                'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('vehicle');
+    }
+
+    // Mutadores: guardar en mayúsculas
+    public function setPlateAttribute($value): void
+    {
+        $this->attributes['plate'] = mb_strtoupper($value ?? '');
+    }
+    public function setVinAttribute($value): void
+    {
+        $this->attributes['vin'] = $value ? mb_strtoupper($value) : null;
+    }
+    public function setEngineNumberAttribute($value): void
+    {
+        $this->attributes['engine_number'] = $value ? mb_strtoupper($value) : null;
+    }
+    public function setColorAttribute($value): void
+    {
+        $this->attributes['color'] = $value ? mb_strtoupper($value) : null;
+    }
+
+    public function brand() { return $this->belongsTo(Brand::class, 'brand_id'); }
+    public function vehicleModel() { return $this->belongsTo(VehicleModel::class, 'model_id'); }
+    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function updater() { return $this->belongsTo(User::class, 'updated_by'); }
+    public function relationships() { return $this->hasMany(VehicleRelationship::class); }
+    public function parties() {
+        return $this->belongsToMany(Party::class, 'vehicle_relationships')
+            ->withPivot(['role', 'is_primary_commercial', 'notes'])
+            ->wherePivotNull('deleted_at')
+            ->withTimestamps();
+    }
+    public function owner() { return $this->hasOne(VehicleRelationship::class)->where('role', 'owner'); }
+}
+
+// app/Models/CheckIn.php  (Inventario)
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+
+class CheckIn extends Model
+{
+    use HasFactory;
+    use SoftDeletes;
+    use LogsActivity;
+
+    protected $fillable = [
+        'vehicle_id', 'client_id', 'insurance_company_id', 'establishment_id',
+        'created_by', 'updated_by', 'service_type', 'claim_number', 'mileage',
+        'fuel_level', 'property_card', 'soat_expiration',
+        'technical_review_expiration', 'keys_count', 'has_remote_control',
+        'client_request', 'observations', 'status',
+    ];
+
+    protected $casts = [
+        'has_remote_control' => 'boolean',
+        'soat_expiration' => 'date',
+        'technical_review_expiration' => 'date',
+        'keys_count' => 'integer',
+        'mileage' => 'integer',
+    ];
+
+    public const STATUS_LABELS = [
+        'draft' => 'Borrador',
+        'pending_approval' => 'Pendiente aprobación cliente',
+        'approved' => 'Aprobado',
+        'rejected' => 'Rechazado',
+        'closed' => 'Cerrado',
+    ];
+
+    public const SERVICE_TYPES = [
+        'siniestro' => 'Siniestro',
+        'preventivo' => 'Preventivo',
+        'correctivo' => 'Correctivo',
+        'otro' => 'Otro',
+    ];
+
+    public const FUEL_LEVELS = [
+        'reserva' => 'Reserva',
+        'cuarto' => '1/4',
+        'medio' => 'Medio',
+        'tres_cuartos' => '3/4',
+        'full' => 'Full',
+    ];
+
+    public const PROPERTY_CARDS = [
+        'fisica' => 'Física',
+        'virtual' => 'Virtual',
+        'no_tiene' => 'No tiene',
+    ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'vehicle_id', 'client_id', 'insurance_company_id', 'establishment_id',
+                'service_type', 'claim_number', 'mileage', 'fuel_level', 'property_card',
+                'soat_expiration', 'technical_review_expiration', 'keys_count',
+                'has_remote_control', 'client_request', 'observations', 'status',
+            ])
+            ->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('check_in');
+    }
+
+    public function getStatusLabelAttribute(): string { return self::STATUS_LABELS[$this->status] ?? $this->status ?? ''; }
+    public function getServiceTypeLabelAttribute(): string { return self::SERVICE_TYPES[$this->service_type] ?? $this->service_type ?? ''; }
+    public function getFuelLevelLabelAttribute(): string { return self::FUEL_LEVELS[$this->fuel_level] ?? $this->fuel_level ?? ''; }
+    public function getPropertyCardLabelAttribute(): string { return self::PROPERTY_CARDS[$this->property_card] ?? $this->property_card ?? ''; }
+
+    public function vehicle() { return $this->belongsTo(Vehicle::class)->withTrashed(); }
+    public function client() { return $this->belongsTo(Party::class, 'client_id'); }
+    public function insuranceCompany() { return $this->belongsTo(Party::class, 'insurance_company_id'); }
+    public function establishment() { return $this->belongsTo(Establishment::class); }
+    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function updater() { return $this->belongsTo(User::class, 'updated_by'); }
+    public function checklistResults() { return $this->hasMany(CheckInChecklistResult::class); }
+    public function damages() { return $this->hasMany(CheckInDamage::class); }
+    public function photos() { return $this->hasMany(CheckInPhoto::class)->orderBy('order'); }
+}
+
+// Modelo auxiliar importante:
+// app/Models/Establishment.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Establishment extends Model
+{
+    protected $fillable = [
+        'name', 'address', 'phone', 'email', 'code',
+    ];
+}
+
+// NOTA: Los modelos usan SoftDeletes y el trait LogsActivity de spatie.
+// El modelo User ya incorpora el trait HasRoles (spatie/laravel-permission).
+
+------------------------------------------------------------------------
+ 3. MIGRACIONES (estructura de tablas)
+------------------------------------------------------------------------
+
+-- users (migración base 0001_01_01_000000_create_users_table.php)
+CREATE TABLE users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    email_verified_at TIMESTAMP NULL,
+    password VARCHAR(255) NOT NULL,
+    remember_token VARCHAR(100) NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+);
+
+-- add_establishment_id_and_phone_to_users_table (2026_08_18_035054)
+ALTER TABLE users
+    ADD establishment_id BIGINT UNSIGNED NULL AFTER id,
+    ADD phone VARCHAR(255) NULL AFTER establishment_id;
+-- FK: establishment_id -> establishments.id ON DELETE SET NULL
+
+-- establishments (2026_08_18_035053)
+CREATE TABLE establishments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NULL,
+    phone VARCHAR(255) NULL,
+    email VARCHAR(255) NULL,
+    code VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+);
+
+-- parties (2026_08_18_052247 + 2026_08_18_063000 de ajuste)
+CREATE TABLE parties (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    document_type VARCHAR(10) NULL,           -- códigos SUNAT: 1=DNI, 6=RUC, 4=CEX, 7=PAS, A=Cédula Diplomática
+    document_number VARCHAR(255) NULL UNIQUE,
+    first_name VARCHAR(255) NULL,
+    last_name VARCHAR(255) NULL,
+    business_name VARCHAR(255) NULL,
+    email VARCHAR(255) NULL,
+    phone VARCHAR(255) NULL,
+    mobile VARCHAR(255) NULL,
+    address TEXT NULL,
+    ubigeo_code VARCHAR(6) NULL,
+    is_insurance_company TINYINT(1) NOT NULL DEFAULT 0,
+    insurance_hourly_rate DECIMAL(12,2) NULL,
+    insurance_panel_rate DECIMAL(12,2) NULL,
+    receive_promotions TINYINT(1) NOT NULL DEFAULT 1,
+    created_by BIGINT UNSIGNED NULL,
+    updated_by BIGINT UNSIGNED NULL,
+    deleted_at TIMESTAMP NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    -- FK: ubigeo_code->ubigeos.code SET NULL, created_by/updated_by->users.id SET NULL
+    -- indexes: (type, document_type) [eliminado en el ajuste], document_number
+);
+
+-- vehicles (2026_08_18_052248) -- El nombre de la columna brand_id apunta a brands, model_id a models
+CREATE TABLE vehicles (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    plate VARCHAR(255) NOT NULL UNIQUE,
+    brand_id BIGINT UNSIGNED NOT NULL,
+    model_id BIGINT UNSIGNED NOT NULL,
+    color VARCHAR(255) NULL,
+    vin VARCHAR(255) NULL,
+    engine_number VARCHAR(255) NULL,
+    year INT NULL,
+    body_type VARCHAR(255) NULL,
+    technical_review_date DATE NULL,
+    review_reminder_days INT NOT NULL DEFAULT 15,
+    created_by BIGINT UNSIGNED NULL,
+    updated_by BIGINT UNSIGNED NULL,
+    deleted_at TIMESTAMP NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    -- FK: brand_id->brands.id, model_id->models.id, created_by/updated_by->users.id
+    -- indexes: plate, model_id
+);
+
+-- check_ins (2026_08_19_000000)
+CREATE TABLE check_ins (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    vehicle_id BIGINT UNSIGNED NOT NULL,
+    client_id BIGINT UNSIGNED NULL,
+    insurance_company_id BIGINT UNSIGNED NULL,
+    establishment_id BIGINT UNSIGNED NOT NULL,
+    created_by BIGINT UNSIGNED NOT NULL,
+    updated_by BIGINT UNSIGNED NULL,
+    service_type VARCHAR(255) NOT NULL,        -- siniestro, preventivo, correctivo, otro
+    claim_number VARCHAR(255) NULL,
+    mileage INT NULL,
+    fuel_level VARCHAR(255) NULL,               -- reserva, cuarto, medio, tres_cuartos, full
+    property_card VARCHAR(255) NULL,            -- fisica, virtual, no_tiene
+    soat_expiration DATE NULL,
+    technical_review_expiration DATE NULL,
+    keys_count INT NOT NULL DEFAULT 0,
+    has_remote_control TINYINT(1) NOT NULL DEFAULT 0,
+    client_request TEXT NULL,
+    observations TEXT NULL,
+    status ENUM('draft','pending_approval','approved','rejected','closed') NOT NULL DEFAULT 'draft',
+    deleted_at TIMESTAMP NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    -- FK: vehicle_id->vehicles.id, client_id/insurance_company_id->parties.id,
+    --     establishment_id->establishments.id, created_by/updated_by->users.id
+    -- indexes: (vehicle_id,status), establishment_id, service_type
+);
+
+-- Tablas RBAC de spatie/laravel-permission (2026_08_18_035015_create_permission_tables.php)
+CREATE TABLE permissions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    guard_name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    UNIQUE (name, guard_name)
+);
+
+CREATE TABLE roles (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    guard_name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    UNIQUE (name, guard_name)
+);
+
+CREATE TABLE model_has_permissions (
+    permission_id BIGINT UNSIGNED NOT NULL,
+    model_type VARCHAR(255) NOT NULL,
+    model_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (permission_id, model_id, model_type),
+    -- FK permission_id -> permissions.id CASCADE
+);
+
+CREATE TABLE model_has_roles (
+    role_id BIGINT UNSIGNED NOT NULL,
+    model_type VARCHAR(255) NOT NULL,
+    model_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (role_id, model_id, model_type),
+    -- FK role_id -> roles.id CASCADE
+);
+
+CREATE TABLE role_has_permissions (
+    permission_id BIGINT UNSIGNED NOT NULL,
+    role_id BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (permission_id, role_id),
+    -- FKs CASCADE
+);
+
+-- NOTA: La migración de permission_tables se publicó con la config por defecto
+-- (sin soporte de equipos/teams: config('permission.teams') = false).
+
+------------------------------------------------------------------------
+ 4. RUTAS ACTUALES (routes/web.php) - NO existe routes/api.php
+------------------------------------------------------------------------
+
+<?php
+
+use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\PartyController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\VehicleController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('check-ins.index');
+    }
+    return redirect()->route('login');
+});
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('parties', PartyController::class);
+    Route::resource('vehicles', VehicleController::class);
+    Route::resource('check-ins', CheckInController::class);
+
+    Route::post('check-ins/{checkIn}/approve', [CheckInController::class, 'approve'])->name('check-ins.approve');
+    Route::post('check-ins/{checkIn}/reject', [CheckInController::class, 'reject'])->name('check-ins.reject');
+    Route::post('check-ins/{checkIn}/send-to-client', [CheckInController::class, 'sendToClient'])->name('check-ins.send-to-client');
+
+    Route::get('api/check-ins/search', [CheckInController::class, 'search'])->name('api.check-ins.search');
+    Route::get('api/check-ins/contacts', [CheckInController::class, 'contacts'])->name('api.check-ins.contacts');
+    Route::get('api/check-ins/insurance-companies', [CheckInController::class, 'insuranceCompanies'])->name('api.check-ins.insurance-companies');
+    Route::delete('api/check-ins/contacts', [CheckInController::class, 'removeContact'])->name('api.check-ins.contacts.remove');
+    Route::post('api/check-ins/{checkIn}/photos', [CheckInController::class, 'uploadPhoto'])->name('api.check-ins.photos.store');
+    Route::delete('api/check-ins/{checkIn}/photos/{photo}', [CheckInController::class, 'destroyPhoto'])->name('api.check-ins.photos.destroy');
+
+    Route::get('api/parties/search', [PartyController::class, 'search'])->name('api.parties.search');
+    Route::post('api/parties/quick-store', [PartyController::class, 'quickStore'])->name('api.parties.quick-store');
+    Route::put('api/parties/{party}/quick-update', [PartyController::class, 'quickUpdate'])->name('api.parties.quick-update');
+
+    Route::get('api/vehicles/search', [VehicleController::class, 'search'])->name('api.vehicles.search');
+    Route::get('api/brands', [VehicleController::class, 'brands'])->name('api.brands');
+    Route::get('api/models', [VehicleController::class, 'models'])->name('api.models');
+    Route::post('api/brands/find-or-create', [VehicleController::class, 'findOrCreateBrand'])->name('api.brands.find-or-create');
+    Route::post('api/models/find-or-create', [VehicleController::class, 'findOrCreateModel'])->name('api.models.find-or-create');
+    Route::post('api/vehicles/quick-store', [VehicleController::class, 'quickStore'])->name('api.vehicles.quick-store');
+    Route::put('api/vehicles/{vehicle}/quick-update', [VehicleController::class, 'quickUpdate'])->name('api.vehicles.quick-update');
+
+    Route::post('api/party/search-by-document', [PartyController::class, 'searchByDocument'])->name('api.party.search-by-document');
+    Route::get('api/tipo-cambio', [PartyController::class, 'tipoCambio'])->name('api.tipo-cambio');
+    Route::get('api/ubigeo/resolve', [PartyController::class, 'resolveUbigeo'])->name('api.ubigeo.resolve');
+    Route::get('api/ubigeo/departamentos', [PartyController::class, 'departamentos'])->name('api.ubigeo.departamentos');
+    Route::get('api/ubigeo/provincias', [PartyController::class, 'provincias'])->name('api.ubigeo.provincias');
+    Route::get('api/ubigeo/distritos', [PartyController::class, 'distritos'])->name('api.ubigeo.distritos');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/api/keep-alive', function () {
+        return response()->json(['status' => 'ok']);
+    })->name('api.keep-alive');
+});
+
+require __DIR__.'/auth.php';
+
+-- NO se usa Inertia ni Livewire. Son vistas Blade (blade.php) que heredan
+-- de resources/views/layouts/app.blade.php (que carga las CDN de Tailwind,
+-- Tabulator, Tom Select, ApexCharts y Tesseract).
+
+------------------------------------------------------------------------
+ 5. MIDDLEWARE Y AUTH
+------------------------------------------------------------------------
+
+- bootstrap/app.php (Laravel 12):
+  ->withRouting(web, commands, health)
+  ->withMiddleware(function (Middleware $middleware) { // vacío: sin middleware personalizado })
+  ->withExceptions(function (Exceptions $exceptions) { // vacío })
+
+- Guard por defecto: Eloquent 'web' (sesión). Config en config/auth.php sin cambios.
+- Las rutas protegidas usan middleware ['auth', 'verified'] (Breeze).
+- Las rutas de perfil usan middleware 'auth'.
+- NO existe middleware personalizado de verificación de permisos aún.
+  La autorización se hace con Laravel Policies (Gate) en los controladores.
+
+- Reglas de autorización (convención existente en app/Providers/AppServiceProvider.php):
+  Gate::policy(Brand::class, BrandPolicy::class);
+  Gate::policy(VehicleModel::class, VehicleModelPolicy::class);
+  Gate::policy(Party::class, PartyPolicy::class);
+  Gate::policy(Vehicle::class, VehiclePolicy::class);
+  Gate::policy(CheckIn::class, CheckInPolicy::class);
+
+- Ejemplo de Policy (app/Policies/CheckInPolicy.php) - usa permisos de spatie:
+<?php
+namespace App\Policies;
+
+use App\Models\CheckIn;
+use App\Models\User;
+
+class CheckInPolicy
+{
+    public function viewAny(User $user): bool { return $user->can('ver inventarios'); }
+    public function view(User $user, CheckIn $checkIn): bool { return $user->can('ver inventarios'); }
+    public function create(User $user): bool { return $user->can('crear inventarios'); }
+    public function update(User $user, CheckIn $checkIn): bool { return $user->can('editar inventarios'); }
+    public function delete(User $user, CheckIn $checkIn): bool { return $user->can('eliminar inventarios'); }
+    public function restore(User $user, CheckIn $checkIn): bool { return $user->can('eliminar inventarios'); }
+    public function forceDelete(User $user, CheckIn $checkIn): bool { return $user->can('eliminar inventarios'); }
+    public function approve(User $user): bool { return $user->can('aprobar inventarios'); }
+    public function reject(User $user): bool { return $user->can('aprobar inventarios'); }
+    public function sendToClient(User $user): bool { return $user->can('editar inventarios'); }
+    public function uploadPhoto(User $user, CheckIn $checkIn): bool { return $user->can('editar inventarios'); }
+    public function deletePhoto(User $user, CheckIn $checkIn): bool { return $user->can('editar inventarios'); }
+}
+
+- Seeder RBAC existente (database/seeders/RolePermissionSeeder.php):
+<?php
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+
+class RolePermissionSeeder extends Seeder
+{
+    public function run()
+    {
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $roles = ['Administrador', 'Asesor', 'Técnico', 'Almacenero', 'Caja'];
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role]);
+        }
+
+        $permissions = [
+            'ver parties', 'crear parties', 'editar parties', 'eliminar parties',
+            'ver vehículos', 'crear vehículos', 'editar vehículos', 'eliminar vehículos',
+            'ver marcas', 'crear marcas', 'editar marcas', 'eliminar marcas',
+            'ver modelos', 'crear modelos', 'editar modelos', 'eliminar modelos',
+            'ver inventarios', 'crear inventarios', 'editar inventarios', 'eliminar inventarios', 'aprobar inventarios',
+        ];
+        foreach ($permissions as $perm) {
+            Permission::firstOrCreate(['name' => $perm]);
+        }
+
+        $admin = Role::findByName('Administrador');
+        $admin->givePermissionTo(Permission::all());
+
+        $asesor = Role::findByName('Asesor');
+        $asesor->givePermissionTo([
+            'ver parties', 'crear parties', 'editar parties',
+            'ver vehículos', 'crear vehículos', 'editar vehículos',
+            'ver marcas', 'crear marcas', 'editar marcas',
+            'ver modelos', 'crear modelos', 'editar modelos',
+            'ver inventarios', 'crear inventarios', 'editar inventarios',
+        ]);
+    }
+}
+
+------------------------------------------------------------------------
+ 6. ESTRUCTURA DE DIRECTORIOS
+------------------------------------------------------------------------
+
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── Auth/            (controladores de Breeze: login, register, etc.)
+│   │   ├── CheckInController.php
+│   │   ├── Controller.php
+│   │   ├── PartyController.php
+│   │   ├── ProfileController.php
+│   │   └── VehicleController.php
+│   └── Requests/
+│       ├── CheckInRequest.php
+│       ├── PartyRequest.php
+│       └── VehicleRequest.php
+├── Models/
+│   ├── Brand.php
+│   ├── CheckIn.php
+│   ├── CheckInChecklistItem.php
+│   ├── CheckInChecklistResult.php
+│   ├── CheckInDamage.php
+│   ├── CheckInPhoto.php
+│   ├── Establishment.php
+│   ├── Party.php
+│   ├── PartyContact.php
+│   ├── Ubigeo.php
+│   ├── User.php
+│   ├── Vehicle.php
+│   ├── VehicleModel.php
+│   └── VehicleRelationship.php
+├── Policies/
+│   ├── BrandPolicy.php
+│   ├── CheckInPolicy.php
+│   ├── PartyPolicy.php
+│   ├── VehicleModelPolicy.php
+│   └── VehiclePolicy.php
+├── Providers/
+│   └── AppServiceProvider.php   (registro de Policies con Gate::policy)
+├── Services/
+│   ├── BrandService.php
+│   ├── CheckInService.php
+│   ├── PartyService.php
+│   ├── ReniecSunatService.php
+│   ├── SunatExchangeService.php
+│   ├── VehicleModelService.php
+│   └── VehicleService.php
+└── View/ (componentes)
+
+database/
+├── factories/
+│   ├── PartyFactory.php
+│   ├── PartyContactFactory.php
+│   ├── UserFactory.php
+│   ├── VehicleFactory.php
+│   └── VehicleRelationshipFactory.php
+├── migrations/
+│   ├── 0001_01_01_000000_create_users_table.php
+│   ├── 0001_01_01_000001_create_cache_table.php
+│   ├── 0001_01_01_000002_create_jobs_table.php
+│   ├── 2026_08_18_032000_create_activity_log_table.php
+│   ├── 2026_08_18_032001_add_event_column_to_activity_log_table.php
+│   ├── 2026_08_18_032002_add_batch_uuid_column_to_activity_log_table.php
+│   ├── 2026_08_18_035015_create_permission_tables.php   (spatie)
+│   ├── 2026_08_18_035052_create_ubigeos_table.php
+│   ├── 2026_08_18_035053_create_establishments_table.php
+│   ├── 2026_08_18_035054_add_establishment_id_and_phone_to_users_table.php
+│   ├── 2026_08_18_052245_create_brands_table.php
+│   ├── 2026_08_18_052246_create_models_table.php
+│   ├── 2026_08_18_052247_create_parties_table.php
+│   ├── 2026_08_18_052248_create_vehicles_table.php
+│   ├── 2026_08_18_052249_create_vehicle_relationships_table.php
+│   ├── 2026_08_18_052250_create_party_contacts_table.php
+│   ├── 2026_08_18_063000_remove_type_and_update_document_type_from_parties_table.php
+│   ├── 2026_08_19_000000_create_check_ins_table.php
+│   ├── 2026_08_19_000001_create_check_in_checklist_items_table.php
+│   ├── 2026_08_19_000002_create_check_in_checklist_results_table.php
+│   ├── 2026_08_19_000003_create_check_in_damages_table.php
+│   └── 2026_08_19_000004_create_check_in_photos_table.php
+└── seeders/
+    ├── BrandModelSeeder.php
+    ├── CheckInSeeder.php
+    ├── ChecklistItemsSeeder.php
+    ├── DatabaseSeeder.php
+    ├── EstablishmentSeeder.php
+    ├── InsuranceCompanySeeder.php
+    ├── PartySeeder.php
+    ├── RolePermissionSeeder.php
+    ├── UbigeoSeeder.php
+    ├── UserSeeder.php
+    └── VehicleRelationshipSeeder.php
+
+routes/
+├── auth.php       (Breeze: login/register/password)
+├── console.php
+└── web.php
+
+resources/views/
+├── layouts/app.blade.php, guest.blade.php, navigation.blade.php
+├── parties/ (index, create, edit, show)
+├── vehicles/ (index, create, edit, show, _relationships, _sunarp_modal)
+├── check-ins/ (index, create, edit, show, _form, _form-scripts, _checklist,
+│               _damages, _photos, _vehicle_modal)
+└── partials/ (contact-modal, vehicle-relationships, sunarp-modal)
+
+tests/
+├── Feature/ (CheckInTest, PartyTest, VehicleTest)
+└── Unit/    (CheckInServiceTest, PartyServiceTest, VehicleServiceTest)
+
+------------------------------------------------------------------------
+ 7. CONVENCIÓN DE CÓDIGO DEL PROYECTO
+------------------------------------------------------------------------
+
+- Arquitectura: Controladores + Form Requests + Services.
+  - NO usamos Repositories.
+  - NO usamos Actions.
+  - La lógica de negocio vive en app/Services (clases Service con inyección de
+    dependencias en el constructor del controlador).
+- Flujo típico de un controlador:
+  public function store(PartyRequest $request) {
+      Gate::authorize('create', Party::class);            // autorización
+      $this->partyService->create($request->validated()); // lógica en Service
+      return redirect()->route('parties.index')->with('success', '...');
+  }
+- Validación: Form Requests dedicados en app/Http/Requests (reglas + mensajes
+  personalizados en español).
+- Transacciones: DB::transaction dentro de los Services para operaciones compuestas.
+- Modelos principales: SoftDeletes + trait LogsActivity (spatie) con logOnlyDirty.
+- Los permisos de spatie se nombran en español, formato "ver/crear/editar/eliminar <entidad>"
+  (ej. 'ver usuarios', 'crear usuarios', 'editar roles', 'eliminar permisos').
+
+- REGLA OBLIGATORIA (ver .clinerules/06-sincronizacion-inteligente.md):
+  Al sincronizar colecciones hijo (checklist, daños, fotos, asignaciones, ítems,
+  etc.) está PROHIBIDO el patrón "borrar todo y reinsertar". Se debe usar diff/upsert:
+   1) Cargar existentes (keyBy id o clave natural).
+   2) Iterar lo enviado: update si existe, create si no.
+   3) Eliminar solo los registros que ya no vienen.
+  Excepciones: instrucción explícita del usuario, o que una librería/paquete lo
+  haga directamente (Model::sync(), updateOrCreate(), firstOrCreate()).
+
+- Frontend:
+  - Vistas Blade que heredan de resources/views/layouts/app.blade.php.
+  - Contenido en @section('content') y scripts en @push('scripts').
+  - Tablas dinámicas con Tabulator (CDN) usando AJAX.
+  - Autocompletados con Tom Select (CDN) - config single estricto:
+    maxItems: 1, closeAfterSelect: true, create: false, copyClassesToDropdown: false.
+  - Campos obligatorios marcados con asterisco rojo <span class="text-red-500">*</span>.
+  - Mobile-first (Tailwind: sm:, md:, lg:).
+
+- Base de datos en inglés. Tablas plural/snake_case. Modelos singular CamelCase.
+- PHP PSR-12. Uso de type hints y return types.
+
+------------------------------------------------------------------------
+ 8. NOTAS PARA EL NUEVO MÓDULO (Usuarios / Roles / Permisos)
+------------------------------------------------------------------------
+
+Recomendaciones para que DeepSeek genere el módulo con la misma arquitectura:
+- Rutas: Route::resource('users', UserController::class) dentro del grupo
+  middleware(['auth','verified']), y rutas para roles/permisos si aplica.
+- Crear: UserController (con Gate::authorize), UserRequest (Form Request),
+  UserService (lógica), UserPolicy (permisos 'ver/crear/editar/eliminar usuarios').
+- Extender RolePermissionSeeder con los nuevos roles/permisos usando
+  Role::firstOrCreate / Permission::firstOrCreate y forgetCachedPermissions() al inicio.
+- Vistas Blade en resources/views/users/ (index, create, edit, show) con Tabulator
+  y Tom Select, heredando de layouts/app.blade.php.
+- NO usar auth:sanctum / auth:api (no existe API token auth).
+- Respetar la regla de sincronización inteligente (diff/upsert) para relaciones
+  muchos-a-muchos (roles/permissions) si se manejan manualmente; si se usa
+  sync() de spatie, es una excepción válida.
+- Nombres de roles y permisos en español, siguiendo el estilo existente.

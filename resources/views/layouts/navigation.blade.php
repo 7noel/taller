@@ -8,6 +8,9 @@
                     <a href="{{ route('parties.index') }}" class="{{ request()->routeIs('parties.*') ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Contactos de Vehículo</a>
                     <a href="{{ route('vehicles.index') }}" class="{{ request()->routeIs('vehicles.*') ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Vehículos</a>
                     <a href="{{ route('check-ins.index') }}" class="{{ request()->routeIs('check-ins.*') ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Inventario</a>
+                    @can('ver usuarios')
+                        <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700' }} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Usuarios</a>
+                    @endcan
                 </div>
             </div>
             @auth

@@ -12,6 +12,7 @@ use App\Services\VehicleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class VehicleController extends Controller
@@ -115,12 +116,15 @@ class VehicleController extends Controller
                 'id' => $vehicle->id,
                 'plate' => $vehicle->plate,
                 'brand' => $vehicle->vehicleModel?->brand?->name,
+                'brand_id' => $vehicle->vehicleModel?->brand_id,
                 'model' => $vehicle->vehicleModel?->name,
+                'model_id' => $vehicle->model_id,
                 'year' => $vehicle->year,
                 'color' => $vehicle->color,
                 'vin' => $vehicle->vin,
                 'engine_number' => $vehicle->engine_number,
                 'body_type' => $vehicle->body_type,
+                'technical_review_date' => $vehicle->technical_review_date?->format('Y-m-d'),
                 'owner_name' => $vehicle->relationships->first()?->party?->display_name,
             ]));
     }
@@ -158,7 +162,47 @@ class VehicleController extends Controller
             'vin' => $vehicle->vin,
             'engine_number' => $vehicle->engine_number,
             'body_type' => $vehicle->body_type,
+            'technical_review_date' => $vehicle->technical_review_date?->format('Y-m-d'),
         ], 201);
+    }
+
+    public function quickUpdate(Request $request, Vehicle $vehicle): JsonResponse
+    {
+        Gate::authorize('update', $vehicle);
+
+        $request->validate([
+            'plate' => ['required', 'string', 'min:3', 'max:7', Rule::unique('vehicles', 'plate')->ignore($vehicle->id)],
+            'brand_id' => ['required', 'exists:brands,id'],
+            'model_id' => ['required', 'exists:models,id'],
+            'color' => ['nullable', 'string', 'max:50'],
+            'vin' => ['nullable', 'string', 'max:20'],
+            'engine_number' => ['nullable', 'string', 'max:30'],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:2100'],
+            'body_type' => ['nullable', 'string', 'max:50'],
+            'technical_review_date' => ['nullable', 'date'],
+        ], [
+            'plate.required' => 'La placa es obligatoria.',
+            'plate.unique' => 'Esa placa ya está registrada.',
+            'brand_id.required' => 'Seleccione la marca.',
+            'model_id.required' => 'Seleccione el modelo.',
+        ]);
+
+        $this->vehicleService->update($vehicle, $request->all());
+
+        return response()->json([
+            'id' => $vehicle->fresh()->id,
+            'plate' => $vehicle->fresh()->plate,
+            'brand' => $vehicle->fresh()->vehicleModel?->brand?->name,
+            'brand_id' => $vehicle->fresh()->vehicleModel?->brand_id,
+            'model' => $vehicle->fresh()->vehicleModel?->name,
+            'model_id' => $vehicle->fresh()->model_id,
+            'year' => $vehicle->fresh()->year,
+            'color' => $vehicle->fresh()->color,
+            'vin' => $vehicle->fresh()->vin,
+            'engine_number' => $vehicle->fresh()->engine_number,
+            'body_type' => $vehicle->fresh()->body_type,
+            'technical_review_date' => $vehicle->fresh()->technical_review_date?->format('Y-m-d'),
+        ]);
     }
 
     public function brands(Request $request): JsonResponse

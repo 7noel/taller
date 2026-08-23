@@ -26,7 +26,7 @@ class CheckInDamage extends Model
     public const DAMAGE_TYPE_LABELS = [
         'scratch' => 'Rayón',
         'dent' => 'Abolladura',
-        'crack' => 'Quebre',
+        'crack' => 'Quiñe',
     ];
 
     public const SIDE_LABELS = [

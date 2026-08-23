@@ -3,27 +3,25 @@
     $isEdit = !is_null($checkIn);
 @endphp
 
-{{-- ============ SECCIÓN 1: VEHÍCULO Y PROPIETARIO ============ --}}
+{{-- ============ SECCIÓN 1: VEHÍCULO ============ --}}
 <div class="border-b border-gray-200 pb-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">🚗 Vehículo y propietario</h3>
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">🚗 Vehículo</h3>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+    {{-- El propietario vive en la sección de contactos; aquí solo se guarda el client_id oculto --}}
+    <input type="hidden" id="owner_id" name="client_id" value="{{ old('client_id', $checkIn->client_id ?? '') }}">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <div class="flex items-center justify-between gap-3">
                 <label for="vehicle_id" class="block text-sm font-medium text-gray-700">Buscar vehículo por placa *</label>
-                <select id="vehicle_id" name="vehicle_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></select>
-                @error('vehicle_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                <div class="mt-2 flex flex-wrap gap-2">
-                    <button type="button" id="btn-new-vehicle" class="text-xs font-medium text-blue-600 hover:underline">➕ Nueva placa</button>
-                    <button type="button" id="btn-new-contact" class="text-xs font-medium text-blue-600 hover:underline">➕ Nuevo contacto</button>
-                    <!-- <a href="{{ route('vehicles.create') }}" target="_blank" class="text-xs text-blue-600 hover:underline">+ Nuevo vehículo (página)</a> -->
-                    <!-- <a href="{{ route('parties.create') }}" target="_blank" class="text-xs text-blue-600 hover:underline">+ Nuevo cliente (página)</a> -->
-                </div>
+                <button type="button" id="btn-new-vehicle" class="text-xs font-medium text-blue-600 hover:underline">➕ Nueva placa</button>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Marca</label>
-                <input type="text" id="vehicle_brand" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm" placeholder="--">
-            </div>
+            <select id="vehicle_id" name="vehicle_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></select>
+            @error('vehicle_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Marca</label>
+            <input type="text" id="vehicle_brand" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm" placeholder="--">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700">Modelo</label>
@@ -45,71 +43,60 @@
             <label class="block text-sm font-medium text-gray-700">Carrocería</label>
             <input type="text" id="vehicle_body_type" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm" placeholder="--">
         </div>
-
         <div>
-            <label class="block text-sm font-medium text-gray-700">Propietario</label>
-            <input type="text" id="owner_name" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm" placeholder="--">
-            <input type="hidden" id="owner_id" name="client_id" value="{{ old('client_id', $checkIn->client_id ?? '') }}">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Documento</label>
-            <input type="text" id="owner_document" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm" placeholder="--">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Teléfono</label>
-            <input type="text" id="owner_phone" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm" placeholder="--">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="text" id="owner_email" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm" placeholder="--">
+            <label class="block text-sm font-medium text-gray-700">Próxima Revisión Técnica</label>
+            <input type="date" id="vehicle_technical_review_date" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm">
         </div>
     </div>
 </div>
 
 {{-- ============ SECCIÓN 2: CONTACTOS DEL VEHÍCULO ============ --}}
 <div class="border-b border-gray-200 pb-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 mb-1">📇 Contactos del vehículo</h3>
-    <p class="text-sm text-gray-500 mb-4">Se cargan automáticamente desde las relaciones del vehículo.</p>
+    @php
+        // Filas iniciales para el check-in: propietario + relaciones relevantes del vehículo.
+        if (old('relationships')) {
+            $ciRelationshipRows = collect(old('relationships'))->map(function ($rel) {
+                return [
+                    'party_id' => $rel['party_id'] ?? null,
+                    'party_label' => null,
+                    'doc_label' => null,
+                    'doc_number' => null,
+                    'role' => $rel['role'] ?? null,
+                    'is_primary_commercial' => !empty($rel['is_primary_commercial']),
+                    'notes' => $rel['notes'] ?? null,
+                ];
+            })->values();
+        } else {
+            $ciRelationshipRows = isset($checkIn) && $checkIn->vehicle && $checkIn->vehicle->relationships
+                ? $checkIn->vehicle->relationships
+                    ->filter(fn ($rel) => in_array($rel->role, ['owner', 'approver', 'driver', 'operator'], true))
+                    ->map(function ($rel) {
+                        return [
+                            'party_id' => $rel->party_id,
+                            'party_label' => $rel->party?->display_name,
+                            'doc_label' => $rel->party?->document_type_label,
+                            'doc_number' => $rel->party?->document_number,
+                            'role' => $rel->role,
+                            'is_primary_commercial' => (bool) $rel->is_primary_commercial,
+                            'notes' => $rel->notes,
+                            'party_phone' => $rel->party?->phone,
+                            'party_mobile' => $rel->party?->mobile,
+                            'party_email' => $rel->party?->email,
+                        ];
+                    })->values()
+                : collect();
+        }
+    @endphp
 
-    <div class="mb-3">
-        <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
-            <input type="checkbox" name="save_contacts" value="1" id="save_contacts" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
-                   {{ old('save_contacts', $isEdit ? 0 : 1) ? 'checked' : '' }}>
-            Guardar cambios de contactos en el vehículo
-        </label>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        @foreach (['approver' => 'Aprobador', 'driver' => 'Conductor', 'operator' => 'Operador'] as $key => $title)
-            <div class="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                <h4 class="text-sm font-semibold text-gray-800 mb-3">{{ $title }}</h4>
-                <div class="space-y-3">
-                    @if ($key === 'operator')
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">Empresa</label>
-                        <input type="text" name="contacts[{{ $key }}][company]" value="{{ old("contacts.{$key}.company", ($checkIn?->vehicle?->relationships ?? collect())->firstWhere('role', $key)?->party?->business_name ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    </div>
-                    @endif
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">Nombre</label>
-                        <input type="text" name="contacts[{{ $key }}][name]" value="{{ old("contacts.{$key}.name", ($checkIn?->vehicle?->relationships ?? collect())->firstWhere('role', $key)?->party?->display_name ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">Celular</label>
-                        <input type="text" name="contacts[{{ $key }}][phone]" value="{{ old("contacts.{$key}.phone", ($checkIn?->vehicle?->relationships ?? collect())->firstWhere('role', $key)?->party?->mobile ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">Teléfono</label>
-                        <input type="text" name="contacts[{{ $key }}][landline]" value="{{ old("contacts.{$key}.landline", ($checkIn?->vehicle?->relationships ?? collect())->firstWhere('role', $key)?->party?->phone ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600">Email</label>
-                        <input type="email" name="contacts[{{ $key }}][email]" value="{{ old("contacts.{$key}.email", ($checkIn?->vehicle?->relationships ?? collect())->firstWhere('role', $key)?->party?->email ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
+    @include('partials.vehicle-relationships', [
+        'vrPrefix' => 'ci',
+        'vrSubmitName' => 'relationships',
+        'vrRoles' => ['owner', 'approver', 'driver', 'operator'],
+        'vrShowPrimary' => true,
+        'vrInitialRows' => $ciRelationshipRows,
+        'vrTitle' => '📇 Contactos del vehículo',
+        'vrDescription' => 'Se cargan automáticamente desde las relaciones del vehículo. Puedes agregar, editar o quitar contactos.',
+    ])
 </div>
 
 {{-- ============ SECCIÓN 3: DATOS DE INGRESO ============ --}}

@@ -156,6 +156,12 @@ class PartyController extends Controller
             'is_insurance_company' => ['nullable', 'boolean'],
         ]);
 
+        // Si no se ingresó documento y el rol no lo exige (no propietario/facturación),
+        // se autogenera uno temporal (TMP...) detectable para identificar contactos pendientes.
+        if (empty($validated['document_number'])) {
+            $validated['document_number'] = Party::generateTemporaryDocumentNumber();
+        }
+
         $party = $this->partyService->create($validated);
 
         return response()->json([
@@ -163,6 +169,15 @@ class PartyController extends Controller
             'display_name' => $party->display_name,
             'document_type' => $party->document_type,
             'document_number' => $party->document_number,
+            'first_name' => $party->first_name,
+            'last_name' => $party->last_name,
+            'business_name' => $party->business_name,
+            'phone' => $party->phone,
+            'mobile' => $party->mobile,
+            'email' => $party->email,
+            'is_insurance_company' => $party->is_insurance_company,
+            'ubigeo_code' => $party->ubigeo_code,
+            'address' => $party->address,
         ], 201);
     }
 

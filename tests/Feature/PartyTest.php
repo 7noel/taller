@@ -213,7 +213,7 @@ class PartyTest extends TestCase
         $response->assertJsonMissing(['first_name' => 'Juan', 'last_name' => 'Pérez']);
     }
 
-    public function test_quick_store_driver_without_document_number_is_allowed(): void
+    public function test_quick_store_driver_without_document_number_gets_tmp_document(): void
     {
         $user = $this->createUserWithPermissions(['crear parties']);
 
@@ -225,7 +225,12 @@ class PartyTest extends TestCase
             'mobile' => '987654322',
         ])->assertCreated();
 
-        $this->assertDatabaseHas('parties', ['first_name' => 'Pedro', 'last_name' => 'Suárez', 'mobile' => '987654322', 'document_number' => null]);
+        $this->assertDatabaseHas('parties', ['first_name' => 'Pedro', 'last_name' => 'Suárez', 'mobile' => '987654322']);
+        $this->assertDatabaseMissing('parties', ['first_name' => 'Pedro', 'last_name' => 'Suárez', 'document_number' => null]);
+
+        $tmpDoc = Party::where('first_name', 'Pedro')->where('last_name', 'Suárez')->value('document_number');
+        $this->assertNotNull($tmpDoc);
+        $this->assertStringStartsWith('TMP', $tmpDoc);
     }
 
     public function test_quick_store_owner_requires_document_number(): void

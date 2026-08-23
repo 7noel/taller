@@ -7,8 +7,38 @@
 - **Tom Select** para autocompletado y seleccion de datos (clientes, vehiculos, repuestos, servicios). Todos los autocompletados deben ser **seleccion unica estricta** (ver patron estandar abajo).
 
 ## Vistas
-- Todas las vistas deben heredar del layout base (`layouts/app.blade.php`) que ya contiene las CDN.
-- Usar secciones `@section('content')` para el contenido principal, y `@push('scripts')` para JavaScript especifico de cada vista.
+- **REGLA OBLIGATORIA: patrón de componentes Blade.** Todas las vistas autenticadas deben usar `<x-app-layout>` (componente `layouts/app.blade.php` que ya contiene las CDN). **PROHIBIDO** usar `@extends('layouts.app')` + `@section('content')`: el layout renderiza `{{ $slot }}`, no `@yield`, por lo que mezclar ambos patrones causa el error `Undefined variable $slot`.
+- Estructura obligatoria:
+  - `<x-slot name="header">` para el encabezado de la página (título y botones de acción).
+  - Contenido principal directamente dentro de `<x-app-layout>` (slot por defecto).
+  - `@push('scripts')` para JavaScript especifico de cada vista (se renderiza al final del layout dentro de `@stack('scripts')`).
+- Ejemplo base:
+```blade
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Título') }}</h2>
+            <a href="#" class="inline-flex items-center px-4 py-2 bg-blue-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-blue-700">+ Nuevo</a>
+        </div>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    {{-- contenido --}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>// JS especifico</script>
+    @endpush
+</x-app-layout>
+```
+- Mensajes flash: mostrar `session('success')` en un bloque verde dentro del slot por defecto.
+- Enlaces del menú en `layouts/navigation.blade.php` deben protegerse con `@can('permiso')` y resaltarse con `request()->routeIs('ruta.*')`.
 
 ## Ejemplos de uso
 - Para una tabla de clientes:

@@ -1,8 +1,15 @@
-{{-- ===== Modal: Crear nueva placa (vehículo) ===== --}}
+{{-- ===== Modal: Nueva / Editar placa (vehículo) ===== --}}
 <div id="vehicleModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-screen overflow-y-auto">
-        <h3 class="text-xl font-bold mb-1 text-gray-800">➕ Nueva placa (vehículo)</h3>
-        <p class="text-sm text-gray-500 mb-4">Complete los datos del vehículo. Se creará y se seleccionará automáticamente en el inventario.</p>
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <h3 id="vm-title" class="text-xl font-bold mb-1 text-gray-800">➕ Nueva placa (vehículo)</h3>
+                <p class="text-sm text-gray-500">Complete los datos del vehículo. Se creará y se seleccionará automáticamente en el inventario.</p>
+            </div>
+            <button type="button" id="btnSunarpVehicle" class="shrink-0 inline-flex items-center gap-2 bg-blue-600 font-semibold text-xs text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                📸 OBTENER DATOS DE SUNARP
+            </button>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -57,3 +64,168 @@
         </div>
     </div>
 </div>
+
+@include('partials.sunarp-modal', [
+    'sunarpBtnId' => 'btnSunarpVehicle',
+    'sunarpModalId' => 'modalSunarpVehicle',
+    'sunarpSelectors' => [
+        'plate' => '#vm-plate',
+        'brand' => '#vm-brand',
+        'model' => '#vm-model',
+        'year' => '#vm-year',
+        'color' => '#vm-color',
+        'vin' => '#vm-vin',
+        'engine' => '#vm-engine',
+    ],
+])
+
+@push('scripts')
+<script>
+(function () {
+    'use strict';
+
+    const modal = document.getElementById('vehicleModal');
+    let editingVehicleId = null; // null = nueva placa, id = editar placa
+
+    const brandSelect = document.getElementById('vm-brand');
+    const modelSelect = document.getElementById('vm-model');
+
+    async function loadVmBrands() {
+        try {
+            const res = await fetch('/api/brands');
+            const data = await res.json();
+            const selected = brandSelect.dataset.selected || '';
+            brandSelect.innerHTML = '<option value="">Seleccionar marca...</option>';
+            data.forEach(b => {
+                const opt = new Option(b.name, b.id);
+                if (String(b.id) === String(selected)) opt.selected = true;
+                brandSelect.add(opt);
+            });
+            if (selected) loadVmModels(selected);
+        } catch (e) { /* noop */ }
+    }
+
+    function loadVmModels(brandId, selectedModelId) {
+        modelSelect.innerHTML = '<option value="">Seleccionar modelo...</option>';
+        modelSelect.disabled = !brandId;
+        if (!brandId) return;
+        fetch(`/api/models?brand_id=${encodeURIComponent(brandId)}`)
+            .then(r => r.json())
+            .then(data => {
+                data.forEach(m => {
+                    const opt = new Option(m.name, m.id);
+                    if (String(m.id) === String(selectedModelId)) opt.selected = true;
+                    modelSelect.add(opt);
+                });
+                modelSelect.disabled = false;
+            })
+            .catch(() => { modelSelect.disabled = true; });
+    }
+
+    brandSelect.addEventListener('change', function () {
+        loadVmModels(this.value);
+    });
+
+    loadVmBrands();
+
+    // Abrir modal: nueva placa (pre-rellena la placa escrita) o editar placa (pre-rellena todo)
+    window.openVehicleModal = function (vehicleOrPlate) {
+        closeModalState();
+
+        if (vehicleOrPlate && typeof vehicleOrPlate === 'object' && vehicleOrPlate.id) {
+            // MODO EDICIÓN
+            editingVehicleId = vehicleOrPlate.id;
+            document.getElementById('vm-title').textContent = '✏️ Editar placa (vehículo)';
+            document.getElementById('vm-plate').value = vehicleOrPlate.plate || '';
+            document.getElementById('vm-color').value = vehicleOrPlate.color || '';
+            document.getElementById('vm-year').value = vehicleOrPlate.year || '';
+            document.getElementById('vm-vin').value = vehicleOrPlate.vin || '';
+            document.getElementById('vm-engine').value = vehicleOrPlate.engine_number || '';
+            document.getElementById('vm-body-type').value = vehicleOrPlate.body_type || '';
+            document.getElementById('vm-review').value = vehicleOrPlate.technical_review_date || '';
+
+            brandSelect.dataset.selected = vehicleOrPlate.brand_id || '';
+            brandSelect.innerHTML = '<option value="">Seleccionar marca...</option>';
+            loadVmBrands().then(() => {
+                brandSelect.value = vehicleOrPlate.brand_id || '';
+                loadVmModels(vehicleOrPlate.brand_id, vehicleOrPlate.model_id);
+            });
+        } else {
+            // MODO NUEVO
+            editingVehicleId = null;
+            document.getElementById('vm-title').textContent = '➕ Nueva placa (vehículo)';
+            const plate = typeof vehicleOrPlate === 'string' ? vehicleOrPlate : '';
+            document.getElementById('vm-plate').value = plate;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.getElementById('vm-plate').focus();
+    };
+
+    function closeModalState() {
+        document.getElementById('vm-color').value = '';
+        document.getElementById('vm-year').value = '';
+        document.getElementById('vm-vin').value = '';
+        document.getElementById('vm-engine').value = '';
+        document.getElementById('vm-body-type').value = '';
+        document.getElementById('vm-review').value = '';
+        delete brandSelect.dataset.selected;
+    }
+
+    document.getElementById('vm-cancel').addEventListener('click', function () {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    });
+
+    document.getElementById('vm-save').addEventListener('click', async function () {
+        const plate = document.getElementById('vm-plate').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+        const brandId = document.getElementById('vm-brand').value;
+        const modelId = document.getElementById('vm-model').value;
+        if (!plate || !brandId || !modelId) { alert('Complete placa, marca y modelo.'); return; }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Guardando...';
+
+        const payload = {
+            plate,
+            brand_id: brandId,
+            model_id: modelId,
+            color: document.getElementById('vm-color').value.trim().toUpperCase() || null,
+            year: document.getElementById('vm-year').value || null,
+            vin: document.getElementById('vm-vin').value.trim().toUpperCase() || null,
+            engine_number: document.getElementById('vm-engine').value.trim().toUpperCase() || null,
+            body_type: document.getElementById('vm-body-type').value || null,
+            technical_review_date: document.getElementById('vm-review').value || null,
+        };
+
+        try {
+            const url = editingVehicleId
+                ? `/api/vehicles/${editingVehicleId}/quick-update`
+                : '/api/vehicles/quick-store';
+            const method = editingVehicleId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) { alert(data.errors ? Object.values(data.errors).flat().join(' ') : 'No se pudo guardar.'); return; }
+
+            // Emitir evento con el vehículo guardado para que el formulario lo integre
+            document.dispatchEvent(new CustomEvent('vehicle-saved', { detail: data }));
+
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        } catch (e) {
+            alert('Error al guardar el vehículo.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = editingVehicleId ? 'Guardar cambios' : 'Guardar y seleccionar';
+        }
+    });
+})();
+</script>
+@endpush

@@ -9,6 +9,18 @@
     const initialVehicleId = "{{ old('vehicle_id', $checkIn->vehicle_id ?? '') }}";
     const mockupPath = "{{ asset('images/mockups') }}";
 
+    let currentVehicle = null; // último vehículo cargado (para editar placa)
+
+    function refreshNewVehicleButton() {
+        const btn = document.getElementById('btn-new-vehicle');
+        if (!btn) return;
+        if (currentVehicle) {
+            btn.textContent = '✏️ Editar placa';
+        } else {
+            btn.textContent = '➕ Nueva placa';
+        }
+    }
+
     // =====================================================
     // 1. Tom Select vehículo + autocompletado
     // =====================================================
@@ -33,7 +45,22 @@
         load: function (query, callback) {
             fetch(`/api/vehicles/search?q=${encodeURIComponent(query)}&limit=20`)
                 .then(r => r.json())
-                .then(data => callback(data))
+                .then(data => {
+                    // Placa exacta (6-7 alfanuméricos): auto-seleccionar si existe
+                    const q = query.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    if (q.length >= 6 && q.length <= 7) {
+                        const exact = data.find(v => String(v.plate).toUpperCase() === q);
+                        if (exact) {
+                            this.addOption(exact);
+                            this.setValue(exact.id, true);
+                            this.blur();
+                            this.close();
+                            callback([]);
+                            return;
+                        }
+                    }
+                    callback(data);
+                })
                 .catch(() => callback());
         },
         render: {
@@ -66,6 +93,31 @@
         if (el && el.value === '') el.value = value || '';
     }
 
+    // Convierte el payload de /api/check-ins/contacts a filas del componente
+    function buildRelationshipRows(contacts) {
+        const docLabels = { '1': 'DNI', '6': 'RUC', '4': 'CEX', '7': 'PAS', 'A': 'Cédula Diplomática' };
+        const roles = ['owner', 'approver', 'driver', 'operator'];
+        const rows = [];
+        roles.forEach(role => {
+            const c = contacts && contacts[role];
+            if (!c) return;
+            const name = c.business_name || [c.name, c.last_name].filter(Boolean).join(' ') || '';
+            rows.push({
+                party_id: c.party_id,
+                party_label: name || '--',
+                doc_label: docLabels[c.document_type] || c.document_type || '',
+                doc_number: c.document_number || '',
+                party_mobile: c.mobile || c.phone || '',
+                party_phone: c.phone || '',
+                party_email: c.email || '',
+                role: role,
+                is_primary_commercial: 0,
+                notes: '',
+            });
+        });
+        return rows;
+    }
+
     // Al seleccionar un vehículo en el buscador, cargar todos sus datos
     vehicleSelect.on('change', function () {
         loadVehicleData(this.getValue());
@@ -73,12 +125,16 @@
 
     async function loadVehicleData(vehicleId) {
         if (!vehicleId) {
-            ['vehicle_brand', 'vehicle_model', 'vehicle_year', 'vehicle_color', 'vehicle_vin', 'vehicle_body_type',
-             'owner_name', 'owner_document', 'owner_phone', 'owner_email'].forEach(id => {
+            ['vehicle_brand', 'vehicle_model', 'vehicle_year', 'vehicle_color', 'vehicle_vin', 'vehicle_body_type'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
-            document.getElementById('owner_id').value = '';
+            const reviewEl2 = document.getElementById('vehicle_technical_review_date');
+            if (reviewEl2) reviewEl2.value = '';
+            const ownerInput = document.getElementById('owner_id');
+            if (ownerInput) ownerInput.value = '';
+            currentVehicle = null;
+            refreshNewVehicleButton();
             return;
         }
 
@@ -93,46 +149,28 @@
             document.getElementById('vehicle_year').value = v.year || '--';
             document.getElementById('vehicle_color').value = v.color || '--';
             document.getElementById('vehicle_vin').value = v.vin || '--';
+            currentVehicle = v;
+
             document.getElementById('vehicle_body_type').value = v.body_type || '--';
+            const reviewEl = document.getElementById('vehicle_technical_review_date');
+            if (reviewEl) reviewEl.value = v.technical_review_date || '';
+
+            // Cargar/recargar aseguradoras al seleccionar el vehículo
+            loadInsuranceCompanies();
+            refreshNewVehicleButton();
 
             // Contactos del vehículo
             const contactsRes = await fetch(`/api/check-ins/contacts?vehicle_id=${encodeURIComponent(vehicleId)}`);
             const contacts = await contactsRes.json();
 
-            // Propietario
+            // Propietario: guardar client_id oculto (la fila vive en el componente de contactos)
             const owner = contacts.owner;
-            if (owner) {
-                document.getElementById('owner_name').value = owner.business_name || [owner.name, owner.last_name].filter(Boolean).join(' ') || '--';
-                document.getElementById('owner_document').value = owner.document_number || '--';
-                document.getElementById('owner_phone').value = owner.phone || owner.mobile || '--';
-                document.getElementById('owner_email').value = owner.email || '--';
-                document.getElementById('owner_id').value = owner.party_id || '';
-            } else {
-                document.getElementById('owner_name').value = '--';
-                document.getElementById('owner_document').value = '--';
-                document.getElementById('owner_phone').value = '--';
-                document.getElementById('owner_email').value = '--';
-                document.getElementById('owner_id').value = '';
-            }
+            const ownerInput = document.getElementById('owner_id');
+            if (ownerInput) ownerInput.value = owner ? (owner.party_id || '') : '';
 
-            // Llenar contactos (solo si están vacíos)
-            if (contacts.approver) {
-                const name = contacts.approver.business_name || [contacts.approver.name, contacts.approver.last_name].filter(Boolean).join(' ');
-                setInputValue('contacts[approver][name]', name);
-                setInputValue('contacts[approver][phone]', contacts.approver.mobile || contacts.approver.phone);
-                setInputValue('contacts[approver][email]', contacts.approver.email);
-            }
-            if (contacts.driver) {
-                const name = contacts.driver.business_name || [contacts.driver.name, contacts.driver.last_name].filter(Boolean).join(' ');
-                setInputValue('contacts[driver][name]', name);
-                setInputValue('contacts[driver][phone]', contacts.driver.mobile || contacts.driver.phone);
-                setInputValue('contacts[driver][email]', contacts.driver.email);
-            }
-            if (contacts.operator) {
-                setInputValue('contacts[operator][company]', contacts.operator.business_name);
-                setInputValue('contacts[operator][name]', [contacts.operator.name, contacts.operator.last_name].filter(Boolean).join(' '));
-                setInputValue('contacts[operator][phone]', contacts.operator.mobile || contacts.operator.phone);
-                setInputValue('contacts[operator][email]', contacts.operator.email);
+            // Actualizar el componente de contactos del vehículo con las relaciones
+            if (window.VehicleRelationships && window.VehicleRelationships.ci) {
+                window.VehicleRelationships.ci.setRows(buildRelationshipRows(contacts));
             }
 
             loadMockup(v.body_type);
@@ -163,13 +201,18 @@
     });
     insuranceSelect.on('dropdown_open', function () { if (insuranceSelect.items.length > 0) { insuranceSelect.setTextValue(''); insuranceSelect.input && insuranceSelect.input.setSelectionRange(0, 0); } });
 
-    fetch('/api/check-ins/insurance-companies')
-        .then(r => r.json())
-        .then(data => {
-            data.forEach(c => insuranceSelect.addOption({ id: c.id, business_name: c.business_name, document_number: c.document_number }));
-            const initial = "{{ old('insurance_company_id', $checkIn->insurance_company_id ?? '') }}";
-            if (initial) insuranceSelect.setValue(initial);
-        });
+    function loadInsuranceCompanies() {
+        fetch('/api/check-ins/insurance-companies')
+            .then(r => r.json())
+            .then(data => {
+                // Preservar la selección previa (p. ej. al recargar en edición)
+                const previous = insuranceSelect.getValue();
+                insuranceSelect.clearOptions();
+                data.forEach(c => insuranceSelect.addOption({ id: c.id, business_name: c.business_name, document_number: c.document_number }));
+                if (previous) insuranceSelect.setValue(previous, true);
+            })
+            .catch(() => { /* noop */ });
+    }
 
     // =====================================================
     // 3. Mockup de daños
@@ -184,7 +227,7 @@
 
     const damageColors = { 'scratch': '#10b981', 'dent': '#ef4444', 'crack': '#3b82f6' };
     const damageIcons = { 'scratch': '✕', 'dent': '●', 'crack': '▲' };
-    const typeLabels = { 'scratch': 'Rayón', 'dent': 'Abolladura', 'crack': 'Quebre' };
+    const typeLabels = { 'scratch': 'Rayón', 'dent': 'Abolladura', 'crack': 'Quiñe' };
 
     function renderDamageCount() {
         const rows = damageList.querySelectorAll('.damage-row');
@@ -194,9 +237,12 @@
     function addDamageRow(damage) {
         const index = damageList.querySelectorAll('.damage-row').length;
         const row = document.createElement('div');
+        const key = damage.key || 'new_' + Date.now() + '_' + index;
         row.className = 'damage-row bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-wrap items-center gap-3';
+        row.dataset.key = key;
         const colorClass = damage.damage_type === 'scratch' ? 'bg-green-100 text-green-800' : (damage.damage_type === 'dent' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800');
         row.innerHTML = `
+            <input type="hidden" name="damages[${index}][id]" value="${damage.id || ''}">
             <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${colorClass}">${typeLabels[damage.damage_type] || damage.damage_type}</span>
             ${damage.pos_x != null && damage.pos_y != null ? `<span class="text-xs text-gray-500">X: ${damage.pos_x}% Y: ${damage.pos_y}%</span>` : ''}
             <input type="hidden" name="damages[${index}][damage_type]" value="${damage.damage_type}">
@@ -208,9 +254,10 @@
         `;
         damageList.appendChild(row);
         renderDamageCount();
+        return key;
     }
 
-    function appendMarker(posX, posY, type) {
+    function appendMarker(posX, posY, type, key) {
         const marker = document.createElement('div');
         marker.className = 'damage-marker absolute rounded-full flex items-center justify-center text-white text-xs font-bold';
         marker.style.left = posX + '%';
@@ -220,7 +267,17 @@
         marker.style.height = '22px';
         marker.style.background = damageColors[type];
         marker.textContent = damageIcons[type];
+        if (key) marker.dataset.key = key;
         markersLayer.appendChild(marker);
+    }
+
+    // Reenumera los índices name="damages[N][...]" tras agregar/eliminar filas
+    function reindexDamageRows() {
+        damageList.querySelectorAll('.damage-row').forEach((row, index) => {
+            row.querySelectorAll('input[name^="damages["]').forEach(input => {
+                input.setAttribute('name', input.getAttribute('name').replace(/^damages\[\d+\]/, `damages[${index}]`));
+            });
+        });
     }
 
     function loadMockup(bodyType) {
@@ -258,8 +315,9 @@
             const posX = row.querySelector('input[name*="[pos_x]"]')?.value;
             const posY = row.querySelector('input[name*="[pos_y]"]')?.value;
             const type = row.querySelector('input[name*="[damage_type]"]')?.value;
+            const key = row.dataset.key;
             if (posX && posY && type) {
-                appendMarker(parseInt(posX, 10), parseInt(posY, 10), type);
+                appendMarker(parseInt(posX, 10), parseInt(posY, 10), type, key);
             }
         });
     }
@@ -268,8 +326,8 @@
         const rect = mockupImg.getBoundingClientRect();
         const posX = Math.round(((e.clientX - rect.left) / rect.width) * 100);
         const posY = Math.round(((e.clientY - rect.top) / rect.height) * 100);
-        addDamageRow({ damage_type: selectedDamageType, side: 'front', pos_x: posX, pos_y: posY, notes: '' });
-        appendMarker(posX, posY, selectedDamageType);
+        const key = addDamageRow({ damage_type: selectedDamageType, side: 'front', pos_x: posX, pos_y: posY, notes: '' });
+        appendMarker(posX, posY, selectedDamageType, key);
     });
 
     document.querySelectorAll('.damage-tool-btn').forEach(btn => {
@@ -299,8 +357,16 @@
     damageList.addEventListener('click', function (e) {
         const btn = e.target.closest('.damage-remove');
         if (!btn) return;
-        btn.closest('.damage-row').remove();
+        const row = btn.closest('.damage-row');
+        if (!row) return;
+        const key = row.dataset.key;
+        if (key) {
+            const marker = markersLayer.querySelector(`.damage-marker[data-key="${CSS.escape(key)}"]`);
+            if (marker) marker.remove();
+        }
+        row.remove();
         renderDamageCount();
+        reindexDamageRows();
     });
 
     // =====================================================
@@ -366,19 +432,6 @@
     serviceType.addEventListener('change', function () {
         claimWrap.classList.toggle('hidden', this.value !== 'siniestro');
     });
-
-    // Deshabilitar inputs de contactos si "save_contacts" no está marcado
-    const saveContactsChk = document.getElementById('save_contacts');
-    const contactInputs = document.querySelectorAll('input[name^="contacts["]');
-    function setContactInputsDisabled(disabled) {
-        contactInputs.forEach(input => input.disabled = disabled);
-    }
-    if (saveContactsChk) {
-        saveContactsChk.addEventListener('change', function () {
-            setContactInputsDisabled(!this.checked);
-        });
-        setContactInputsDisabled(!saveContactsChk.checked);
-    }
 
     // =====================================================
     // 5. Fotos
@@ -448,88 +501,37 @@
         }
     });
 
-    // ===== 6. Modal: Nueva placa =====
-    const vm = document.getElementById('vehicleModal');
-    if (vm) {
-        document.getElementById('btn-new-vehicle')?.addEventListener('click', function () {
-            vm.classList.remove('hidden'); vm.classList.add('flex');
-            document.getElementById('vm-plate').focus();
-        });
-        document.getElementById('vm-cancel')?.addEventListener('click', function () {
-            vm.classList.add('hidden'); vm.classList.remove('flex');
-        });
-        document.getElementById('vm-save')?.addEventListener('click', async function () {
-            const plate = document.getElementById('vm-plate').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
-            const brandId = document.getElementById('vm-brand').value;
-            const modelId = document.getElementById('vm-model').value;
-            if (!plate || !brandId || !modelId) { alert('Complete placa, marca y modelo.'); return; }
-            const btn = this; btn.disabled = true; btn.textContent = 'Guardando...';
-            try {
-                const res = await fetch('/api/vehicles/quick-store', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({
-                        plate, brand_id: brandId, model_id: modelId,
-                        color: document.getElementById('vm-color').value.trim().toUpperCase() || null,
-                        year: document.getElementById('vm-year').value || null,
-                        vin: document.getElementById('vm-vin').value.trim().toUpperCase() || null,
-                        engine_number: document.getElementById('vm-engine').value.trim().toUpperCase() || null,
-                        body_type: document.getElementById('vm-body-type').value || null,
-                        technical_review_date: document.getElementById('vm-review').value || null,
-                    }),
-                });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) { alert(data.errors ? Object.values(data.errors).flat().join(' ') : 'No se pudo guardar.'); return; }
-                vehicleSelect.addOption(data); vehicleSelect.setValue(data.id); loadVehicleData(data.id);
-                vm.classList.add('hidden'); vm.classList.remove('flex');
-            } catch (e) { alert('Error al guardar el vehículo.'); }
-            finally { btn.disabled = false; btn.textContent = 'Guardar y seleccionar'; }
-        });
-    }
-
-    // ===== 7. Modal de contacto (componente compartido ContactModal) =====
-    document.getElementById('btn-new-contact')?.addEventListener('click', function () {
-        if (typeof window.ContactModal === 'undefined') return;
-        window.ContactModal.open({
-            roles: ['owner', 'approver', 'driver', 'operator', 'billing', 'insurance_company', 'emergency_contact', 'other'],
-            showPrimary: false,
-            onSelect: function (party, meta) {
-                assignContactToCheckIn(party, meta.role);
-            },
-        });
+    // ===== 6. Modal: Nueva / Editar placa =====
+    // El modal maneja el guardado (quick-store / quick-update) y emite "vehicle-saved".
+    document.getElementById('btn-new-vehicle')?.addEventListener('click', function () {
+        if (typeof window.openVehicleModal !== 'function') return;
+        if (currentVehicle) {
+            // Modo edición: pre-rellenar todos los datos del vehículo seleccionado
+            window.openVehicleModal(currentVehicle);
+        } else {
+            // Modo nueva placa: pre-rellenar la placa escrita en el buscador
+            const typed = vehicleSelect.input ? vehicleSelect.input.value.trim() : '';
+            window.openVehicleModal(typed);
+        }
     });
 
-    // Asigna el contacto seleccionado a los campos del inventario según rol
-    function assignContactToCheckIn(party, role) {
-        const name = party.business_name || [party.first_name, party.last_name].filter(Boolean).join(' ') || party.display_name || '';
-        const set = (name, value) => { const el = document.querySelector(`input[name="${name}"]`); if (el) el.value = value || ''; };
+    // Tras guardar (nueva o edición) en el modal, integrar el vehículo en el formulario
+    document.addEventListener('vehicle-saved', function (e) {
+        const data = e.detail;
+        if (!data || !data.id) return;
+        vehicleSelect.addOption(data);
+        vehicleSelect.setValue(data.id, true);
+        loadVehicleData(data.id);
+        refreshNewVehicleButton();
+    });
 
-        if (role === 'owner') {
-            document.getElementById('owner_name').value = name || '--';
-            document.getElementById('owner_document').value = party.document_number || '--';
-            document.getElementById('owner_phone').value = party.mobile || party.phone || '--';
-            document.getElementById('owner_email').value = party.email || '--';
-            document.getElementById('owner_id').value = party.id;
-            return;
-        }
-        // Aprobador / Conductor / Operador
-        if (role === 'approver' || role === 'driver') {
-            set(`contacts[${role}][name]`, name);
-            set(`contacts[${role}][phone]`, party.mobile || party.phone);
-            set(`contacts[${role}][landline]`, party.phone);
-            set(`contacts[${role}][email]`, party.email);
-        } else if (role === 'operator') {
-            set('contacts[operator][company]', party.business_name);
-            set('contacts[operator][name]', party.first_name || party.last_name ? name : party.display_name);
-            set('contacts[operator][phone]', party.mobile || party.phone);
-            set('contacts[operator][landline]', party.phone);
-            set('contacts[operator][email]', party.email);
-        } else if (role === 'insurance_company') {
-            const opt = { id: party.id, business_name: party.display_name || party.business_name, document_number: party.document_number };
-            insuranceSelect.addOption(opt);
-            insuranceSelect.setValue(party.id);
-        } else {
-            alert('Rol "' + role + '" no asignado directamente en el inventario. Se guardó el contacto en la agenda.');
-        }
+    // Sincronizar client_id (owner_id) con la fila "Propietario" del componente ci
+    if (window.VehicleRelationships && window.VehicleRelationships.ci) {
+        window.VehicleRelationships.ci.onRowsChanged(function (rows) {
+            const ownerRow = rows.find(r => r.role === 'owner');
+            const ownerInput = document.getElementById('owner_id');
+            if (ownerInput) ownerInput.value = ownerRow ? (ownerRow.party_id || '') : '';
+        });
     }
 
     // =====================================================

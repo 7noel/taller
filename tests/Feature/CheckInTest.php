@@ -72,7 +72,7 @@ class CheckInTest extends TestCase
             'checklist' => [],
             'damages' => [],
             'save_contacts' => 0,
-            'contacts' => [],
+            'relationships' => [],
         ];
     }
 

@@ -52,6 +52,24 @@ class Party extends Model
         };
     }
 
+    /**
+     * Genera un número de documento temporal para contactos sin documento.
+     * Formato: TMP + fecha/hora compacta + sufijo aleatorio (ej. TMP2026082223204042).
+     * Permite detectar visualmente contactos temporales pendientes de completar.
+     */
+    public static function generateTemporaryDocumentNumber(): string
+    {
+        return 'TMP' . now()->format('YmdHis') . random_int(10, 99);
+    }
+
+    /**
+     * ¿El documento es temporal (TMP...)?
+     */
+    public function hasTemporaryDocument(): bool
+    {
+        return str_starts_with((string) $this->document_number, 'TMP');
+    }
+
     public function ubigeo() { return $this->belongsTo(Ubigeo::class, 'ubigeo_code', 'code'); }
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
     public function updater() { return $this->belongsTo(User::class, 'updated_by'); }

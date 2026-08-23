@@ -58,25 +58,20 @@ class CheckInRequest extends FormRequest
 
             // Daños: array de filas
             'damages' => ['nullable', 'array'],
+            'damages.*.id' => ['nullable', 'string', 'max:50'],
             'damages.*.damage_type' => ['required_with:damages.*', Rule::in(['scratch', 'dent', 'crack'])],
             'damages.*.side' => ['required_with:damages.*', Rule::in(['front', 'rear', 'left', 'right', 'top'])],
             'damages.*.pos_x' => ['nullable', 'integer', 'between:0,100'],
             'damages.*.pos_y' => ['nullable', 'integer', 'between:0,100'],
             'damages.*.notes' => ['nullable', 'string', 'max:500'],
 
-            // Contactos del vehículo (opcional: guardar como vehicle_relationships)
-            'save_contacts' => ['nullable', 'boolean'],
-            'contacts' => ['nullable', 'array'],
-            'contacts.approver.name' => ['nullable', 'string', 'max:150'],
-            'contacts.approver.phone' => ['nullable', 'string', 'max:30'],
-            'contacts.approver.email' => ['nullable', 'email', 'max:150'],
-            'contacts.driver.name' => ['nullable', 'string', 'max:150'],
-            'contacts.driver.phone' => ['nullable', 'string', 'max:30'],
-            'contacts.driver.email' => ['nullable', 'email', 'max:150'],
-            'contacts.operator.company' => ['nullable', 'string', 'max:150'],
-            'contacts.operator.name' => ['nullable', 'string', 'max:150'],
-            'contacts.operator.phone' => ['nullable', 'string', 'max:30'],
-            'contacts.operator.email' => ['nullable', 'email', 'max:150'],
+            // Contactos del vehículo (guardar como vehicle_relationships)
+            // Formato: relationships[] = { party_id, role, notes, is_primary_commercial }
+            'relationships' => ['nullable', 'array'],
+            'relationships.*.party_id' => ['required_with:relationships.*', 'integer', 'exists:parties,id'],
+            'relationships.*.role' => ['required_with:relationships.*', 'string', Rule::in(['owner', 'approver', 'driver', 'operator'])],
+            'relationships.*.notes' => ['nullable', 'string', 'max:500'],
+            'relationships.*.is_primary_commercial' => ['nullable', 'boolean'],
         ];
     }
 

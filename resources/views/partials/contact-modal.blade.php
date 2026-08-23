@@ -75,6 +75,7 @@
                            class="hidden mt-1 shrink-0 inline-flex items-center px-2.5 bg-gray-100 border border-gray-200 text-gray-600 rounded-md text-sm hover:bg-gray-200 hover:text-gray-900 transition">↗</a>
                     </div>
                     <p id="cm-doc-number-error" class="mt-1 text-xs text-red-600 hidden"></p>
+                    <p id="cm-doc-tmp-hint" class="mt-1 text-xs text-gray-500 hidden">Si lo dejas vacío se generará uno temporal (TMP...).</p>
                 </div>
             </div>
 
@@ -179,6 +180,7 @@
     const docType = document.getElementById('cm-doc-type');
     const docNumber = document.getElementById('cm-doc-number');
     const docNumberReq = document.getElementById('cm-doc-number-req');
+    const docTmpHint = document.getElementById('cm-doc-tmp-hint');
     const firstName = document.getElementById('cm-first-name');
     const lastName = document.getElementById('cm-last-name');
     const businessName = document.getElementById('cm-business-name');
@@ -265,6 +267,7 @@
 
     function applyRoleDefaults(role) {
         docNumberReq.classList.toggle('hidden', !docNumberRequired(role));
+        if (docTmpHint) docTmpHint.classList.toggle('hidden', docNumberRequired(role));
         if (role === insuranceRole) {
             docType.value = '6';
             // Solo-selección: documento y razón social son de solo lectura

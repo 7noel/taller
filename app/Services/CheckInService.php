@@ -133,11 +133,12 @@ class CheckInService
     }
 
     /**
-     * Sincroniza los resultados del checklist.
+     * Sincroniza los resultados del checklist usando diff/upsert:
+     * crea los nuevos, actualiza los modificados y elimina solo los que ya no vienen.
      */
     protected function syncChecklist(CheckIn $checkIn, array $checklist): void
     {
-        $checkIn->checklistResults()->delete();
+        $existing = $checkIn->checklistResults()->get()->keyBy('checklist_item_id');
 
         foreach ($checklist as $itemId => $result) {
             if (empty($itemId)) {
@@ -148,156 +149,119 @@ class CheckInService
             $observations = $result['observations'] ?? null;
 
             if (!$status && !$observations) {
-                continue; // fila vacía
+                // Fila vacía: conservar en BD nada; eliminar el registro previo si existía
+                if (isset($existing[$itemId])) {
+                    $existing[$itemId]->delete();
+                    $existing->forget($itemId);
+                }
+                continue;
             }
 
-            CheckInChecklistResult::create([
-                'check_in_id' => $checkIn->id,
-                'checklist_item_id' => $itemId,
-                'status' => $status ?: null,
-                'observations' => $observations ?: null,
-            ]);
+            if (isset($existing[$itemId])) {
+                $existing[$itemId]->update([
+                    'status' => $status ?: null,
+                    'observations' => $observations ?: null,
+                ]);
+                $existing->forget($itemId);
+            } else {
+                CheckInChecklistResult::create([
+                    'check_in_id' => $checkIn->id,
+                    'checklist_item_id' => $itemId,
+                    'status' => $status ?: null,
+                    'observations' => $observations ?: null,
+                ]);
+            }
+        }
+
+        // Eliminar los registros que ya no vienen en el request
+        foreach ($existing as $result) {
+            $result->delete();
         }
     }
 
     /**
-     * Sincroniza los daños del inventario.
+     * Sincroniza los daños del inventario usando diff/upsert:
+     * crea los nuevos, actualiza los modificados y elimina solo los que ya no vienen.
      */
     protected function syncDamages(CheckIn $checkIn, array $damages): void
     {
-        $checkIn->damages()->delete();
+        $existing = $checkIn->damages()->get()->keyBy('id');
 
         foreach ($damages as $damage) {
             if (empty($damage['damage_type'])) {
                 continue;
             }
 
-            CheckInDamage::create([
-                'check_in_id' => $checkIn->id,
-                'damage_type' => $damage['damage_type'],
-                // El lado se oculta en la UI; se mantiene en BD con default 'front' para uso futuro
-                'side' => $damage['side'] ?? 'front',
-                'pos_x' => $damage['pos_x'] ?? null,
-                'pos_y' => $damage['pos_y'] ?? null,
-                'notes' => $damage['notes'] ?? null,
-            ]);
+            $id = $damage['id'] ?? null;
+
+            if ($id && isset($existing[$id])) {
+                $existing[$id]->update([
+                    'damage_type' => $damage['damage_type'],
+                    // El lado se oculta en la UI; se mantiene en BD con default 'front' para uso futuro
+                    'side' => $damage['side'] ?? 'front',
+                    'pos_x' => $damage['pos_x'] ?? null,
+                    'pos_y' => $damage['pos_y'] ?? null,
+                    'notes' => $damage['notes'] ?? null,
+                ]);
+                $existing->forget($id);
+            } else {
+                CheckInDamage::create([
+                    'check_in_id' => $checkIn->id,
+                    'damage_type' => $damage['damage_type'],
+                    // El lado se oculta en la UI; se mantiene en BD con default 'front' para uso futuro
+                    'side' => $damage['side'] ?? 'front',
+                    'pos_x' => $damage['pos_x'] ?? null,
+                    'pos_y' => $damage['pos_y'] ?? null,
+                    'notes' => $damage['notes'] ?? null,
+                ]);
+            }
+        }
+
+        // Eliminar los daños que ya no vienen en el request
+        foreach ($existing as $damage) {
+            $damage->delete();
         }
     }
 
     /**
      * Guarda contactos como vehicle_relationships si el usuario lo pidió.
+     *
+     * Recibe las relaciones ya elegidas por el usuario (party_id + role),
+     * en lugar de adivinar por nombre/email. Esto evita contactos duplicados
+     * y documentos temporales basura en la agenda.
      */
     protected function syncContacts(CheckIn $checkIn, array $data): void
     {
-        $saveContacts = !empty($data['save_contacts']);
-        $contacts = $data['contacts'] ?? [];
+        $relationships = $data['relationships'] ?? [];
 
-        if (!$saveContacts || empty($checkIn->vehicle_id) || empty($contacts)) {
+        if (empty($checkIn->vehicle_id) || empty($relationships)) {
             return;
         }
 
         $vehicleId = $checkIn->vehicle_id;
-        $types = [
-            'approver' => ['name', 'phone', 'email'],
-            'driver' => ['name', 'phone', 'email'],
-            'operator' => ['company', 'name', 'phone', 'email'],
-        ];
+        $roles = ['owner', 'approver', 'driver', 'operator'];
 
-        foreach ($types as $role => $fields) {
-            $contact = $contacts[$role] ?? [];
+        foreach ($relationships as $relationship) {
+            $role = $relationship['role'] ?? null;
+            $partyId = $relationship['party_id'] ?? null;
 
-            // Determinar si hay datos suficientes para crear/actualizar la relación
-            $hasData = false;
-            foreach ($fields as $field) {
-                if (!empty($contact[$field])) {
-                    $hasData = true;
-                    break;
-                }
-            }
-
-            if (!$hasData) {
+            if (!in_array($role, $roles, true) || empty($partyId)) {
                 continue;
             }
 
-            // Buscar una party existente con ese nombre/correo para vincularla
-            $party = $this->findOrCreateContactParty($role, $contact);
-
-            if ($party) {
-                VehicleRelationship::updateOrCreate(
-                    [
-                        'vehicle_id' => $vehicleId,
-                        'role' => $role,
-                        'party_id' => $party->id,
-                    ],
-                    [
-                        'notes' => $contact['notes'] ?? null,
-                        'created_by' => Auth::id(),
-                        'updated_by' => Auth::id(),
-                    ]
-                );
-            }
+            VehicleRelationship::updateOrCreate(
+                [
+                    'vehicle_id' => $vehicleId,
+                    'role' => $role,
+                    'party_id' => $partyId,
+                ],
+                [
+                    'notes' => $relationship['notes'] ?? null,
+                    'is_primary_commercial' => !empty($relationship['is_primary_commercial']),
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]
+            );
         }
-    }
-
-    /**
-     * Busca una party por nombre/correo o la crea si no existe.
-     */
-    protected function findOrCreateContactParty(string $role, array $contact): ?Party
-    {
-        $name = trim($contact['name'] ?? '');
-        $company = trim($contact['company'] ?? '');
-        $email = trim($contact['email'] ?? '');
-        $phone = trim($contact['phone'] ?? '');
-
-        // Para operador: usar la empresa como business_name
-        $isOperator = $role === 'operator';
-        $displayName = $isOperator ? ($company ?: $name) : $name;
-
-        if ($displayName === '') {
-            return null;
-        }
-
-        // Buscar por email o nombre exacto
-        $query = Party::query();
-        if ($email) {
-            $query->where('email', $email);
-        } else {
-            $query->where(function ($q) use ($displayName, $isOperator) {
-                if ($isOperator) {
-                    $q->where('business_name', $displayName);
-                } else {
-                    $q->where('first_name', $displayName)
-                        ->orWhere('last_name', $displayName);
-                }
-            });
-        }
-
-        $party = $query->first();
-        if ($party) {
-            return $party;
-        }
-
-        // Crear la party con el tipo documento default (DNI)
-        return Party::create([
-            'document_type' => '1',
-            'document_number' => $this->generateTemporaryDocumentNumber(),
-            'first_name' => $isOperator ? null : $name,
-            'last_name' => $isOperator ? null : null,
-            'business_name' => $isOperator ? $displayName : null,
-            'email' => $email ?: null,
-            'phone' => $phone ?: null,
-            'mobile' => $phone ?: null,
-            'created_by' => Auth::id(),
-            'updated_by' => Auth::id(),
-        ]);
-    }
-
-    /**
-     * Genera un número de documento temporal para contactos sin documento.
-     * Formato: TMP + timestamp compacto.
-     */
-    protected function generateTemporaryDocumentNumber(): string
-    {
-        return 'TMP' . now()->format('YmdHis') . random_int(10, 99);
     }
 }

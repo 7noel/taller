@@ -5,11 +5,13 @@ namespace App\Providers;
 use App\Models\Brand;
 use App\Models\CheckIn;
 use App\Models\Party;
+use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleModel;
 use App\Policies\BrandPolicy;
 use App\Policies\CheckInPolicy;
 use App\Policies\PartyPolicy;
+use App\Policies\UserPolicy;
 use App\Policies\VehicleModelPolicy;
 use App\Policies\VehiclePolicy;
 use Illuminate\Support\Facades\Gate;
@@ -35,5 +37,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Party::class, PartyPolicy::class);
         Gate::policy(Vehicle::class, VehiclePolicy::class);
         Gate::policy(CheckIn::class, CheckInPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
     }
 }

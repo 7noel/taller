@@ -100,6 +100,9 @@
 
     @include('vehicles._sunarp_modal')
 
+    {{-- Modal de contacto compartido (requerido por el componente de relaciones) --}}
+    @include('partials.contact-modal')
+
     @push('scripts')
     <script>
     // Cargar modelos según marca

@@ -42,15 +42,43 @@
 
                         <div class="mb-4">
                             <label for="password" class="block text-sm font-medium text-gray-700">Nueva contraseña</label>
-                            <input type="password" id="password" name="password"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5">
+                            <div class="relative mt-1">
+                                <input type="password" id="password" name="password"
+                                    class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5">
+                                <button type="button" id="password-toggle"
+                                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                                    aria-label="Mostrar contraseña">
+                                    <svg id="password-eye" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    <svg id="password-eye-off" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-2.029m5.858-5.196A9.94 9.94 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-4.025 5.248"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18"/>
+                                    </svg>
+                                </button>
+                            </div>
                             @error('password') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="mb-4">
                             <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirmar nueva contraseña</label>
-                            <input type="password" id="password_confirmation" name="password_confirmation"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5">
+                            <div class="relative mt-1">
+                                <input type="password" id="password_confirmation" name="password_confirmation"
+                                    class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5">
+                                <button type="button" id="password-confirmation-toggle"
+                                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                                    aria-label="Mostrar contraseña">
+                                    <svg id="password-confirmation-eye" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    <svg id="password-confirmation-eye-off" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-2.029m5.858-5.196A9.94 9.94 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-4.025 5.248"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -64,4 +92,28 @@
         </div>
     </div>
 
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function setupPasswordToggle(inputId, toggleId, eyeId, eyeOffId) {
+                const input = document.getElementById(inputId);
+                const toggle = document.getElementById(toggleId);
+                const eye = document.getElementById(eyeId);
+                const eyeOff = document.getElementById(eyeOffId);
+                if (input && toggle) {
+                    toggle.addEventListener('click', function () {
+                        const show = input.type === 'password';
+                        input.type = show ? 'text' : 'password';
+                        eye.classList.toggle('hidden', !show);
+                        eyeOff.classList.toggle('hidden', show);
+                        toggle.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+                    });
+                }
+            }
+
+            setupPasswordToggle('password', 'password-toggle', 'password-eye', 'password-eye-off');
+            setupPasswordToggle('password_confirmation', 'password-confirmation-toggle', 'password-confirmation-eye', 'password-confirmation-eye-off');
+        });
+    </script>
+    @endpush
 </x-app-layout>
