@@ -177,6 +177,31 @@
 - **Corrección adicional (cursor same-line al re-buscar)**: `.ts-control` ahora `flex`; input oculto con `visibility` + reaparece en la misma línea; `dropdown_open` con `setTextValue('')` + cursor al inicio en los 4 TomSelect. Estándar en `.clinerules/03-frontend.md`.
 - **Próximos pasos**: continuar con el módulo de presupuestos.
 
+### 📌 Sistema de diseño frontend (rediseño de listados con skill impeccable)
+- **Fecha**: 23 de agosto de 2026
+- **Tarea**: Rediseño profesional y moderno de los listados de **Usuarios, Vehículos, Contactos e Inventario**, y creación de un **sistema de diseño obligatorio** para todas las vistas futuras, aplicando el skill **impeccable** (modo Operate, dirección Restrained).
+- **Diagnóstico (causas del aspecto deficiente)**:
+  1. Botones del header (acciones primarias) sin jerarquía clara, con estilos ad-hoc en cada vista.
+  2. Tablas Tabulator con tema por defecto: cabeceras sin contraste, filas sin hover suave, celdas apretadas, paginación sin color primario.
+  3. Botones de acción en columnas con texto plano (Ver/Editar/Eliminar) en lugar de iconos.
+  4. Búsqueda sin icono de lupa y con estilos inconsistentes.
+  5. Mensajes flash con estilos dispares.
+- **Nuevo sistema de diseño** (definido en `resources/views/layouts/app.blade.php` como Tailwind CDN `@layer components`):
+  - **Botones**: `.btn` (base), `.btn-primary`, `.btn-secondary`, `.btn-danger` — `inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold`, transición 150ms `ease-out`, `focus-visible:ring-2`, hover/active, disabled.
+  - **Botones de icono en tablas**: `.btn-icon` + `.btn-icon-blue` (ver), `.btn-icon-amber` (editar), `.btn-icon-red` (eliminar) — `h-8 w-8`, fondo `*-50`, color `*-600`, hover `*-100`, siempre con `title`.
+  - **Cards**: `.card` (`bg-white rounded-lg border border-gray-200 shadow-sm`), reemplaza `bg-white shadow-sm sm:rounded-lg`.
+  - **Búsqueda**: `.search-input` con icono de lupa SVG absoluto a la izquierda (`relative max-w-md`).
+  - **Tablas Tabulator**: tema global — cabecera `#f8fafc` uppercase 0.75rem, filas con hover `#eff6ff`, bordes `#f1f5f9`, celdas `padding .625rem .75rem`, placeholder `#94a3b8`, paginación con página activa en `#2563eb`.
+  - **Micro-interacciones**: hover en filas y botones (150ms), superficies del navegador themeadas (`::selection` = `#bfdbfe`/`#1e3a8a`).
+- **Vistas rediseñadas** (botones con iconos, card, búsqueda con lupa, acciones con `.btn-icon`):
+  - `resources/views/users/index.blade.php`
+  - `resources/views/vehicles/index.blade.php`
+  - `resources/views/parties/index.blade.php`
+  - `resources/views/check-ins/index.blade.php`
+- **Reglas permanentes**: creado **`.clinerules/07-diseno-sistema.md`** con paleta exacta, tipografía, radios de borde, sombras, patrones de componentes (botones, inputs, tablas), tono/UX (estados de carga, vacíos y errores) y checklist de verificación obligatorio para toda vista nueva o existente.
+- **Verificación**: `php artisan view:cache` exitoso (todas las vistas compilan); funcionalidad de negocio y JavaScript sin cambios.
+- **Próximos pasos**: aplicar el sistema de diseño a vistas de formulario (create/edit) si el usuario lo solicita.
+
 ### 📝 Nota sobre la bitácora
 A partir de ahora, esta bitácora se actualizará automáticamente por el asistente (DeepSeek) en cada hito importante del desarrollo. Los registros incluirán fecha, tarea realizada, decisiones tomadas y próximos pasos.
 
