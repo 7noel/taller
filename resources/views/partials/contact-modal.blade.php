@@ -590,6 +590,14 @@
         closeResults();
         clearForm();
 
+        // Modo edición: prellenar con un contacto existente
+        if (config.initialParty) {
+            roleSelect.value = config.initialRole || '';
+            fillForm(config.initialParty);
+            chkPrimary.checked = !!config.initialPrimary;
+            notes.value = config.initialNotes || '';
+        }
+
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         setTimeout(() => searchInput.focus(), 50);

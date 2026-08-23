@@ -88,4 +88,97 @@ class VehicleServiceTest extends TestCase
         $this->assertSoftDeleted('vehicles', ['id' => $vehicle->id]);
         $this->assertSoftDeleted('vehicle_relationships', ['vehicle_id' => $vehicle->id]);
     }
+
+    public function test_resync_same_relationships_preserves_ids_and_does_not_duplicate(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $vehicle = Vehicle::factory()->create(['brand_id' => $this->model->brand_id, 'model_id' => $this->model->id]);
+        $owner = Party::factory()->create();
+        $billing = Party::factory()->create();
+
+        $data = [
+            'plate' => $vehicle->plate,
+            'brand_id' => $this->model->brand_id,
+            'model_id' => $this->model->id,
+        ];
+
+        $this->service()->update($vehicle, $data + ['relationships' => [
+            ['party_id' => $owner->id, 'role' => 'owner', 'is_primary_commercial' => true],
+            ['party_id' => $billing->id, 'role' => 'billing', 'is_primary_commercial' => false],
+        ]]);
+
+        $firstIds = $vehicle->relationships()->pluck('id')->sort()->values();
+
+        // Re-guardar con las mismas relaciones no debe generar duplicados (antes lanzaba 500)
+        $this->service()->update($vehicle, $data + ['relationships' => [
+            ['party_id' => $owner->id, 'role' => 'owner', 'is_primary_commercial' => true],
+            ['party_id' => $billing->id, 'role' => 'billing', 'is_primary_commercial' => false],
+        ]]);
+
+        $secondIds = $vehicle->relationships()->pluck('id')->sort()->values();
+
+        $this->assertCount(2, $secondIds);
+        $this->assertEquals($firstIds->all(), $secondIds->all(), 'Las relaciones re-guardadas deben preservar sus ids.');
+        $this->assertSame(2, $vehicle->relationships()->count());
+        $this->assertSame(2, $vehicle->relationships()->withTrashed()->count());
+    }
+
+    public function test_role_change_updates_existing_row_instead_of_duplicating(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $vehicle = Vehicle::factory()->create(['brand_id' => $this->model->brand_id, 'model_id' => $this->model->id]);
+        $driver = Party::factory()->create();
+
+        $data = [
+            'plate' => $vehicle->plate,
+            'brand_id' => $this->model->brand_id,
+            'model_id' => $this->model->id,
+        ];
+
+        $this->service()->update($vehicle, $data + ['relationships' => [
+            ['party_id' => $driver->id, 'role' => 'driver', 'is_primary_commercial' => false],
+        ]]);
+
+        // El mismo contacto pasa a propietario: la fila se actualiza, no se crea duplicado
+        $this->service()->update($vehicle, $data + ['relationships' => [
+            ['party_id' => $driver->id, 'role' => 'owner', 'is_primary_commercial' => true, 'notes' => 'Ahora dueño'],
+        ]]);
+
+        $this->assertSame(1, $vehicle->relationships()->count());
+        $rel = $vehicle->relationships()->first();
+        $this->assertEquals('owner', $rel->role);
+        $this->assertTrue((bool) $rel->is_primary_commercial);
+        $this->assertEquals('Ahora dueño', $rel->notes);
+    }
+
+    public function test_removed_relationship_is_soft_deleted(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $vehicle = Vehicle::factory()->create(['brand_id' => $this->model->brand_id, 'model_id' => $this->model->id]);
+        $owner = Party::factory()->create();
+        $billing = Party::factory()->create();
+
+        $data = [
+            'plate' => $vehicle->plate,
+            'brand_id' => $this->model->brand_id,
+            'model_id' => $this->model->id,
+        ];
+
+        $this->service()->update($vehicle, $data + ['relationships' => [
+            ['party_id' => $owner->id, 'role' => 'owner', 'is_primary_commercial' => true],
+            ['party_id' => $billing->id, 'role' => 'billing', 'is_primary_commercial' => false],
+        ]]);
+
+        // Quitar el billing: solo esa fila queda soft-deleted
+        $this->service()->update($vehicle, $data + ['relationships' => [
+            ['party_id' => $owner->id, 'role' => 'owner', 'is_primary_commercial' => true],
+        ]]);
+
+        $this->assertSame(1, $vehicle->relationships()->count());
+        $this->assertSame(2, $vehicle->relationships()->withTrashed()->count());
+        $this->assertSoftDeleted('vehicle_relationships', ['vehicle_id' => $vehicle->id, 'party_id' => $billing->id, 'role' => 'billing']);
+    }
 }

@@ -122,6 +122,7 @@
             <div class="md:col-span-1 text-xs text-gray-600 truncate">${escapeHtml(data.party_mobile || '-')}</div>
             <div class="md:col-span-2 text-xs text-gray-600 truncate">${escapeHtml(data.party_email || '-')}</div>
             <div class="md:col-span-1 flex items-center justify-end gap-1">
+                <button type="button" class="rel-row-edit text-blue-600 hover:text-blue-800 text-sm leading-none" title="Editar contacto">✏️</button>
                 <button type="button" class="rel-row-remove text-red-600 hover:text-red-800 text-sm leading-none" title="Quitar del vehículo">🗑️</button>
             </div>
         </div>`;
@@ -185,12 +186,67 @@
         emptyMsg.classList.add('hidden');
     }
 
+    function updateRelationshipRow(index, party, meta) {
+        const role = meta.role;
+        const isPrimary = !!meta.is_primary_commercial;
+
+        // Unicidad: si este contacto pasa a owner y ya existe otro owner, bloquear
+        if (role === 'owner' && rows.some((r, i) => r.role === 'owner' && i !== index)) {
+            alert('Este vehículo ya tiene un propietario. Solo puede haber uno.');
+            return;
+        }
+        if (isPrimary) {
+            rows.forEach((r, i) => { if (i !== index) r.is_primary_commercial = false; });
+        }
+
+        rows[index] = {
+            party_id: party.id || rows[index].party_id,
+            party_label: party.display_name || party.business_name || rows[index].party_label,
+            doc_label: documentTypeLabels[party.document_type] || party.document_type || rows[index].doc_label,
+            doc_number: party.document_number || rows[index].doc_number,
+            party_mobile: party.mobile || party.phone || rows[index].party_mobile,
+            party_phone: party.phone || rows[index].party_phone,
+            party_email: party.email || rows[index].party_email,
+            role: role,
+            is_primary_commercial: isPrimary,
+            notes: meta.notes || '',
+        };
+        renderRows();
+    }
+
     container.addEventListener('click', function (e) {
         const removeBtn = e.target.closest('.rel-row-remove');
-        if (!removeBtn) return;
-        const index = parseInt(removeBtn.closest('.rel-row').dataset.index, 10);
-        rows.splice(index, 1);
-        renderRows();
+        if (removeBtn) {
+            const index = parseInt(removeBtn.closest('.rel-row').dataset.index, 10);
+            rows.splice(index, 1);
+            renderRows();
+            return;
+        }
+        const editBtn = e.target.closest('.rel-row-edit');
+        if (editBtn) {
+            const index = parseInt(editBtn.closest('.rel-row').dataset.index, 10);
+            const row = rows[index];
+            if (!row) return;
+            // Traer datos completos del contacto y abrir el modal en modo edición
+            fetch(`/api/parties/search?id=${encodeURIComponent(row.party_id)}`)
+                .then(r => r.json())
+                .then(res => {
+                    const party = res[0];
+                    if (!party) return;
+                    window.ContactModal.open({
+                        roles: Object.keys(roleLabels),
+                        roleLabels: roleLabels,
+                        showPrimary: true,
+                        initialParty: party,
+                        initialRole: row.role,
+                        initialPrimary: row.is_primary_commercial,
+                        initialNotes: row.notes,
+                        onSelect: function (partyUpdated, meta) {
+                            updateRelationshipRow(index, partyUpdated, meta);
+                        },
+                    });
+                });
+        }
     });
 
     renderRows();

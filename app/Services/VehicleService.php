@@ -86,19 +86,50 @@ class VehicleService
 
     protected function syncRelationships(Vehicle $vehicle, array $relationships): void
     {
-        $vehicle->relationships()->delete();
+        // Sincronización inteligente: preserva los ids existentes, restaura
+        // soft-deleted del mismo (vehicle_id, party_id, role) y elimina (soft)
+        // solo las relaciones que ya no vienen del formulario.
+        $existing = $vehicle->relationships()->withTrashed()->get()->keyBy(fn ($rel) => $rel->party_id.'-'.$rel->role);
+
+        $incomingKeys = [];
 
         foreach ($relationships as $relationship) {
-            $relationship['is_primary_commercial'] = $relationship['is_primary_commercial'] ?? false;
+            $key = $relationship['party_id'].'-'.$relationship['role'];
+            $incomingKeys[] = $key;
 
-            $vehicle->relationships()->create([
-                'party_id' => $relationship['party_id'],
-                'role' => $relationship['role'],
-                'is_primary_commercial' => $relationship['is_primary_commercial'],
+            $data = [
+                'is_primary_commercial' => $relationship['is_primary_commercial'] ?? false,
                 'notes' => $relationship['notes'] ?? null,
-                'created_by' => Auth::id(),
                 'updated_by' => Auth::id(),
-            ]);
+            ];
+
+            $rel = $existing->get($key);
+
+            if ($rel && $rel->trashed()) {
+                // Existía antes (soft-deleted): restaurar la misma fila para no violar el índice único
+                $rel->restore();
+                $rel->update($data);
+            } elseif ($rel) {
+                // Ya está activa: solo actualizar campos
+                $rel->update($data);
+            } else {
+                // Nueva relación
+                $vehicle->relationships()->create([
+                    'party_id' => $relationship['party_id'],
+                    'role' => $relationship['role'],
+                    'is_primary_commercial' => $data['is_primary_commercial'],
+                    'notes' => $data['notes'],
+                    'created_by' => Auth::id(),
+                    'updated_by' => Auth::id(),
+                ]);
+            }
+        }
+
+        // Eliminar (soft) las relaciones activas que ya no vienen del formulario
+        foreach ($existing as $rel) {
+            if (! $rel->trashed() && ! in_array($rel->party_id.'-'.$rel->role, $incomingKeys, true)) {
+                $rel->delete();
+            }
         }
     }
 }
