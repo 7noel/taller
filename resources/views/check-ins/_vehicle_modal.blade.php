@@ -86,6 +86,7 @@
 
     const modal = document.getElementById('vehicleModal');
     let editingVehicleId = null; // null = nueva placa, id = editar placa
+    let saving = false;          // Flag anti-doble envío (evita doble clic ráfaga)
 
     const brandSelect = document.getElementById('vm-brand');
     const modelSelect = document.getElementById('vm-model');
@@ -179,12 +180,24 @@
     });
 
     document.getElementById('vm-save').addEventListener('click', async function () {
+        // Flag anti-doble envío: bloquear reentrada mientras se procesa
+        if (saving) return;
+        saving = true;
+
+        try {
+            await doSave();
+        } finally {
+            saving = false;
+        }
+    });
+
+    async function doSave() {
         const plate = document.getElementById('vm-plate').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
         const brandId = document.getElementById('vm-brand').value;
         const modelId = document.getElementById('vm-model').value;
         if (!plate || !brandId || !modelId) { alert('Complete placa, marca y modelo.'); return; }
 
-        const btn = this;
+        const btn = document.getElementById('vm-save');
         btn.disabled = true;
         btn.textContent = 'Guardando...';
 

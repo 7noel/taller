@@ -19,6 +19,12 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Renueva el token CSRF (público): se usa justo antes de enviar formularios
+// para evitar errores 419 cuando la sesión estuvo inactiva mucho tiempo.
+Route::get('/api/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+})->name('api.csrf-token');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('parties', PartyController::class);
     Route::resource('vehicles', VehicleController::class);

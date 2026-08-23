@@ -26,5 +26,7 @@
                 {{ $slot }}
             </div>
         </div>
+
+        @include('partials.form-guard')
     </body>
 </html>

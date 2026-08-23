@@ -204,6 +204,7 @@
     let existingParty = null;      // Party cargado por búsqueda (modo edición de existente)
     let state = { mode: 'new' };   // 'new' | 'exists'
     let debounceTimer = null;
+    let saving = false;            // Flag anti-doble envío (evita doble clic ráfaga)
 
     // ===================== Utilidades =====================
     function showError(msg) {
@@ -504,6 +505,18 @@
 
     // ===================== Botón Guardar =====================
     btnSave.addEventListener('click', async function () {
+        // Flag anti-doble envío: bloquear reentrada mientras se procesa
+        if (saving) return;
+        saving = true;
+
+        try {
+            await doSave();
+        } finally {
+            saving = false;
+        }
+    });
+
+    async function doSave() {
         showError('');
         clearAllErrors();
 
@@ -571,7 +584,7 @@
             btn.disabled = false;
             btn.textContent = existingParty ? 'Actualizar y agregar' : 'Guardar y agregar';
         }
-    });
+    }
 
     // ===================== Modal open / close =====================
     function openModal(cfg) {

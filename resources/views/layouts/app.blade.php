@@ -279,6 +279,10 @@
         }).catch(() => {});
     }, 300000);
     </script>
+
+    {{-- Guard global: refresh CSRF antes de envío + anti-doble envío --}}
+    @include('partials.form-guard')
+
     @stack('scripts')
 </body>
 </html>

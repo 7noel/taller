@@ -202,7 +202,21 @@
 - **Verificación**: `php artisan view:cache` exitoso (todas las vistas compilan); funcionalidad de negocio y JavaScript sin cambios.
 - **Próximos pasos**: aplicar el sistema de diseño a vistas de formulario (create/edit) si el usuario lo solicita.
 
-### 📝 Nota sobre la bitácora
+### � Seguridad y UX en formularios (CSRF refresh + Anti-doble envío)
+- **Fecha**: 23 de agosto de 2026
+- **Tarea**: Corrección del error de expiración del token CSRF en Login y prevención de duplicidad de datos por doble clic en todos los formularios del proyecto.
+- **Detalles**:
+  - **Endpoint público** `GET /api/csrf-token` en `routes/web.php`: devuelve un token CSRF fresco (`csrf_token`). Al tocarlo, Laravel renueva la actividad de la sesión (o crea una nueva si expiró), habilitando que cualquier formulario se pueda enviar aunque la página haya estado inactiva mucho tiempo.
+  - **Partial global** `resources/views/partials/form-guard.blade.php` (nuevo):
+    - **Regla CSRF**: intercepta el `submit` de cualquier formulario (event delegation en `document` con capture), llama a `GET /api/csrf-token` y actualiza el meta `csrf-token` y los inputs ocultos `_token` justo antes de `form.submit()` programático. Cubre también los formularios generados dinámicamente por Tabulator.
+    - **Regla Anti-duplicados**: marca `data-submitting="1"` (flag) antes del fetch para bloquear doble clic ráfaga; deshabilita `button[type="submit"]` y muestra spinner + "Guardando..." (personalizable con `data-loading-text`). Respeta los `onsubmit` inline que cancelan (confirm/prompt rechazado) y permite reintentar tras error de validación.
+  - **Layouts protegidos**: el partial se incluyó en `layouts/guest.blade.php` (login, register, reset/forgot/confirm password, verify-email) y en `layouts/app.blade.php` (todos los formularios autenticados: parties, vehicles, check-ins, users, profile, acciones de estado y deletes).
+  - **Modales AJAX protegidos** con flag booleano `saving` (bloquea reentrada, re-habilita en `finally`): `partials/contact-modal.blade.php` (quick-store/quick-update de parties) y `check-ins/_vehicle_modal.blade.php` (quick-store/quick-update de vehículos). En ambos, el botón se deshabilita y muestra "Guardando..." durante el fetch.
+  - **Verificación**: `php artisan view:cache` OK (todas las vistas compilan); las confirmaciones de delete/estado y el prompt de rechazo siguen funcionando (el guard respeta `e.defaultPrevented`).
+  - **Reglas del proyecto**: creado `.clinerules/08-seguridad-forms.md` con las dos reglas obligatorias (CSRF refresh antes del envío + Anti-duplicados con flag booleano y botón deshabilitado), incluida la implementación estándar para formularios tradicionales y modales AJAX, para que todo desarrollo futuro las cumpla sin duplicar lógica.
+- **Próximos pasos**: continuar con el módulo de presupuestos.
+
+### �📝 Nota sobre la bitácora
 A partir de ahora, esta bitácora se actualizará automáticamente por el asistente (DeepSeek) en cada hito importante del desarrollo. Los registros incluirán fecha, tarea realizada, decisiones tomadas y próximos pasos.
 
 ---
