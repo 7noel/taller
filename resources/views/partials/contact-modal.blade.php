@@ -33,7 +33,6 @@
                     <select id="cm-role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Seleccionar...</option>
                     </select>
-                    <p id="cm-role-hint" class="mt-1 text-xs text-gray-500"></p>
                 </div>
                 <div class="pb-1" id="cm-primary-wrap">
                     <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
@@ -171,7 +170,6 @@
     const externalLink = document.getElementById('cm-external-link');
 
     const roleSelect = document.getElementById('cm-role');
-    const roleHint = document.getElementById('cm-role-hint');
     const primaryWrap = document.getElementById('cm-primary-wrap');
     const chkPrimary = document.getElementById('cm-primary');
 
@@ -260,17 +258,6 @@
     }
 
     // ===================== Campos dinámicos según rol =====================
-    const hints = {
-        billing: 'Si lo deseas, añade sus datos fiscales.',
-        owner: 'Solo documento, nombre y celular.',
-        insurance_company: 'Solo puedes seleccionar una compañía de seguros existente. Puedes editar sus datos de contacto.',
-        driver: 'Solo documento, nombre y celular.',
-        approver: 'Solo documento, nombre y celular.',
-        operator: 'Solo documento, nombre y celular.',
-        emergency_contact: 'Solo documento, nombre y celular.',
-        other: 'Solo documento, nombre y celular.',
-    };
-
     function applyRoleDefaults(role) {
         if (role === insuranceRole) {
             docType.value = '6';
@@ -281,7 +268,6 @@
         } else if (role !== 'billing' && !existingParty) {
             docType.value = '1';
         }
-        roleHint.textContent = hints[role] || '';
         togglePersonCompany();
     }
 
@@ -338,9 +324,8 @@
     }
 
     function fillForm(party) {
-        // Defensa: en modo compañía de seguros solo se pueden cargar aseguradoras
+        // En modo compañía de seguros se ignora silenciosamente cualquier party no aseguradora
         if (isInsuranceOnly() && !party.is_insurance_company) {
-            showError('Solo puedes seleccionar compañías de seguros existentes. Este contacto no lo es.');
             return;
         }
         showExistsState(party);
@@ -416,8 +401,7 @@
                     return;
                 }
                 if (isInsuranceOnly()) {
-                    showError('No se encontró una compañía de seguros con ese RUC. Puedes crearla desde el módulo Clientes.');
-                    return;
+                    return; // silencioso: si no hay aseguradora con ese RUC, no aparece
                 }
                 // No existe local → consultar RENIEC/SUNAT automáticamente
                 showError(`Consultando ${dt === '1' ? 'RENIEC' : 'SUNAT'}...`);
@@ -460,10 +444,8 @@
             clearAllErrors();
             if (!isInsuranceOnly() || digits.length === 11) {
                 runDocSearch(guessDocType(q), digits);
-            } else {
-                // En modo compañía solo aplica RUC
-                showError('Para compañías de seguros ingresa el RUC (11 dígitos).');
             }
+            // En modo compañía, un DNI de 8 dígitos simplemente no produce resultado
             return;
         }
 
@@ -485,8 +467,7 @@
         fetch(`/api/parties/search?id=${encodeURIComponent(id)}`).then(r => r.json()).then(data => {
             if (!data[0]) return;
             if (isInsuranceOnly() && !data[0].is_insurance_company) {
-                showError('Solo puedes relacionar compañías de seguros existentes. Este contacto no lo es.');
-                return;
+                return; // silencioso: no aparece en la lista
             }
             fillForm(data[0]);
         });
@@ -591,7 +572,6 @@
             roleSelect.add(new Option(config.roleLabels?.[r] || r, r));
         });
         roleSelect.value = '';
-        roleHint.textContent = '';
         primaryWrap.classList.toggle('hidden', config.showPrimary === false);
 
         chkPrimary.checked = false;

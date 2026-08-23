@@ -56,7 +56,11 @@ Handlers obligatorios:
 
 El CSS global en `layouts/app.blade.php` fuerza una sola linea (altura 2.5rem), oculta el cursor interno cuando hay seleccion y lo muestra en la misma linea al abrir el dropdown. No se debe usar `display:none` ni `display:block` en el input interno: usar `visibility` + `flex` para no romper la linea.
 
+## Estandar de campos obligatorios (asterisco rojo en el label)
+- En **todos los formularios** (crear/editar/modal): los campos obligatorios se marcan con un asterisco rojo `*` al costado del label (`<span class="text-red-500">*</span>`). Los campos opcionales **no** llevan asterisco.
+- No se debe usar texto explicativo ni hints bajo los labels para indicar obligatoriedad: la regla visual es solo el asterisco.
+- Mantener sincronizado el asterisco con la validacion backend (Form Requests): si es `required`, tiene asterisco; si es `nullable`, no.
+
 ## Responsive
 - Diseno mobile-first. Usar clases de Tailwind para diferentes tamanos (sm:, md:, lg:).
 - Tablas de Tabulator se adaptan automaticamente con `responsiveLayout: 'collapse'`.
-- Formularios en columnas que se apilan en movil (grid-cols-1 md:grid-cols-2).
