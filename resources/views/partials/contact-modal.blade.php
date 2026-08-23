@@ -377,6 +377,10 @@
         fetch(url)
             .then(r => r.json())
             .then(data => {
+                // Defensa determinística: en modo compañía solo se muestran aseguradoras
+                if (isInsuranceOnly()) {
+                    data = data.filter(p => p.is_insurance_company);
+                }
                 if (data.length === 0) {
                     searchResults.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">' + (isInsuranceOnly()
                         ? 'No se encontró una compañía de seguros. Puedes crearla desde el módulo Clientes.'

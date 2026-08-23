@@ -195,6 +195,24 @@ class PartyTest extends TestCase
         $response->assertJsonPath('0.is_insurance_company', true);
     }
 
+    public function test_search_with_q_and_insurance_filter_excludes_non_insurance(): void
+    {
+        $user = $this->createUserWithPermissions(['ver parties']);
+        // Contacto normal cuyo nombre contiene "juan" (no aseguradora)
+        Party::factory()->person()->create(['first_name' => 'Juan', 'last_name' => 'Pérez', 'document_number' => '12345678']);
+        // Aseguradora cuyo nombre contiene "juan"
+        Party::factory()->company()->create(['business_name' => 'Juan Seguros SAC', 'document_number' => '20123456790', 'is_insurance_company' => true]);
+
+        $response = $this->actingAs($user)->getJson(route('api.parties.search') . '?q=juan&is_insurance_company=1');
+
+        $response->assertOk();
+        $response->assertJsonCount(1);
+        $response->assertJsonPath('0.business_name', 'Juan Seguros SAC');
+        $response->assertJsonPath('0.is_insurance_company', true);
+        // El contacto no asegurador no debe aparecer en resultados con filtro de aseguradoras
+        $response->assertJsonMissing(['first_name' => 'Juan', 'last_name' => 'Pérez']);
+    }
+
     public function test_quick_store_driver_without_document_number_is_allowed(): void
     {
         $user = $this->createUserWithPermissions(['crear parties']);

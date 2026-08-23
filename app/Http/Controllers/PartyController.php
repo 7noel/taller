@@ -94,10 +94,12 @@ class PartyController extends Controller
         $query = Party::query()
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = $request->query('q');
-                $q->where('business_name', 'like', "%{$term}%")
-                    ->orWhere('document_number', 'like', "%{$term}%")
-                    ->orWhere('first_name', 'like', "%{$term}%")
-                    ->orWhere('last_name', 'like', "%{$term}%");
+                $q->where(function ($sub) use ($term) {
+                    $sub->where('business_name', 'like', "%{$term}%")
+                        ->orWhere('document_number', 'like', "%{$term}%")
+                        ->orWhere('first_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%");
+                });
             })
             ->when($request->filled('document_type') && $request->filled('document_number'), function ($q) use ($request) {
                 $q->where('document_type', $request->query('document_type'))
