@@ -338,6 +338,11 @@
     }
 
     function fillForm(party) {
+        // Defensa: en modo compañía de seguros solo se pueden cargar aseguradoras
+        if (isInsuranceOnly() && !party.is_insurance_company) {
+            showError('Solo puedes seleccionar compañías de seguros existentes. Este contacto no lo es.');
+            return;
+        }
         showExistsState(party);
         docType.value = party.document_type || '1';
         docNumber.value = party.document_number || '';
@@ -478,7 +483,12 @@
         searchInput.value = '';
         closeResults();
         fetch(`/api/parties/search?id=${encodeURIComponent(id)}`).then(r => r.json()).then(data => {
-            if (data[0]) fillForm(data[0]);
+            if (!data[0]) return;
+            if (isInsuranceOnly() && !data[0].is_insurance_company) {
+                showError('Solo puedes relacionar compañías de seguros existentes. Este contacto no lo es.');
+                return;
+            }
+            fillForm(data[0]);
         });
     });
 
