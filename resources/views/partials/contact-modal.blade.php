@@ -5,9 +5,12 @@
        * 11 dígitos → busca local por RUC; si no existe, consulta SUNAT
        * texto      → dropdown propio por nombre (sin Tom Select)
      - Búsqueda en vivo (debounce 350ms, sin botón).
-     - Si existe: carga los datos y permite editarlos (botón "Actualizar y agregar")
-       + icono ↗ junto al documento para ver la ficha completa.
-     - Si no existe: formulario limpio para registrar (mensaje informativo).
+     - Si existe: carga los datos, permite editarlos (botón "Actualizar y agregar")
+       + icono ↗ junto al documento para ver la ficha completa. El título
+       cambia a "Editar contacto" (sin banner).
+     - Rol "Compañía de seguros": SOLO permite seleccionar aseguradoras ya
+       registradas (is_insurance_company=true). No crea ni renombra; solo
+       permite editar datos de contacto (celular/teléfono/email/dirección).
      - Compacto: Rol + principal en un row; Celular/Tel/Email en grid-3;
        "Datos fiscales" colapsados y opcionales.
      - API: window.ContactModal.open({ roles, showPrimary, onSelect })
@@ -16,16 +19,11 @@
 
 <div id="contactModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 max-h-screen overflow-y-auto">
-        <h3 class="text-xl font-bold mb-1 text-gray-800">Buscar / Registrar contacto</h3>
+        <h3 id="cm-title" class="text-xl font-bold mb-1 text-gray-800">Buscar / Registrar contacto</h3>
         <p class="text-sm text-gray-500 mb-4">Busca un contacto existente o regístralo si no existe.</p>
 
         {{-- Banner de error general (validación inline) --}}
         <div id="cm-error" class="hidden mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"></div>
-
-        {{-- Banner contacto existente (sin link; el icono ↗ está junto al documento) --}}
-        <div id="cm-exists" class="hidden mb-4 rounded-md bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
-            <span id="cm-exists-msg"></span>
-        </div>
 
         <div class="grid grid-cols-1 gap-4">
             {{-- Fila 1: Rol + Contacto comercial principal (mismo row) --}}
@@ -57,7 +55,7 @@
                 <p class="mt-1 text-xs text-gray-500">Busca por DNI, RUC o nombre. Si el número no está en tu agenda, se consultará en RENIEC/SUNAT automáticamente.</p>
             </div>
 
-            {{-- Fila 3: Documento (+ icono ↩ para ver ficha solo si existe) --}}
+            {{-- Fila 3: Documento (+ icono ↗ para ver ficha solo si existe) --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label for="cm-doc-type" class="block text-sm font-medium text-gray-700">Tipo de documento *</label>
@@ -68,6 +66,7 @@
                         <option value="7">Pasaporte</option>
                         <option value="A">Cédula Diplomática</option>
                     </select>
+                    <p id="cm-doc-type-error" class="mt-1 text-xs text-red-600 hidden"></p>
                 </div>
                 <div>
                     <label for="cm-doc-number" class="block text-sm font-medium text-gray-700">Número de documento *</label>
@@ -115,15 +114,7 @@
                 </div>
             </div>
 
-            {{-- Fila 6: Solo compañía de seguros: flag --}}
-            <div id="cm-insurance-field" class="hidden">
-                <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
-                    <input type="checkbox" id="cm-is-insurance" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                    Es compañía de seguros
-                </label>
-            </div>
-
-            {{-- Fila 7: Datos fiscales opcionales (colapsado) --}}
+            {{-- Fila 6: Datos fiscales opcionales (colapsado) --}}
             <div>
                 <button type="button" id="cm-billing-toggle" class="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800">
                     <svg class="w-4 h-4 transition-transform" id="cm-billing-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -151,7 +142,7 @@
                 </div>
             </div>
 
-            {{-- Fila 8: Notas --}}
+            {{-- Fila 7: Notas --}}
             <div>
                 <label for="cm-notes" class="block text-sm font-medium text-gray-700">Notas</label>
                 <input type="text" id="cm-notes" maxlength="1000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Observaciones (opcional)">
@@ -172,11 +163,11 @@
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     const documentTypeLabels = { '1': 'DNI', '6': 'RUC', '4': 'CEX', '7': 'PAS', 'A': 'Cédula Diplomática' };
+    const insuranceRole = 'insurance_company';
 
     const modal = document.getElementById('contactModal');
+    const titleEl = document.getElementById('cm-title');
     const errBox = document.getElementById('cm-error');
-    const existsBox = document.getElementById('cm-exists');
-    const existsMsg = document.getElementById('cm-exists-msg');
     const externalLink = document.getElementById('cm-external-link');
 
     const roleSelect = document.getElementById('cm-role');
@@ -195,8 +186,6 @@
     const mobile = document.getElementById('cm-mobile');
     const phone = document.getElementById('cm-phone');
     const email = document.getElementById('cm-email');
-    const insuranceField = document.getElementById('cm-insurance-field');
-    const isInsurance = document.getElementById('cm-is-insurance');
     const billingToggle = document.getElementById('cm-billing-toggle');
     const billingChevron = document.getElementById('cm-billing-chevron');
     const billingFields = document.getElementById('cm-billing-fields');
@@ -240,24 +229,41 @@
         showError('');
     }
 
-    function showExistsBanner(party) {
-        existsMsg.textContent = `Contacto existente: ${party.display_name} (${documentTypeLabels[party.document_type] || party.document_type} ${party.document_number}). Puedes editar sus datos antes de agregar.`;
-        externalLink.href = `/parties/${party.id}`;
-        externalLink.classList.remove('hidden');
-        existsBox.classList.remove('hidden');
+    function setReadonly(el, readonly) {
+        el.readOnly = readonly;
+        el.classList.toggle('bg-gray-100', readonly);
+        el.classList.toggle('cursor-not-allowed', readonly);
     }
 
-    function hideExistsBanner() {
-        existsBox.classList.add('hidden');
+    function showExistsState(party) {
+        existingParty = party;
+        state = { mode: 'exists' };
+        setReadonly(docType, false);
+        setReadonly(docNumber, false);
+        setReadonly(businessName, false);
+        titleEl.textContent = 'Editar contacto';
+        externalLink.href = `/parties/${party.id}`;
+        externalLink.classList.remove('hidden');
+        btnSave.textContent = 'Actualizar y agregar';
+    }
+
+    function resetState() {
+        existingParty = null;
+        state = { mode: 'new' };
+        setReadonly(docType, false);
+        setReadonly(docNumber, false);
+        setReadonly(businessName, false);
+        titleEl.textContent = 'Buscar / Registrar contacto';
         externalLink.classList.add('hidden');
         externalLink.href = '#';
+        btnSave.textContent = 'Guardar y agregar';
     }
 
     // ===================== Campos dinámicos según rol =====================
     const hints = {
         billing: 'Si lo deseas, añade sus datos fiscales.',
         owner: 'Solo documento, nombre y celular.',
-        insurance_company: 'Se usará RUC y razón social.',
+        insurance_company: 'Solo puedes seleccionar una compañía de seguros existente. Puedes editar sus datos de contacto.',
         driver: 'Solo documento, nombre y celular.',
         approver: 'Solo documento, nombre y celular.',
         operator: 'Solo documento, nombre y celular.',
@@ -266,12 +272,15 @@
     };
 
     function applyRoleDefaults(role) {
-        if (role === 'insurance_company') {
+        if (role === insuranceRole) {
             docType.value = '6';
+            // Solo-selección: documento y razón social son de solo lectura
+            setReadonly(docType, true);
+            setReadonly(docNumber, true);
+            setReadonly(businessName, true);
         } else if (role !== 'billing' && !existingParty) {
             docType.value = '1';
         }
-        insuranceField.classList.toggle('hidden', role !== 'insurance_company');
         roleHint.textContent = hints[role] || '';
         togglePersonCompany();
     }
@@ -324,9 +333,12 @@
     // ===================== Búsqueda única inteligente (en vivo) =====================
     function closeResults() { searchResults.classList.add('hidden'); searchResults.innerHTML = ''; }
 
+    function isInsuranceOnly() {
+        return roleSelect.value === insuranceRole;
+    }
+
     function fillForm(party) {
-        existingParty = party;
-        state = { mode: 'exists' };
+        showExistsState(party);
         docType.value = party.document_type || '1';
         docNumber.value = party.document_number || '';
         firstName.value = party.first_name || '';
@@ -336,17 +348,13 @@
         phone.value = party.phone || '';
         email.value = party.email || '';
         address.value = party.address || '';
-        isInsurance.checked = !!party.is_insurance_company;
         if (party.ubigeo_code) { billingFields.classList.remove('hidden'); billingChevron.classList.add('rotate-180'); selectUbigeoByCode(party.ubigeo_code); }
         togglePersonCompany();
         applyRoleDefaults(roleSelect.value);
-        showExistsBanner(party);
-        btnSave.textContent = 'Actualizar y agregar';
     }
 
     function clearForm() {
-        existingParty = null;
-        state = { mode: 'new' };
+        resetState();
         docNumber.value = '';
         firstName.value = '';
         lastName.value = '';
@@ -357,10 +365,7 @@
         address.value = '';
         departamento.value = ''; provincia.value = ''; distrito.value = '';
         provincia.disabled = true; distrito.disabled = true;
-        isInsurance.checked = false;
         billingFields.classList.add('hidden'); billingChevron.classList.remove('rotate-180');
-        hideExistsBanner();
-        btnSave.textContent = 'Guardar y agregar';
         togglePersonCompany();
         applyRoleDefaults(roleSelect.value);
     }
@@ -371,11 +376,15 @@
     }
 
     function runNameSearch(q) {
-        fetch(`/api/parties/search?q=${encodeURIComponent(q)}&limit=8`)
+        let url = `/api/parties/search?q=${encodeURIComponent(q)}&limit=8`;
+        if (isInsuranceOnly()) url += '&is_insurance_company=1';
+        fetch(url)
             .then(r => r.json())
             .then(data => {
                 if (data.length === 0) {
-                    searchResults.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">No se encontró en la agenda. Regístralo manualmente.</div>';
+                    searchResults.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">' + (isInsuranceOnly()
+                        ? 'No se encontró una compañía de seguros. Puedes crearla desde el módulo Clientes.'
+                        : 'No se encontró en la agenda. Regístralo manualmente.') + '</div>';
                     searchResults.classList.remove('hidden');
                     return;
                 }
@@ -392,10 +401,19 @@
     function runDocSearch(dt, digits) {
         docType.value = dt;
         docNumber.value = digits;
-        fetch(`/api/parties/search?document_type=${dt}&document_number=${digits}`)
+        let url = `/api/parties/search?document_type=${dt}&document_number=${digits}`;
+        if (isInsuranceOnly()) url += '&is_insurance_company=1';
+        fetch(url)
             .then(r => r.json())
             .then(data => {
-                if (data[0]) { fillForm(data[0]); return; }
+                if (data[0]) {
+                    if (!isInsuranceOnly() || data[0].is_insurance_company) { fillForm(data[0]); }
+                    return;
+                }
+                if (isInsuranceOnly()) {
+                    showError('No se encontró una compañía de seguros con ese RUC. Puedes crearla desde el módulo Clientes.');
+                    return;
+                }
                 // No existe local → consultar RENIEC/SUNAT automáticamente
                 showError(`Consultando ${dt === '1' ? 'RENIEC' : 'SUNAT'}...`);
                 return fetch('/api/party/search-by-document', {
@@ -434,15 +452,18 @@
         // Caso 1: es un documento (8 DNI / 11 RUC)
         if ((digits.length === 8 || digits.length === 11) && /^\d+$/.test(q)) {
             closeResults();
-            hideExistsBanner();
             clearAllErrors();
-            runDocSearch(guessDocType(q), digits);
+            if (!isInsuranceOnly() || digits.length === 11) {
+                runDocSearch(guessDocType(q), digits);
+            } else {
+                // En modo compañía solo aplica RUC
+                showError('Para compañías de seguros ingresa el RUC (11 dígitos).');
+            }
             return;
         }
 
         // Caso 2: búsqueda por nombre → dropdown en vivo
         clearAllErrors();
-        hideExistsBanner();
         if (q.length >= 3) {
             runNameSearch(q);
         } else {
@@ -464,7 +485,7 @@
     searchInput.addEventListener('input', function () {
         clearTimeout(debounceTimer);
         const q = this.value.trim();
-        if (!q) { closeResults(); clearAllErrors(); hideExistsBanner(); return; }
+        if (!q) { closeResults(); clearAllErrors(); return; }
         debounceTimer = setTimeout(runSearch, 350);
     });
     searchInput.addEventListener('keydown', function (e) {
@@ -484,29 +505,38 @@
 
         const role = roleSelect.value;
         const isCompany = docType.value === '6';
+        const isInsOnly = isInsuranceOnly();
         const docNumberVal = docNumber.value.trim();
 
         let valid = true;
         if (!role) { showError('Seleccione un rol.'); valid = false; }
-        if (!docNumberVal) { setFieldError('cm-doc-number', 'Ingrese el número de documento.'); valid = false; }
-        if (isCompany && !businessName.value.trim()) { setFieldError('cm-business-name', 'Ingrese la razón social.'); valid = false; }
-        if (!isCompany && !firstName.value.trim() && !lastName.value.trim()) { setFieldError('cm-first-name', 'Ingrese nombres o apellidos.'); valid = false; }
+        if (!isInsOnly) {
+            // En compañía, documento/razón social vienen de la ficha existente (solo lectura)
+            if (!docNumberVal) { setFieldError('cm-doc-number', 'Ingrese el número de documento.'); valid = false; }
+            if (isCompany && !businessName.value.trim()) { setFieldError('cm-business-name', 'Ingrese la razón social.'); valid = false; }
+            if (!isCompany && !firstName.value.trim() && !lastName.value.trim()) { setFieldError('cm-first-name', 'Ingrese nombres o apellidos.'); valid = false; }
+        }
         if (!mobile.value.trim()) { setFieldError('cm-mobile', 'Ingrese el celular.'); valid = false; }
         if (!valid) return;
 
+        if (isInsOnly && !existingParty) {
+            showError('Seleccione primero una compañía de seguros existente. No se puede crear una nueva aquí.');
+            return;
+        }
+
         const payload = {
             role: role,
-            document_type: docType.value,
-            document_number: docNumberVal,
-            first_name: isCompany ? null : firstName.value.trim(),
-            last_name: isCompany ? null : lastName.value.trim(),
-            business_name: isCompany ? businessName.value.trim() : null,
+            document_type: isInsOnly ? undefined : docType.value,
+            document_number: isInsOnly ? undefined : docNumberVal,
+            first_name: isInsOnly ? undefined : (isCompany ? null : firstName.value.trim()),
+            last_name: isInsOnly ? undefined : (isCompany ? null : lastName.value.trim()),
+            business_name: isInsOnly ? undefined : (isCompany ? businessName.value.trim() : null),
             email: email.value.trim() || null,
             phone: phone.value.trim() || null,
             mobile: mobile.value.trim() || null,
             ubigeo_code: distrito.value || null,
             address: address.value.trim() || null,
-            is_insurance_company: role === 'insurance_company' ? (isInsurance.checked ? 1 : 0) : null,
+            is_insurance_company: isInsOnly ? 1 : null,
         };
 
         const btn = btnSave;
@@ -574,7 +604,10 @@
     modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.classList.contains('hidden')) { closeModal(); closeResults(); } });
     docType.addEventListener('change', togglePersonCompany);
-    roleSelect.addEventListener('change', function () { applyRoleDefaults(this.value); });
+    roleSelect.addEventListener('change', function () {
+        clearForm();
+        applyRoleDefaults(this.value);
+    });
 
     billingToggle.addEventListener('click', function () {
         const willShow = billingFields.classList.contains('hidden');

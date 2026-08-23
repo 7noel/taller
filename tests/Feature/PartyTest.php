@@ -178,4 +178,20 @@ class PartyTest extends TestCase
 
         $this->assertDatabaseHas('parties', ['document_number' => '20123456781', 'is_insurance_company' => 1]);
     }
+
+    public function test_search_filters_only_insurance_companies(): void
+    {
+        $user = $this->createUserWithPermissions(['ver parties']);
+        Party::factory()->company()->create(['document_number' => '20123456782', 'business_name' => 'Seguros Andina', 'is_insurance_company' => true]);
+        Party::factory()->company()->create(['document_number' => '20123456783', 'business_name' => 'Transportes Lima', 'is_insurance_company' => false]);
+
+        $this->actingAs($user)
+            ->getJson(route('api.parties.search'))
+            ->assertJsonCount(2); // los 2 creados
+
+        $response = $this->actingAs($user)->getJson(route('api.parties.search') . '?is_insurance_company=1');
+        $response->assertJsonCount(1);
+        $response->assertJsonPath('0.business_name', 'Seguros Andina');
+        $response->assertJsonPath('0.is_insurance_company', true);
+    }
 }

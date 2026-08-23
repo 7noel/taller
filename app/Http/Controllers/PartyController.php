@@ -106,6 +106,9 @@ class PartyController extends Controller
             ->when($request->filled('id'), function ($q) use ($request) {
                 $q->whereKey($request->query('id'));
             })
+            ->when($request->boolean('is_insurance_company'), function ($q) {
+                $q->where('is_insurance_company', true);
+            })
             ->orderByRaw("COALESCE(business_name, CONCAT(last_name, ' ', first_name))")
             ->limit($request->integer('limit', 20));
 
