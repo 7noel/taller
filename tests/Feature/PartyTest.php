@@ -194,4 +194,44 @@ class PartyTest extends TestCase
         $response->assertJsonPath('0.business_name', 'Seguros Andina');
         $response->assertJsonPath('0.is_insurance_company', true);
     }
+
+    public function test_quick_store_driver_without_document_number_is_allowed(): void
+    {
+        $user = $this->createUserWithPermissions(['crear parties']);
+
+        $this->actingAs($user)->postJson(route('api.parties.quick-store'), [
+            'role' => 'driver',
+            'document_type' => '1',
+            'first_name' => 'Pedro',
+            'last_name' => 'Suárez',
+            'mobile' => '987654322',
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('parties', ['first_name' => 'Pedro', 'last_name' => 'Suárez', 'mobile' => '987654322', 'document_number' => null]);
+    }
+
+    public function test_quick_store_owner_requires_document_number(): void
+    {
+        $user = $this->createUserWithPermissions(['crear parties']);
+
+        $this->actingAs($user)->postJson(route('api.parties.quick-store'), [
+            'role' => 'owner',
+            'document_type' => '1',
+            'first_name' => 'María',
+            'last_name' => 'López',
+            'mobile' => '987654323',
+        ])->assertUnprocessable();
+    }
+
+    public function test_quick_store_billing_requires_document_number(): void
+    {
+        $user = $this->createUserWithPermissions(['crear parties']);
+
+        $this->actingAs($user)->postJson(route('api.parties.quick-store'), [
+            'role' => 'billing',
+            'document_type' => '6',
+            'business_name' => 'Empresa SAC',
+            'mobile' => '987654324',
+        ])->assertUnprocessable();
+    }
 }

@@ -137,10 +137,12 @@ class PartyController extends Controller
 
         $roles = ['owner', 'driver', 'approver', 'operator', 'billing', 'insurance_company', 'emergency_contact', 'other'];
 
+        $docRequiredRoles = ['owner', 'billing'];
+
         $validated = $request->validate([
             'role' => ['nullable', Rule::in($roles)],
             'document_type' => ['required', 'in:1,6,4,7,A'],
-            'document_number' => ['required', 'string', 'max:20', Rule::unique('parties')->where('document_type', $request->input('document_type'))->ignore($request->input('id'))],
+            'document_number' => [Rule::requiredIf(fn () => in_array($request->input('role'), $docRequiredRoles, true)), 'nullable', 'string', 'max:20', Rule::unique('parties')->where('document_type', $request->input('document_type'))->ignore($request->input('id'))],
             'first_name' => [$request->input('document_type') === '6' ? 'nullable' : 'required_without:last_name', 'string', 'max:255'],
             'last_name' => [$request->input('document_type') === '6' ? 'nullable' : 'required_without:first_name', 'string', 'max:255'],
             'business_name' => [$request->input('document_type') === '6' ? 'required' : 'nullable', 'string', 'max:255'],

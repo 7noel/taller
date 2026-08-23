@@ -68,7 +68,7 @@
                     <p id="cm-doc-type-error" class="mt-1 text-xs text-red-600 hidden"></p>
                 </div>
                 <div>
-                    <label for="cm-doc-number" class="block text-sm font-medium text-gray-700">Número de documento *</label>
+                    <label for="cm-doc-number" class="block text-sm font-medium text-gray-700">Número de documento <span id="cm-doc-number-req" class="text-red-500 hidden">*</span></label>
                     <div class="flex gap-2 items-stretch">
                         <input type="text" id="cm-doc-number" maxlength="15" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 uppercase">
                         <a id="cm-external-link" href="#" target="_blank" rel="noopener" title="Ver ficha completa"
@@ -178,6 +178,7 @@
 
     const docType = document.getElementById('cm-doc-type');
     const docNumber = document.getElementById('cm-doc-number');
+    const docNumberReq = document.getElementById('cm-doc-number-req');
     const firstName = document.getElementById('cm-first-name');
     const lastName = document.getElementById('cm-last-name');
     const businessName = document.getElementById('cm-business-name');
@@ -258,7 +259,12 @@
     }
 
     // ===================== Campos dinámicos según rol =====================
+    function docNumberRequired(role) {
+        return role === 'owner' || role === 'billing';
+    }
+
     function applyRoleDefaults(role) {
+        docNumberReq.classList.toggle('hidden', !docNumberRequired(role));
         if (role === insuranceRole) {
             docType.value = '6';
             // Solo-selección: documento y razón social son de solo lectura
@@ -502,8 +508,8 @@
         let valid = true;
         if (!role) { showError('Seleccione un rol.'); valid = false; }
         if (!isInsOnly) {
-            // En compañía, documento/razón social vienen de la ficha existente (solo lectura)
-            if (!docNumberVal) { setFieldError('cm-doc-number', 'Ingrese el número de documento.'); valid = false; }
+            // Nº documento obligatorio solo en propietario/facturación
+            if (docNumberRequired(role) && !docNumberVal) { setFieldError('cm-doc-number', 'Ingrese el número de documento.'); valid = false; }
             if (isCompany && !businessName.value.trim()) { setFieldError('cm-business-name', 'Ingrese la razón social.'); valid = false; }
             if (!isCompany && !firstName.value.trim() && !lastName.value.trim()) { setFieldError('cm-first-name', 'Ingrese nombres o apellidos.'); valid = false; }
         }
@@ -595,6 +601,9 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.classList.contains('hidden')) { closeModal(); closeResults(); } });
     docType.addEventListener('change', togglePersonCompany);
     roleSelect.addEventListener('change', function () {
+        // Al cambiar de rol, limpiar búsqueda y resultados residuales del modo anterior
+        searchInput.value = '';
+        closeResults();
         clearForm();
         applyRoleDefaults(this.value);
     });
