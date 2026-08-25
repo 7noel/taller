@@ -266,6 +266,12 @@
                 // compañía relacionada del vehículo si aplica.
                 const insuranceContact = vehicleContacts.find(c => c.role === 'insurance_company');
                 loadInsuranceCompanies().then(() => {
+                    // En edición, restaurar la aseguradora guardada del presupuesto
+                    // (ya incluida en el listado recién cargado).
+                    if (initialInsuranceId && insuranceSelect.options[initialInsuranceId]) {
+                        insuranceSelect.setValue(initialInsuranceId, true);
+                        return;
+                    }
                     if (insuranceContact?.party_id && (opts?.forceInsurance || !insuranceSelect.getValue())) {
                         setInsuranceByPartyId(insuranceContact.party_id);
                     }
