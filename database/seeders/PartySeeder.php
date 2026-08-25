@@ -19,6 +19,7 @@ class PartySeeder extends Seeder
                 'phone' => '011234567',
                 'mobile' => '987654321',
                 'address' => 'Av. Los Rosales 123, San Isidro',
+                'ubigeo_code' => '150101',
             ],
             [
                 'document_type' => '1',
@@ -29,6 +30,7 @@ class PartySeeder extends Seeder
                 'phone' => '014445566',
                 'mobile' => '999888777',
                 'address' => 'Jr. Los Laureles 456, Miraflores',
+                'ubigeo_code' => '150122',
             ],
             [
                 'document_type' => '6',
@@ -38,6 +40,7 @@ class PartySeeder extends Seeder
                 'phone' => '014774455',
                 'mobile' => '955112233',
                 'address' => 'Av. Industrial 789, Callao',
+                'ubigeo_code' => '070101',
             ],
             [
                 'document_type' => '1',
@@ -48,6 +51,7 @@ class PartySeeder extends Seeder
                 'phone' => '012223344',
                 'mobile' => '966778899',
                 'address' => 'Av. Primavera 890, Surco',
+                'ubigeo_code' => '150140',
             ],
             [
                 'document_type' => '1',
@@ -58,6 +62,7 @@ class PartySeeder extends Seeder
                 'phone' => '015556677',
                 'mobile' => '933445566',
                 'address' => 'Calle Los Pinos 321, La Molina',
+                'ubigeo_code' => '150117',
                 'receive_promotions' => true,
             ],
             [
@@ -69,6 +74,7 @@ class PartySeeder extends Seeder
                 'phone' => '015445566',
                 'mobile' => '911223344',
                 'address' => 'Av. Los Álamos 654, Los Olivos',
+                'ubigeo_code' => '150115',
             ],
             [
                 'document_type' => '7',
@@ -79,6 +85,7 @@ class PartySeeder extends Seeder
                 'phone' => '012224455',
                 'mobile' => '977889900',
                 'address' => 'Jr. Los Claveles 789, San Borja',
+                'ubigeo_code' => '150130',
             ],
             [
                 'document_type' => '6',
@@ -88,6 +95,7 @@ class PartySeeder extends Seeder
                 'phone' => '016665544',
                 'mobile' => '955334422',
                 'address' => 'Av. Javier Prado Este 2500, La Molina',
+                'ubigeo_code' => '150117',
                 'receive_promotions' => true,
             ],
             [
@@ -99,6 +107,7 @@ class PartySeeder extends Seeder
                 'phone' => '015554433',
                 'mobile' => '988776655',
                 'address' => 'Calle Las Gardenias 100, Santiago de Surco',
+                'ubigeo_code' => '150140',
             ],
             [
                 'document_type' => '6',
@@ -108,6 +117,7 @@ class PartySeeder extends Seeder
                 'phone' => '014443322',
                 'mobile' => '966112233',
                 'address' => 'Av. Elmer Faucett 1450, Callao',
+                'ubigeo_code' => '070101',
                 'receive_promotions' => false,
             ],
         ];

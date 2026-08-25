@@ -38,11 +38,13 @@
         {{-- Botones de carga --}}
         <div class="flex flex-wrap gap-2 mb-4">
             <label for="{{ $idImage }}" class="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm flex items-center gap-2">
-                📷 Seleccionar imagen
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Seleccionar imagen
                 <input type="file" id="{{ $idImage }}" accept="image/*" capture="environment" class="hidden">
             </label>
             <button id="{{ $idPaste }}" type="button" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm flex items-center gap-2">
-                📋 Pegar imagen
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Pegar imagen
             </button>
         </div>
 
@@ -58,12 +60,16 @@
 
         {{-- Loading --}}
         <div id="{{ $idLoading }}" class="hidden mt-4 text-sm text-gray-600 text-center">
-            ⏳ Procesando imagen... (puede tardar unos segundos)
+            <svg class="h-4 w-4 inline-block me-1 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m6.366-.366l-2.12 2.12M21 12h-3m.366 6.366l-2.12-2.12M12 21v-3m-6.366.366l2.12-2.12M3 12h3m-.366-6.366l2.12 2.12"/></svg>
+            Procesando imagen... (puede tardar unos segundos)
         </div>
 
         {{-- Resultados --}}
         <div id="{{ $idResults }}" class="mt-4 text-sm text-gray-700 hidden space-y-1">
-            <p class="font-semibold text-green-700 mb-1">✅ Datos detectados:</p>
+            <p class="font-semibold text-green-700 mb-1">
+                <svg class="h-4 w-4 inline-block me-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Datos detectados:
+            </p>
             <p><strong>Marca:</strong> <span id="{{ $idBrand }}" class="font-mono"></span></p>
             <p><strong>Modelo:</strong> <span id="{{ $idModel }}" class="font-mono"></span></p>
             <p><strong>Año:</strong> <span id="{{ $idYear }}" class="font-mono"></span></p>
@@ -76,7 +82,8 @@
         {{-- Enlace a Sunarp --}}
         <div class="text-center text-sm mt-4">
             <a href="https://consultavehicular.sunarp.gob.pe/consulta-vehicular/inicio" target="_blank" rel="noopener" class="text-blue-600 underline hover:text-blue-800">
-                🔗 Ir a la página de Sunarp para consultar
+                <svg class="h-3.5 w-3.5 inline-block me-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-2.828 2.828a4 4 0 01-5.656-5.656l1.172-1.172M10.172 13.828a4 4 0 010-5.656l2.828-2.828a4 4 0 015.656 5.656l-1.172 1.172"/></svg>
+                Ir a la página de Sunarp para consultar
             </a>
         </div>
 
@@ -233,6 +240,22 @@ document.addEventListener('DOMContentLoaded', function () {
         return el;
     }
 
+    // Carga diferida de Tesseract.js (solo al primer uso de OCR)
+    let tesseractPromise = null;
+    function loadTesseract() {
+        if (!tesseractPromise) {
+            tesseractPromise = new Promise(function (resolve, reject) {
+                if (window.Tesseract) { resolve(window.Tesseract); return; }
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                script.onload = () => resolve(window.Tesseract);
+                script.onerror = () => reject(new Error('No se pudo cargar el motor de OCR.'));
+                document.body.appendChild(script);
+            });
+        }
+        return tesseractPromise;
+    }
+
     // Procesar OCR
     btnProcess.addEventListener('click', async function () {
         if (!currentImageFile) return;
@@ -243,6 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
         resultsDiv.classList.add('hidden');
 
         try {
+            const Tesseract = await loadTesseract();
             const { data: { text } } = await Tesseract.recognize(currentImageFile, 'spa', {
                 logger: m => console.log(m)
             });

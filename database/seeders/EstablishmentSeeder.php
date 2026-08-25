@@ -13,9 +13,11 @@ class EstablishmentSeeder extends Seeder
             ['code' => '001'],
             [
                 'name' => 'Sede Central',
-                'address' => 'Av. Principal 123',
-                'phone' => '987654321',
-                'email' => 'central@taller.com',
+                'address' => 'Av. Principal 123, San Isidro',
+                'ubigeo_code' => '150101',
+                'phone' => '011234567',
+                'celular' => '987654321',
+                'email' => 'central@tallermotor.com',
             ]
         );
     }

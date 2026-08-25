@@ -1,4 +1,3 @@
-# Bitácora de desarrollo - Sistema de Taller Mecánico
 
 ## Fecha de inicio: 17 de agosto de 2026
 
@@ -202,7 +201,7 @@
 - **Verificación**: `php artisan view:cache` exitoso (todas las vistas compilan); funcionalidad de negocio y JavaScript sin cambios.
 - **Próximos pasos**: aplicar el sistema de diseño a vistas de formulario (create/edit) si el usuario lo solicita.
 
-### � Seguridad y UX en formularios (CSRF refresh + Anti-doble envío)
+### 📌 Seguridad y UX en formularios (CSRF refresh + Anti-doble envío)
 - **Fecha**: 23 de agosto de 2026
 - **Tarea**: Corrección del error de expiración del token CSRF en Login y prevención de duplicidad de datos por doble clic en todos los formularios del proyecto.
 - **Detalles**:
@@ -216,7 +215,132 @@
   - **Reglas del proyecto**: creado `.clinerules/08-seguridad-forms.md` con las dos reglas obligatorias (CSRF refresh antes del envío + Anti-duplicados con flag booleano y botón deshabilitado), incluida la implementación estándar para formularios tradicionales y modales AJAX, para que todo desarrollo futuro las cumpla sin duplicar lógica.
 - **Próximos pasos**: continuar con el módulo de presupuestos.
 
-### �📝 Nota sobre la bitácora
+### 📌 Rediseño del Login (pantalla dividida)
+- **Fecha**: 23 de agosto de 2026
+- **Tarea**: Rediseño completo de la pantalla de login del Taller Mecánico con el skill **impeccable**, reemplazando el diseño por defecto de Laravel Breeze.
+- **Detalles**:
+  - **Nuevo partial** `resources/views/partials/auth-split-side.blade.php`: panel izquierdo reutilizable con temática de taller mecánico (gradiente azul petróleo/gris acero, engranajes decorativos, logo del taller, etapas del flujo del vehículo y footer). En móvil (`< lg`) se oculta.
+  - **Layout guest con variantes**: `app/View/Components/GuestLayout.php` ahora acepta `variant` (`centered` por defecto | `split`), y `resources/views/layouts/guest.blade.php` renderiza la pantalla dividida cuando la variante es `split`. El resto de vistas guest (forgot-password, reset, verify-email, register) conservan la variante `centered`.
+  - **Login rediseñado** `resources/views/auth/login.blade.php`: usa `<x-guest-layout variant="split">`, formulario centrado sobre fondo claro con iconos en inputs (usuario/candado), botón mostrar/ocultar contraseña, enlace "¿Olvidaste tu contraseña?" alineado, checkbox "Recordarme", botón "Iniciar sesión" full-width y logo compacto en móvil. Labels/textos traducidos a español.
+  - **Seguridad intacta**: se mantuvieron `name` de inputs (`email`, `password`, `_token`), `action="{{ route('login') }}"`, `@csrf`, y el guard global `partials/form-guard.blade.php` (renovación CSRF pre-envío + anti-doble clic).
+  - **Regla permanente**: actualizado `.clinerules/07-diseno-sistema.md` con la sección **"Login (pantalla dividida — obligatorio)"**: todos los logins deben usar split screen con temática de taller mecánico; prohibido el diseño por defecto de Laravel Breeze para el login principal.
+  - **Verificación**: `php artisan view:cache` exitoso (todas las vistas compilan, incluido el nuevo partial y la variante split).
+- **Próximos pasos**: continuar con el módulo de presupuestos.
+
+### 📌 Sistema de numeración por series, configuración de empresa y establecimientos
+- **Fecha**: 24 de agosto de 2026
+- **Tarea**: Implementación completa del sistema de numeración por series (DocumentSeriesService con lock pesimista), configuración global de empresa (company_settings) y módulo de establecimientos con sus series editables. Integración del servicio en el flujo de creación de `check_ins` (IV01-XXXXX).
+- **Migraciones nuevas** (`2026_08_24_*`):
+  - `company_settings`: RUC (unique nullable), razón social, nombre comercial, dirección, ubigeo (depto/provincia/distrito), teléfono, celular, email, logo_path, favicon_path, `detraccion_account`, `default_number_source` (enum LOCAL/API, default LOCAL), `facturador_provider` (enum local/nubefact/propio), facturador_api_url/key/secret, whatsapp_api_url/token, timestamps. Una sola fila global.
+  - `document_types`: code (unique), name, is_electronic (bool), is_active (bool).
+  - `document_series`: establishment_id (FK), document_type_id (FK), prefix_serie, current_number (int default 0), number_source (enum LOCAL/API), status (bool), unique(establishment_id, document_type_id).
+  - `check_ins` ampliada: `document_series_id` (FK nullable) y `document_number` (string nullable).
+  - `establishments` ampliada: `celular`, `ubigeo_departamento`, `ubigeo_provincia`, `ubigeo_distrito` (datos editables que se copian desde company_settings).
+- **Modelos**: `CompanySetting` (with accessors logo_url/favicon_url + `CompanySetting::get()`), `DocumentType`, `DocumentSeries` (with `formatted_number` accessor), `Establishment` actualizado con relaciones `documentSeries` y `checkIns`, `CheckIn` con `document_series_id`/`document_number` en fillable y relación `documentSeries`.
+- **Servicio `DocumentSeriesService`**:
+  - `generateSeriesForEstablishment($establishmentId)`: consulta `DocumentType::where('is_active', true)`, crea una fila en `document_series` por tipo con `prefix_serie` = código del documento, `current_number = 0` y `number_source` heredado de `company_settings->default_number_source`.
+  - `getNextNumber($establishmentId, $documentTypeCode)`: `DB::transaction()` + `lockForUpdate()` sobre la fila de `document_series`. Si `number_source` es LOCAL, incrementa y devuelve `PREFIJO-00001`; si es API, devuelve `null`. Lanza RuntimeException si la serie no está activa.
+  - `updateSeries()`: actualización manual de `prefix_serie`, `current_number`, `number_source` y `status`.
+- **Seeders**:
+  - `DocumentTypeSeeder`: 16 documentos (FTR1, BLT1, FTC1, BLC1, FTD1, BLD1, TR01 electrónicos; NV01, NIA1, NSA1, NTA1, PRE01, OT01, IV01, CST01, LST01 internos).
+  - `CompanySettingSeeder`: fila global con valores por defecto (RUC/Razón Social vacíos, source LOCAL, provider local).
+  - `DocumentSeriesSeeder`: ejecuta `generateSeriesForEstablishment()` para todos los establecimientos.
+  - `DatabaseSeeder` actualizado (orden: Ubigeo → Roles → CompanySetting → DocumentType → Establishment → DocumentSeries → ...).
+  - `RolePermissionSeeder`: nuevos permisos `ver/editar configuración`, `ver/crear/editar/eliminar establecimientos`, `ver/editar series`.
+- **Controladores**: `CompanySettingController` (edit/update con subida de logo/favicon), `EstablishmentController` (CRUD + `copyFromCompany()` que copia solo datos editables y **nunca RUC/Razón Social/Nombre Comercial** + `regenerateSeries()`), `DocumentSeriesController` (index/update de series por establecimiento).
+- **Vistas (estilo Vehículos)**: `company-settings/edit` con 4 pestañas (Datos Fiscales y Ubigeo, Branding con previsualización en vivo, Detracción y Contacto, Integraciones con selector LOCAL/API); `establishments/index` con Tabulator y columna Acciones con `.btn-icon`; `create`/`edit` con formulario tipo Vehículos, botón "Copiar datos editables de la empresa" y "Regenerar series"; `establishments/series` con edición inline de prefijo, número actual, origen y estado de cada serie.
+- **Integración en check-ins**: `CheckInService::create()` asigna `document_series_id` y `document_number` (IV01-XXXXX) vía `DocumentSeriesService::getNextNumber()` antes de crear. El formulario de check-ins muestra la sección "Documento" con el número generado (formateado en mono) y la serie.
+- **Navegación**: enlaces "Establecimientos" y "Configuración" (protegidos con `@can`) en menú desktop y móvil.
+- **Reglas permanentes**: creado `.clinerules/10-numeracion-configuracion.md` con las 3 reglas obligatorias (Configuración, Numeración, Estilo).
+- **Pruebas** (`tests/Feature/CheckInTest.php` y `tests/Unit/CheckInServiceTest.php`): se actualizaron los `setUp()` para crear el `DocumentType` IV01 y su `DocumentSeries` (LOCAL) antes de usar el servicio. **19 tests del módulo CheckIn pasan (54 assertions)** — la integración de numeración IV01 funciona correctamente.
+- **Verificación**: `php artisan migrate:fresh --seed` **OK**. Base resultado: 16 tipos de documento, 1 company_settings, 1 establecimiento, **16 series generadas** (una por documento), 3 check-ins, 38 permisos. Prueba directa de `getNextNumber('IV01')` devolvió `IV01-00001` e incrementó `current_number` a 1 (lock pesimista funcionando). Archivos temporales de prueba eliminados.
+- **Corrección posterior (ubigeo con ubigeo_code — patrón Parties)**: En `company_settings` y `establishments` se reemplazaron los 3 campos de texto (`ubigeo_departamento`, `ubigeo_provincia`, `ubigeo_distrito`) por un único `ubigeo_code` (string 6, FK a `ubigeos.code`). Se actualizaron modelos (`CompanySetting`, `Establishment` con relación `ubigeo()`), controladores (`CompanySettingController`, `EstablishmentController` con `$departamentos` a la vista, validación `exists:ubigeos,code` y `copyFromCompany()` copiando `ubigeo_code`), y vistas (`company-settings/edit` Pestaña 1 y `establishments/_form`) con 3 selects en cascada idénticos al módulo de Parties. Se creó el partial reutilizable `resources/views/partials/ubigeo-cascade.blade.php` con pre-carga de valores guardados vía `api/ubigeo/resolve`. Seeders completados con datos en todos los campos: `CompanySettingSeeder` (RUC, razón social, dirección, teléfono, celular, email, detracción, integraciones, `ubigeo_code`), `EstablishmentSeeder` (`ubigeo_code` + datos), `PartySeeder` (10 parties todas con `ubigeo_code`), `InsuranceCompanySeeder` (6 aseguradoras con dirección y `ubigeo_code`). Orden de seeders confirmado: Ubigeo → Roles → Configuración → Establecimientos → DocumentTypes → Series → ... → Inventario. **`migrate:fresh --seed` OK** (28 migraciones, todas Ran; `CompanySetting.ubigeo_code=150101`, `Establishment.ubigeo_code=150101`, 16/16 parties con ubigeo, 16 series). **19 tests del módulo CheckIn pasan (54 assertions)**.
+- **Corrección posterior (códigos SUNAT del facturador + correlativos en seeders)**: Se alineó el esquema de documentos con el dump del facturador (`cat_document_types` y `series`):
+  - **`document_types`**: ahora **14 tipos** donde `code` es el **código SUNAT** ('01' Factura, '03' Boleta, '07' NC, '08' ND, '09' Guía Remisión, '80' Nota Venta, 'U2'/'U3'/'U4' Guías, 'PRE', 'OT', 'IV', 'CST', 'LST'), coincidiendo con `cat_document_types.id` del facturador.
+  - **`document_series`**: unique cambiado a `(establishment_id, document_type_id, prefix_serie)` para permitir **2 series por tipo** para NC ('07' → FTC1/BLC1 factura/boleta) y ND ('08' → FTD1/BLD1), igual que el facturador.
+  - **`DocumentSeriesService`**: nuevo `PREFIX_MAP` que genera los prefijos por código (ej. '07' → ['FTC1','BLC1']); `getNextNumber($establishmentId, $code, $prefix = null)` acepta prefijo opcional (si es null usa la primera serie activa).
+  - **Integración**: `CheckInService::assignDocumentNumber()` usa código `'IV'` (serie IV01); **`CheckInSeeder` ahora llama a `getNextNumber('IV')`** para asignar `document_series_id` + `document_number` a cada inventario (resultado: IV01-00001, IV01-00002, IV01-00003 y `current_number=3`).
+  - **Tests**: `CheckInServiceTest` y `CheckInTest` actualizados a código 'IV'; **nuevo `DocumentSeriesServiceTest`** con 3 pruebas (NC/ND generan 2 series c/u, `getNextNumber` por prefijo, primer activo sin prefijo).
+  - **Verificación**: **`migrate:fresh --seed` OK** → 14 tipos, **16 series** (NC=FTC1,BLC1; ND=FTD1,BLD1), 3 check-ins con números IV01-00001..00003 y `current_number=3`. **22 tests pasan (67 assertions)** (19 CheckIn + 3 DocumentSeriesService).
+- **Próximos pasos**: continuar con el módulo de presupuestos (Estimate) usando el mismo servicio de numeración para PRE01.
+
+### 📌 Identidad de documento completa en check_ins (document_type_code + serie + número + sn)
+- **Fecha**: 24 de agosto de 2026
+- **Tarea**: Almacenar en cada `check_ins` el snapshot completo de la identidad del documento emitido para permitir búsqueda por serie, número o string completo, y estandarizar la visualización de documentos internos y electrónicos (Serie + Código SUNAT).
+- **Cambios**:
+  - **Nueva migración** `2026_08_24_000007_add_document_identity_to_check_ins_table.php`: agrega `document_type_code` (código SUNAT/catálogo), `document_serie` (prefijo), `document_sn` (`SSSS-XXXXXX`) + backfill desde `document_series`/`document_types` + índices en `document_sn`, `document_serie`, `document_number`.
+  - `DocumentSeriesService::getNextNumber()` ahora devuelve `{series, number (int), sn ("IV01-000001"), document_type_code ("IV")}`.
+  - `CheckInService::assignDocumentNumber()` y `CheckInSeeder` rellenan el snapshot completo (type_code, serie, number, sn).
+  - `CheckIn` (modelo): nueva columnas en `fillable`, accessor `formatted_document_number` = `document_sn`.
+  - `CheckInController::search()`: filtro `q` ahora incluye `document_sn`, `document_serie`, `document_type_code` y `document_number` (por número correlativo) para buscar por serie, número o completo; expone `document_type_code`, `document_serie`, `document_number`, `document_sn`, `document_type_name`, `is_electronic`.
+  - Listado de inventario: 1ª columna **Documento** (`sn`, enlace), nueva columna compacta **Serie · SUNAT** (`IV01 · IV` con badge E/I) y columna **N°** (correlativo).
+  - Form y detalle de check-in: sección Documento con Tipo (SUNAT), Serie, N° correlativo y Documento completo (`SSSS-XXXXXX`).
+  - **Regla permanente**: `.clinerules/10-numeracion-configuracion.md` con "Regla de Identidad de Documento (snapshot en el documento emitido)".
+- **Verificación**: `php artisan migrate:fresh --seed` OK → 3 check-ins con `IV | IV01 | 1..3 | IV01-000001..000003`, serie IV01 `current_number=3`; `php artisan view:cache` OK; tests del módulo de numeración/check-ins **28 passed (90 assertions)**.
+- **Próximos pasos**: continuar con el módulo de presupuestos (Estimate) usando el mismo servicio de numeración para PRE01.
+
+### 📌 Modal global de confirmación de eliminación (corrige bug "Cancelar borra")
+- **Fecha**: 24 de agosto de 2026
+- **Tarea**: Corregir el bug en el que al presionar "Cancelar" en la confirmación de eliminación igual se borraba el registro (probado en contactos), y estandarizar la confirmación con un modal propio del sistema.
+- **Causa raíz**: `form-guard.blade.php` registra el listener de `submit` con `useCapture: true`, por lo que **se ejecuta antes** que el `onsubmit="return confirm(...)"` inline. Al cancelar el `confirm()`, form-guard ya había hecho `preventDefault()` y encolado `form.submit()` programático (que no vuelve a pasar por el `onsubmit`), por lo que el registro se eliminaba igual. Afectaba a todos los formularios con `confirm()`.
+- **Cambios**:
+  - **Nuevo `resources/views/partials/confirm-modal.blade.php`**: modal global con estilos del sistema (card, `.btn-secondary` Cancelar + `.btn-danger` Eliminar, overlay, cierre por clic fuera/Escape). Expone `window.ConfirmModal.open(form)`; al confirmar marca `data-confirmed="1"` y llama `form.requestSubmit()`, que vuelve a pasar por form-guard (refresh CSRF + anti-doble envío).
+  - `resources/views/partials/form-guard.blade.php`: nueva compuerta al inicio del handler `submit` — si el form tiene `data-confirm` y no `data-confirmed`, hace `preventDefault()+stopImmediatePropagation()` y abre el modal. **Cancelar ya no borra**; confirmar sí envía.
+  - `resources/views/layouts/app.blade.php`: incluye `partials.confirm-modal` antes que `form-guard`.
+  - Reemplazado `onsubmit="return confirm('...')"` por `data-confirm="..."` en 8 vistas: `parties/index`, `vehicles/index`, `users/index`, `check-ins/index`, `establishments/index`, `parties/show`, `vehicles/show` y `establishments/edit` (copiar datos + regenerar series).
+  - **Regla permanente**: actualizado `.clinerules/08-seguridad-forms.md` con "Regla de Confirmación de Eliminación": toda acción destructiva se confirma con el modal global (`data-confirm`), **prohibido `onsubmit="return confirm(...)"`**.
+- **Verificación**: `php artisan view:cache` OK; búsqueda confirma que no queda ningún `onsubmit="return confirm(...)"` activo (solo mención en comentario del partial). Comportamiento: Cancelar cierra el modal sin enviar; Confirmar envía el DELETE con CSRF renovado.
+- **Pendiente (fuera de alcance)**: `check-ins/show` usa `prompt()` en "Rechazar" con el mismo patrón de bug; conviene migrarlo a un modal de motivo en otra iteración.
+- **Próximos pasos**: continuar con el módulo de presupuestos (Estimate) usando el mismo servicio de numeración para PRE01.
+
+### 📌 Ajustes de numeración y tablas compactas (correlativo separado + estilo Vehículos)
+- **Fecha**: 24 de agosto de 2026
+- **Tarea**: Corregir el formato de serie (sin "00000" confuso), separar serie y número correlativo en `check_ins`, reemplazar el menú `⋮` de series por la columna de acciones `.btn-icon` del módulo de Vehículos, compactar/centrar las tablas, y rediseñar el formulario de establecimiento (acciones rápidas).
+- **Cambios**:
+  - `app/Models/DocumentSeries.php`: `formatted_number` ahora devuelve solo el prefijo (`BLT1`) cuando `current_number = 0` (serie sin uso) y `PREFIJO-000001` (6 dígitos) cuando ya tiene correlativo.
+  - **Nueva migración** `2026_08_24_000006_convert_document_number_to_integer_in_check_ins_table.php`: convierte `check_ins.document_number` de string `"IV01-00001"` a **entero correlativo** (`1`) con backfill del sufijo; down() restaura string.
+  - `app/Models/CheckIn.php`: cast `document_number` a `integer` + accessors `document_serie` (prefijo desde la serie) y `formatted_document_number` (`IV01-000001`).
+  - `app/Services/DocumentSeriesService.php`: `getNextNumber()` ahora devuelve el correlativo **entero** (lock pesimista intacto). `CheckInService::assignDocumentNumber()` y `CheckInSeeder` lo usan tal cual.
+  - `app/Http/Controllers/CheckInController.php`: `search()` carga `documentSeries` y expone `document_number`, `document_serie`, `formatted_document_number`; `show()` carga `documentSeries`.
+  - `resources/views/establishments/series.blade.php`: columna "Acciones" con `.btn-icon` editar/eliminar (reemplaza el menú `⋮`), `headerHozAlign: center`, y la columna "Serie Actual" ya no muestra `-00000`.
+  - `resources/views/check-ins/index.blade.php`: **correlativo como 1ª columna** ("Documento", mono, enlace a `show`); placa como texto normal; título "Acciones" centrado; eliminada la columna "Fecha" (`created_at`).
+  - `resources/views/check-ins/_form.blade.php`: sección Documento con 3 campos readonly (Serie, Número correlativo, Documento completo).
+  - `resources/views/check-ins/show.blade.php`: header muestra `Inventario IV01-000001 — PLACA` (mono) en lugar del id interno.
+  - `resources/views/layouts/app.blade.php`: `.btn-icon` normalizado a `h-8 w-8` (regla `.clinerules/07`).
+  - `resources/views/establishments/create.blade.php` y `edit.blade.php`: card `.card`, botones `.btn-primary`/`.btn-secondary`, "Acciones rápidas" con etiquetas cortas + iconos `shrink-0` que ya no desbordan; añadido flash de error rojo.
+- **Pruebas**: actualizados `tests/Unit/DocumentSeriesServiceTest.php` y `tests/Feature/DocumentSeriesTest.php` al correlativo entero. **28 tests del módulo de numeración/check-ins pasan (85 assertions)**.
+- **Verificación**: `php artisan migrate:fresh --seed` **OK** (3 check-ins seedeados con `document_number` entero 1/2/3 → `IV01-000001..000003`, serie IV01 `current_number=3`); `php artisan view:cache` OK.
+- **Próximos pasos**: continuar con el módulo de presupuestos (Estimate) usando el mismo servicio de numeración para PRE01.
+
+### 📌 CRUD completo de Series + rediseño compacto (estilo Vehículos + Impeccable)
+- **Fecha**: 24 de agosto de 2026
+- **Tarea**: Implementar crear/editar/eliminar de series de documentos por establecimiento y rediseñar el listado de Series para que sea compacto, escaneable y consistente con el sistema de diseño del módulo de Vehículos, aplicando los criterios de auditoría del skill **impeccable** (modo Operate).
+- **Diagnóstico (causas del aspecto deficiente de la vista de series)**:
+  1. La tabla tenía 8 columnas (Serie, Código, Documento, Electrónico, Prefijo, N. Actual, Origen, Estado) más una columna Acciones de 220px que incrustaba un formulario de edición inline (input prefijo + input número + select origen + checkbox estado + botón) dentro de cada fila → filas altas y saturadas, difícil de escanear.
+  2. No existían permisos `crear series` ni `eliminar series`, ni rutas `store`/`destroy`.
+  3. No había validación de documentos asociados al eliminar una serie (la FK `document_series_id` de `check_ins` fallaría con error crudo de BD).
+  4. No había mensaje flash de error en `establishments/index`.
+- **Backend**:
+  - `database/seeders/RolePermissionSeeder.php`: nuevos permisos `crear series` y `eliminar series` (Administrador los recibe vía `Permission::all()`).
+  - `routes/web.php`: `POST establishments/{establishment}/series` (store) y `DELETE establishments/{establishment}/series/{series}` (destroy).
+  - **Nuevo `app/Http/Requests/SeriesRequest.php`**: validación de `document_type_id` (required en post, exists activo), `prefix_serie` (required, max 10, unique compuesto por `establishment_id + document_type_id + prefix`, ignore en update), `current_number` (integer min 0), `number_source` (in LOCAL/API), `status` (boolean) + mensajes en español.
+  - `app/Services/DocumentSeriesService.php`: `createSeries()` (normaliza prefijo a mayúsculas, respeta numeración con `getNextNumber`), `hasAssociatedDocuments()` (verifica `check_ins.document_series_id`) y `destroy()`.
+  - `app/Http/Controllers/DocumentSeriesController.php`: `store()` (Gate `crear series`), `destroy()` (Gate `eliminar series` + validación de documentos asociados → mensaje de error claro) e `index()` (ahora pasa `$documentTypes` activos para el modal de creación).
+- **Frontend (estilo Vehículos / Impeccable)**:
+  - `resources/views/establishments/series.blade.php` rediseñada:
+    - Header con botón "Nueva Serie" (`.btn-primary`) y "Volver" (`.btn-secondary`).
+    - Tabla Tabulator compacta de **5 columnas** (Documento con badge Electrónico/Interno + código mono; "Serie Actual" en una sola columna `PREFIJO-00015`; Origen pill LOCAL/API; Estado pill Activa/Inactiva; menú de acciones `⋮` de 56px).
+    - Menú de acciones flotante (three-dots) con Editar/Eliminar, cierre por clic fuera/Escape/scroll, posicionamiento anti-desborde.
+    - Modal crear/editar con flag `saving` anti-doble envío, botón "Guardando...", errores 422 inline por campo, CSRF leído del meta al momento del envío (regla `.clinerules/08`), tipo de documento readonly en edición.
+    - Modal de confirmación de eliminación con `@method('DELETE')`; si hay documentos asociados el servidor redirige con `error` y la vista muestra flash rojo.
+  - `resources/views/establishments/index.blade.php`: agregado `session('error')` (flash rojo) para consistencia.
+- **Regla permanente**: creado `.clinerules/11-tablas-compactas.md` con la regla obligatoria: "Todos los listados y tablas deben ser compactos, usando badges para estados y menús de acción agrupados. Prohibido mostrar timestamps en tablas de administración", más el patrón de menú `⋮` y verificación.
+- **Pruebas**: **nuevo `tests/Feature/DocumentSeriesTest.php`** con 6 pruebas (crear serie normalizando prefijo, duplicado rechazado, editar serie, no eliminar serie con check-ins asociados, eliminar serie sin documentos, usuario sin permiso rechazado → 403). **6 passed (18 assertions)**.
+- **Verificación**: `php artisan route:list` muestra las 5 rutas de series (index/store/update/destroy + regenerate); `php artisan db:seed --class=RolePermissionSeeder` OK (permisos nuevos); `php artisan view:cache` OK; suite completa: **82 passed, 3 failed preexistentes** (ProfileTest del Breeze + ExampleTest redirect de `/`, sin relación con el módulo, ya documentados en sesiones anteriores).
+- **Próximos pasos**: continuar con el módulo de presupuestos (Estimate) usando el mismo servicio de numeración para PRE01.
+
+---
+
 A partir de ahora, esta bitácora se actualizará automáticamente por el asistente (DeepSeek) en cada hito importante del desarrollo. Los registros incluirán fecha, tarea realizada, decisiones tomadas y próximos pasos.
 
 ---

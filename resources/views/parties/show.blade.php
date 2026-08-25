@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $party->display_name }}</h2>
             <div class="flex gap-2">
                 <a href="{{ route('parties.edit', $party) }}" class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-600">Editar</a>
-                <form method="POST" action="{{ route('parties.destroy', $party) }}" onsubmit="return confirm('¿Eliminar esta party?')">
+                <form method="POST" action="{{ route('parties.destroy', $party) }}" data-confirm="¿Eliminar esta party?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700">Eliminar</button>
@@ -13,8 +13,8 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -78,7 +78,9 @@
                                             <div class="flex items-center justify-between mb-2">
                                                 <a href="{{ route('vehicles.show', $vehicle) }}" class="font-semibold text-blue-600 hover:underline">{{ $vehicle->plate }}</a>
                                                 @if($vehicle->pivot->is_primary_commercial ?? false)
-                                                    <span class="text-yellow-500" title="Contacto comercial principal">⭐</span>
+                                                    <span class="text-yellow-500" title="Contacto comercial principal">
+                                                        <svg class="h-4 w-4 inline-block" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                                    </span>
                                                 @endif
                                             </div>
                                             <div class="text-sm text-gray-600">

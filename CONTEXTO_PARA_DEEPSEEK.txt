@@ -1,0 +1,852 @@
+================================================================================
+CONTEXTO PARA DEEPSEEK — MÓDULO DE PRESUPUESTO (ESTIMATION/COTIZACIÓN)
+Taller Mecánico — Laravel 12
+Fecha de generación: 24/08/2026
+================================================================================
+
+INSTRUCCIONES PARA DEEPSEEK:
+- Construye el módulo SIN adivinar nada: toda la información necesaria está aquí.
+- Sigue ESTRICTAMENTE las reglas del proyecto (ver secciones 3, 5, 9).
+- Antes de codificar, aplica la regla de sincronización diff/upsert (sección 3.4).
+- Usa los mismos nombres de permisos en español (sección 4).
+
+================================================================================
+1. DATOS TÉCNICOS Y ESTRUCTURA BASE
+================================================================================
+
+## 1.1 Versiones exactas (composer.json)
+- PHP: ^8.2
+- Laravel framework: ^12.0
+- spatie/laravel-permission: ^8.3
+- spatie/laravel-activitylog: ^4.12
+- laravel/breeze: ^2.4 (dev)
+- Base de datos: MySQL
+
+## 1.2 Estructura de carpetas (app/)
+- app/Http/Controllers/{Module}Controller.php
+- app/Http/Requests/{Module}Request.php
+- app/Models/{Model}.php
+- app/Policies/{Model}Policy.php
+- app/Services/{Module}Service.php
+- database/migrations/ (naming: YYYY_MM_DD_HHMMSS_...)
+- database/seeders/
+- resources/views/{module}/ (Blade: index, create, edit, show, _partials)
+- routes/web.php (ÚNICO archivo de rutas; NO existe routes/api.php)
+
+## 1.3 Rutas
+- OBLIGATORIO: NO usar routes/api.php. Todas las rutas van en routes/web.php.
+- Rutas autenticadas: dentro de Route::middleware(['auth', 'verified'])->group(...)
+- Rutas AJAX de búsqueda: también dentro de ese grupo, con prefijo `api/` y nombre `api.*` (ej. `api/check-ins/search` → name `api.check-ins.search`).
+- Endpoint público existente: GET /api/csrf-token (renueva token CSRF para formularios). NO duplicar.
+
+================================================================================
+2. MODELOS Y MIGRACIONES EXISTENTES (código completo de referencia)
+================================================================================
+
+## 2.1 User (app/Models/User.php)
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable, HasRoles, SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'establishment_id',
+        'phone',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class);
+    }
+
+    public function getEstablishmentNameAttribute(): string
+    {
+        return $this->establishment?->name ?? 'Sin establecimiento';
+    }
+
+    public function getRoleNamesAttribute(): array
+    {
+        return $this->roles->pluck('name')->toArray();
+    }
+}
+```
+
+## 2.2 Party (app/Models/Party.php) — clientes/aseguradoras
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+
+class Party extends Model
+{
+    use HasFactory, SoftDeletes, LogsActivity;
+
+    protected $fillable = [
+        'document_type', 'document_number', 'first_name', 'last_name',
+        'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code',
+        'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate',
+        'receive_promotions', 'created_by', 'updated_by',
+    ];
+
+    protected $casts = [
+        'is_insurance_company' => 'boolean',
+        'receive_promotions' => 'boolean',
+    ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['document_type', 'document_number', 'first_name', 'last_name', 'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code', 'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate', 'receive_promotions'])
+            ->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('party');
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->business_name) {
+            return $this->business_name;
+        }
+
+        return trim("{$this->last_name} {$this->first_name}");
+    }
+
+    public function getDocumentTypeLabelAttribute(): string
+    {
+        return match ($this->document_type) {
+            '1' => 'DNI',
+            '6' => 'RUC',
+            '4' => 'CEX',
+            '7' => 'PAS',
+            'A' => 'Cédula Diplomática',
+            default => $this->document_type ?? '',
+        };
+    }
+
+    public static function generateTemporaryDocumentNumber(): string
+    {
+        return 'TMP' . now()->format('YmdHis') . random_int(10, 99);
+    }
+
+    public function hasTemporaryDocument(): bool
+    {
+        return str_starts_with((string) $this->document_number, 'TMP');
+    }
+
+    public function ubigeo() { return $this->belongsTo(Ubigeo::class, 'ubigeo_code', 'code'); }
+    public function creator() { return $this->belongsTo(User::class, 'created_by'); }
+    public function updater() { return $this->belongsTo(User::class, 'updated_by'); }
+    public function contacts() { return $this->hasMany(PartyContact::class); }
+    public function vehicleRelationships() { return $this->hasMany(VehicleRelationship::class); }
+    public function vehicles() { return $this->belongsToMany(Vehicle::class, 'vehicle_relationships')->withPivot(['role', 'is_primary_commercial', 'notes'])->wherePivotNull('deleted_at')->withTimestamps(); }
+}
+```
+
+NOTA columnas `parties` (tras migración): document_type es STRING (códigos SUNAT: '1'=DNI, '6'=RUC, '4'=CEX, '7'=PAS, 'A'). NO existe columna `type`. Tiene softDeletes. `document_number` unique nullable.
+
+## 2.3 Vehicle (app/Models/Vehicle.php)
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+
+class Vehicle extends Model
+{
+    use HasFactory;
+    use SoftDeletes;
+    use LogsActivity;
+
+    protected $fillable = [
+        'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
+        'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+        'created_by', 'updated_by',
+    ];
+
+    protected $casts = [
+        'technical_review_date' => 'date',
+        'review_reminder_days' => 'integer',
+    ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
+                'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('vehicle');
+    }
+
+    // Mutadores: guardar en mayúsculas
+    public function setPlateAttribute($value): void
+    {
+        $this->attributes['plate'] = mb_strtoupper($value ?? '');
+    }
+
+    public function setVinAttribute($value): void
+    {
+        $this->attributes['vin'] = $value ? mb_strtoupper($value) : null;
+    }
+
+    public function setEngineNumberAttribute($value): void
+    {
+        $this->attributes['engine_number'] = $value ? mb_strtoupper($value) : null;
+    }
+
+    public function setColorAttribute($value): void
+    {
+        $this->attributes['color'] = $value ? mb_strtoupper($value) : null;
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class, 'brand_id');
+    }
+
+    public function vehicleModel()
+    {
+        return $this->belongsTo(VehicleModel::class, 'model_id');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function relationships()
+    {
+        return $this->hasMany(VehicleRelationship::class);
+    }
+
+    public function parties()
+    {
+        return $this->belongsToMany(Party::class, 'vehicle_relationships')
+            ->withPivot(['role', 'is_primary_commercial', 'notes'])
+            ->wherePivotNull('deleted_at')
+            ->withTimestamps();
+    }
+
+    public function owner()
+    {
+        return $this->hasOne(VehicleRelationship::class)->where('role', 'owner');
+    }
+}
+```
+
+## 2.4 Establishment (app/Models/Establishment.php)
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Establishment extends Model
+{
+    protected $fillable = [
+        'name',
+        'address',
+        'ubigeo_code',
+        'phone',
+        'celular',
+        'email',
+        'code',
+    ];
+
+    public function ubigeo(): BelongsTo
+    {
+        return $this->belongsTo(Ubigeo::class, 'ubigeo_code', 'code');
+    }
+
+    public function documentSeries(): HasMany
+    {
+        return $this->hasMany(DocumentSeries::class);
+    }
+
+    public function checkIns(): HasMany
+    {
+        return $this->hasMany(CheckIn::class);
+    }
+}
+```
+
+## 2.5 CheckIn (app/Models/CheckIn.php) — inventario (relación directa con presupuesto)
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+
+class CheckIn extends Model
+{
+    use HasFactory;
+    use SoftDeletes;
+    use LogsActivity;
+
+    protected $fillable = [
+        'vehicle_id',
+        'client_id',
+        'insurance_company_id',
+        'establishment_id',
+        'document_series_id',
+        'document_type_code',
+        'document_serie',
+        'document_number',
+        'document_sn',
+        'created_by',
+        'updated_by',
+        'service_type',
+        'claim_number',
+        'mileage',
+        'fuel_level',
+        'property_card',
+        'soat_expiration',
+        'technical_review_expiration',
+        'keys_count',
+        'has_remote_control',
+        'client_request',
+        'observations',
+        'status',
+    ];
+
+    protected $casts = [
+        'document_number' => 'integer',
+        'has_remote_control' => 'boolean',
+        'soat_expiration' => 'date',
+        'technical_review_expiration' => 'date',
+        'keys_count' => 'integer',
+        'mileage' => 'integer',
+    ];
+
+    public const STATUS_LABELS = [
+        'draft' => 'Borrador',
+        'pending_approval' => 'Pendiente aprobación cliente',
+        'approved' => 'Aprobado',
+        'rejected' => 'Rechazado',
+        'closed' => 'Cerrado',
+    ];
+
+    public const SERVICE_TYPES = [
+        'siniestro' => 'Siniestro',
+        'preventivo' => 'Preventivo',
+        'correctivo' => 'Correctivo',
+        'otro' => 'Otro',
+    ];
+
+    public const FUEL_LEVELS = [
+        'reserva' => 'Reserva',
+        'cuarto' => '1/4',
+        'medio' => 'Medio',
+        'tres_cuartos' => '3/4',
+        'full' => 'Full',
+    ];
+
+    public const PROPERTY_CARDS = [
+        'fisica' => 'Física',
+        'virtual' => 'Virtual',
+        'no_tiene' => 'No tiene',
+    ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'vehicle_id', 'client_id', 'insurance_company_id', 'establishment_id',
+                'document_series_id', 'document_type_code', 'document_serie', 'document_number', 'document_sn',
+                'service_type', 'claim_number', 'mileage', 'fuel_level', 'property_card',
+                'soat_expiration', 'technical_review_expiration', 'keys_count',
+                'has_remote_control', 'client_request', 'observations', 'status',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('check_in');
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? $this->status ?? '';
+    }
+
+    public function getServiceTypeLabelAttribute(): string
+    {
+        return self::SERVICE_TYPES[$this->service_type] ?? $this->service_type ?? '';
+    }
+
+    public function getFuelLevelLabelAttribute(): string
+    {
+        return self::FUEL_LEVELS[$this->fuel_level] ?? $this->fuel_level ?? '';
+    }
+
+    public function getPropertyCardLabelAttribute(): string
+    {
+        return self::PROPERTY_CARDS[$this->property_card] ?? $this->property_card ?? '';
+    }
+
+    /**
+     * Documento formateado con el correlativo, ej. 'IV01-000001'.
+     * Prefiere la columna snapshot document_sn (SSSS-XXXXXX).
+     */
+    public function getFormattedDocumentNumberAttribute(): ?string
+    {
+        return $this->document_sn;
+    }
+
+    public function vehicle()
+    {
+        return $this->belongsTo(Vehicle::class)->withTrashed();
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Party::class, 'client_id');
+    }
+
+    public function insuranceCompany()
+    {
+        return $this->belongsTo(Party::class, 'insurance_company_id');
+    }
+
+    public function establishment()
+    {
+        return $this->belongsTo(Establishment::class);
+    }
+
+    public function documentSeries()
+    {
+        return $this->belongsTo(DocumentSeries::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function checklistResults()
+    {
+        return $this->hasMany(CheckInChecklistResult::class);
+    }
+
+    public function damages()
+    {
+        return $this->hasMany(CheckInDamage::class);
+    }
+
+    public function photos()
+    {
+        return $this->hasMany(CheckInPhoto::class)->orderBy('order');
+    }
+}
+```
+
+## 2.6 IMPORTANTE: Modelos Service y SparePart
+- **NO EXISTEN** modelos `Service` ni `SparePart` ni tablas relacionadas en el proyecto.
+- DeepSeek DEBE crear los modelos/migraciones de servicios y repuestos, O (recomendado) hacer que los ítems del presupuesto (`estimate_items`) sean free-text con tipo servicio/repuesto/orden_compra_tercero según la especificación de entidades de la sección 3.1.
+- En el catálogo de entidades del proyecto (`.clinerules/02-entidades.md`) el EstimateItem ya contempla `type` con valores: `servicio`, `repuesto`, `orden_compra_tercero`. NO se exige catálogo maestro previo.
+
+## 2.7 DocumentSeriesService (numeración) — CRÍTICO
+- Existe `app/Services/DocumentSeriesService.php` con `getNextNumber(int $establishmentId, string $documentTypeCode, ?string $prefix = null): array`.
+- Mapa de prefijos incluye: `'PRE' => ['PRE01']` → el presupuesto usa código de documento `'PRE'` y serie `'PRE01'`.
+- Retorna `['series' => DocumentSeries, 'number' => int|null, 'sn' => string|null, 'document_type_code' => string|null]`.
+- Usa `lockForUpdate()` dentro de `DB::transaction()` (regla de numeración). PROHIBIDO MAX()+1.
+- Si `number_source === 'API'` devuelve `number = null` (el documento queda pendiente de numeración).
+- Formato `sn`: `sprintf('%s-%06d', $prefix_serie, $number)` → ej. `PRE01-000001`.
+- Regla de identidad de documento (`.clinerules/10`): el presupuesto DEBE guardar snapshot `document_type_code`, `document_serie`, `document_number` (int), `document_sn` además de `document_series_id`.
+
+3. REGLAS DE NEGOCIO Y REQUERIMIENTOS FUNCIONALES (CRÍTICO)
+
+## 3.1 Estructura del Presupuesto (según .clinerules/02-entidades.md)
+Tablas a crear (nombres en inglés, plural, snake_case):
+
+### estimates (cabecera)
+```php
+// Migración sugerida por las entidades del proyecto
+$table->id();
+$table->unsignedBigInteger('check_in_id')->nullable();        // inventario opcional
+$table->unsignedBigInteger('vehicle_id');
+$table->unsignedBigInteger('client_id');
+$table->unsignedBigInteger('insurance_company_id')->nullable();
+$table->string('claim_number')->nullable();                   // n° siniestro
+$table->unsignedBigInteger('advisor_id')->nullable();         // usuario asesor
+$table->unsignedBigInteger('establishment_id');               // obligatorio
+$table->unsignedBigInteger('document_series_id')->nullable();
+$table->string('document_type_code')->nullable();             // snapshot
+$table->string('document_serie')->nullable();                 // snapshot ej. PRE01
+$table->unsignedInteger('document_number')->nullable();       // snapshot correlativo numérico
+$table->string('document_sn')->nullable();                    // snapshot ej. PRE01-000001
+$table->integer('work_days')->nullable();                     // días de trabajo
+$table->string('contact_name')->nullable();
+$table->string('contact_phone')->nullable();
+$table->string('contact_email')->nullable();
+$table->text('comments')->nullable();
+$table->decimal('hourly_rate', 12, 2)->default(0);            // tarifa hora
+$table->decimal('panel_rate', 12, 2)->default(0);             // tarifa paño
+$table->string('status')->default('draft');                   // workflow sección 3.3
+$table->decimal('discount_type', 12, 2)->default(0);          // % descuento cabecera
+$table->decimal('subtotal', 12, 2)->default(0);
+$table->decimal('discount', 12, 2)->default(0);               // monto descontado (calculado)
+$table->decimal('iva', 12, 2)->default(0);                    // IGV 18%
+$table->decimal('total', 12, 2)->default(0);
+$table->unsignedBigInteger('created_by')->nullable();
+$table->unsignedBigInteger('updated_by')->nullable();
+$table->softDeletes();
+$table->timestamps();
+```
+- FKs: vehicle → vehicles.id, client/insurance_company → parties.id, advisor → users.id, establishment → establishments.id, check_in → check_ins.id (nullable, onDelete set null).
+
+### estimate_items (ítems del presupuesto)
+```php
+$table->id();
+$table->unsignedBigInteger('estimate_id');
+$table->string('type');                    // 'servicio' | 'repuesto' | 'orden_compra_tercero'
+$table->string('category')->nullable();    // lógica de negocio (qué campo de tarifa aplica)
+$table->string('description')->nullable(); // descripción libre
+$table->decimal('quantity', 12, 2)->default(1);
+$table->decimal('unit_price', 12, 2)->default(0);
+$table->decimal('discount', 12, 2)->default(0);   // descuento del ítem
+$table->decimal('subtotal', 12, 2)->default(0);   // (quantity*unit_price) - discount
+$table->decimal('iva', 12, 2)->default(0);        // subtotal * 0.18
+$table->decimal('total', 12, 2)->default(0);      // subtotal + iva
+$table->unsignedInteger('sort_order')->default(0);
+$table->timestamps();
+```
+- SoftDeletes en estimate_items: SÍ (soft delete en delete() del service para conservar auditoría).
+
+### third_party_orders (órdenes de compra de terceros)
+```php
+$table->id();
+$table->unsignedBigInteger('estimate_id');
+$table->string('description');
+$table->decimal('amount_without_iva', 12, 2)->default(0);
+$table->string('provider_name')->nullable();
+$table->timestamps();
+```
+
+### franchise_calculations (cálculo de franquicia)
+```php
+$table->id();
+$table->unsignedBigInteger('estimate_id');
+$table->decimal('minimum_amount', 12, 2)->default(0);
+$table->decimal('percentage', 5, 2)->default(0);
+$table->decimal('base_amount', 12, 2)->default(0);
+$table->decimal('total_franchise_without_iva', 12, 2)->default(0);
+$table->timestamps();
+```
+
+## 3.2 Cálculo de Totales (fórmula EXACTA)
+- **Precios SIN IGV** (los precios unitarios se ingresan sin impuesto).
+- **Subtotal del ítem** = `(quantity * unit_price) - discount_item`.
+- **IGV del ítem** = `subtotal_item * 0.18` (redondeo a 2 decimales).
+- **Total del ítem** = `subtotal_item + iva_item`.
+- **Subtotal cabecera** = Σ `subtotal` de ítems + Σ `amount_without_iva` de third_party_orders (las OC de terceros se cargan sin IGV, ver entidades).
+- **Descuento cabecera**: campo `discount` (monto fijo S/) o `discount_type` (porcentaje). Si `discount_type` es %, se convierte a monto: `discount = round(subtotal * discount_type / 100, 2)`. El `discount` ALMACENADO es SIEMPRE el monto en soles.
+- **IGV cabecera** = `(subtotal - discount) * 0.18`.
+- **Total cabecera** = `subtotal - discount + iva`.
+- Redondeo: `round(..., 2)` en cada paso. Almacenar decimal(12,2).
+- El cálculo se realiza en el Service (NO en el controlador, NO en JS del cliente como fuente de verdad). El backend recalcula SIEMPRE.
+
+## 3.3 Flujo de Estados (Workflow)
+Estados exactos del Presupuesto (`.clinerules/01-flujo-taller.md`):
+- `draft` → Borrador
+- `sent_insurance` → En aprobación seguro (se envía a la aseguradora)
+- `approved_insurance` → Aprobado seguro
+- `rejected_insurance` → Rechazado seguro
+- `sent_client` → En aprobación cliente
+- `approved_client` → Aprobado cliente
+- `rejected_client` → Rechazado cliente
+- `in_repair` → En reparación
+- `finalized` → Finalizado
+
+Transiciones permitidas (validar en Service/Policy, prohibido saltarse):
+- Solo `draft` puede → `sent_insurance` o `sent_client`.
+- `sent_insurance` → `approved_insurance` | `rejected_insurance`.
+- `sent_client` → `approved_client` | `rejected_client`.
+- `approved_insurance` o `approved_client` → `in_repair`.
+- Cualquier estado activo (no finalizado/rechazado) → regresar a `draft` (para correcciones) SIEMPRE que no tenga WorkOrder asociada (módulo futuro; validar solo que no haya OT).
+- `in_repair` → `finalized`.
+- Estados terminales: `finalized`, `rejected_insurance`, `rejected_client`.
+- Acciones del controlador: métodos `sendToInsurance()`, `approveInsurance()`, `rejectInsurance()`, `sendToClient()`, `approveClient()`, `rejectClient()`, `startRepair()`, `finalize()` con rutas POST dedicadas, estilo `check-ins/{checkIn}/approve` (ver sección 5.1).
+
+## 3.4 Regla de Sincronización de Ítems (diff/upsert) — OBLIGATORIO
+PROHIBIDO el patrón "borrar todo y volver a insertar" (`.clinerules/06`).
+En `EstimateService` implementar `syncItems(Estimate $estimate, array $items)`:
+```php
+// Pseudocódigo patrón (ver CheckInService::syncDamages como referencia real):
+$existing = $estimate->items()->get()->keyBy('id');
+
+foreach ($items as $item) {
+    if (empty($item['description']) && empty($item['unit_price']) && empty($item['type'])) {
+        continue; // fila vacía
+    }
+    $id = $item['id'] ?? null;
+    if ($id && isset($existing[$id])) {
+        $existing[$id]->update([...]);
+        $existing->forget($id);
+    } else {
+        $estimate->items()->create([...]);
+    }
+}
+
+// Eliminar solo los que ya no vienen (soft delete)
+foreach ($existing as $item) {
+    $item->delete();
+}
+```
+- Referencia real: `app/Services/CheckInService.php` → `syncDamages()` y `syncChecklist()`.
+- Toda la operación (cabecera + items + OC + franquicia) dentro de `DB::transaction()`.
+- Recibirá el request como `items[]` (array de filas con `id` opcional para edición).
+- Aplicar el MISMO patrón diff/upsert para `third_party_orders` (syncThirdPartyOrders) y para `franchise_calculation` (updateOrCreate por estimate_id).
+
+## 3.5 Regla de Configuración/Numeración (`.clinerules/10`)
+- Al crear un presupuesto, asignar numeración `PRE` → serie `PRE01` con `DocumentSeriesService::getNextNumber($establishmentId, 'PRE')`.
+- Snapshot en la cabecera: `document_type_code`='PRE', `document_serie`='PRE01', `document_number`, `document_sn`='PRE01-000001'.
+- `establishment_id` por defecto: `Auth::user()?->establishment_id` (idéntico a CheckInService::create).
+- `created_by`/`updated_by` = `Auth::id()`.
+- Si `number === null` (serie tipo API): guardar `document_number` = null y lanzar/omitir según el flujo (mismo manejo que CheckInService::assignDocumentNumber).
+- La numeración solo aplica en CREATE. En UPDATE no se renumera.
+
+## 3.6 Campos de cabecera (edición)
+- `hourly_rate` y `panel_rate`: permitido sobreescribir por presupuesto (el modelo `Estimate` tiene sus propios valores). El formulario puede precargarlos desde `insurance_hourly_rate`/`insurance_panel_rate` de la aseguradora seleccionada, pero el usuario siempre puede editarlos.
+
+4. PERMISOS Y SEGURIDAD
+
+## 4.1 Permisos EXISTENTES (RolePermissionSeeder) — NO existen permisos de presupuestos aún
+Lista actual completa:
+```
+ver parties, crear parties, editar parties, eliminar parties,
+ver vehículos, crear vehículos, editar vehículos, eliminar vehículos,
+ver marcas, crear marcas, editar marcas, eliminar marcas,
+ver modelos, crear modelos, editar modelos, eliminar modelos,
+ver inventarios, crear inventarios, editar inventarios, eliminar inventarios, aprobar inventarios,
+ver usuarios, crear usuarios, editar usuarios, eliminar usuarios,
+ver roles, crear roles, editar roles, eliminar roles,
+ver permisos,
+ver configuración, editar configuración,
+ver establecimientos, crear establecimientos, editar establecimientos, eliminar establecimientos,
+ver series, crear series, editar series, eliminar series
+```
+
+## 4.2 DeepSeek DEBE agregar al seeder (idempotente, con Permission::firstOrCreate)
+```
+ver presupuestos, crear presupuestos, editar presupuestos, eliminar presupuestos, aprobar presupuestos
+```
+- Rol `Administrador`: recibe automáticamente todos (usa `Permission::all()`).
+- Rol `Asesor`: agregar `ver presupuestos, crear presupuestos, editar presupuestos, aprobar presupuestos`.
+- Mantener `$admin->givePermissionTo(Permission::all());` al final.
+
+## 4.3 Policy (app/Policies/EstimatePolicy.php) — patrón CheckInPolicy
+- `viewAny`: `$user->can('ver presupuestos')`
+- `view`: `$user->can('ver presupuestos')`
+- `create`: `$user->can('crear presupuestos')`
+- `update`: `$user->can('editar presupuestos')`
+- `delete`: `$user->can('eliminar presupuestos')`
+- `sendToInsurance`, `sendToClient`: `$user->can('editar presupuestos')`
+- `approveInsurance`, `rejectInsurance`, `approveClient`, `rejectClient`, `startRepair`, `finalize`: `$user->can('aprobar presupuestos')`
+- Registrar en `AppServiceProvider::boot()`: `Gate::policy(Estimate::class, EstimatePolicy::class);`
+
+## 4.4 Controlador — autorización
+- `Gate::authorize(...)` dentro de cada método (mismo patrón que CheckInController/PartyController). FormRequest `authorize(): { return true; }` con comentario estándar.
+
+5. CONVENCIONES DE CÓDIGO Y FRONTEND
+
+## 5.1 Arquitectura
+- Controller delgado + FormRequest (validación) + Service (lógica de negocio) + Policy (autorización). NO Repositories, NO Actions.
+- Service inyectado por constructor: `public function __construct(EstimateService $estimateService)`.
+- El Service recibe `$request->validated()` desde el controlador.
+- Rutas (dentro del grupo `['auth','verified']`):
+```php
+Route::resource('estimates', EstimateController::class);
+Route::post('estimates/{estimate}/send-to-insurance', [EstimateController::class, 'sendToInsurance'])->name('estimates.send-to-insurance');
+Route::post('estimates/{estimate}/approve-insurance', [EstimateController::class, 'approveInsurance'])->name('estimates.approve-insurance');
+Route::post('estimates/{estimate}/reject-insurance', [EstimateController::class, 'rejectInsurance'])->name('estimates.reject-insurance');
+Route::post('estimates/{estimate}/send-to-client', [EstimateController::class, 'sendToClient'])->name('estimates.send-to-client');
+Route::post('estimates/{estimate}/approve-client', [EstimateController::class, 'approveClient'])->name('estimates.approve-client');
+Route::post('estimates/{estimate}/reject-client', [EstimateController::class, 'rejectClient'])->name('estimates.reject-client');
+Route::post('estimates/{estimate}/start-repair', [EstimateController::class, 'startRepair'])->name('estimates.start-repair');
+Route::post('estimates/{estimate}/finalize', [EstimateController::class, 'finalize'])->name('estimates.finalize');
+
+// AJAX (convención del proyecto)
+Route::get('api/estimates/search', [EstimateController::class, 'search'])->name('api.estimates.search');
+```
+
+## 5.2 Frontend (obligatorio — .clinerules/03, 07, 12)
+- Vistas Blade con `<x-app-layout>` + `<x-slot name="header">`. PROHIBIDO `@extends('layouts.app')`.
+- Layout `resources/views/layouts/app.blade.php` ya incluye CDN Tailwind + Tabulator + Tom Select + ApexCharts.
+- App shell: contenedor `py-6` + `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`, card `.card` `p-4 sm:p-5` (listados) / `p-6` (formularios).
+- Tabla lista de presupuestos: Tabulator con `layout: 'fitColumns'`, `responsiveLayout: 'collapse'`, `height: 'auto'`, `placeholder` personalizado, columna Acciones con `formatter` JS que construye botones `.btn-icon` (NUNCA HTML en el JSON).
+- Búsqueda: `.search-input` dentro de `relative max-w-md` con icono de lupa SVG.
+- Estados en badges (pills) con color semántico, NUNCA texto crudo. Sin columnas created_at/updated_at.
+- Botones `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-danger`, `.btn-icon-*` (ver layout). Iconos SVG `stroke-width="2"` `h-4 w-4`. PROHIBIDO emoji como icono.
+- Campos obligatorios con asterisco rojo `<span class="text-red-500">*</span>` sincronizado con FormRequest.
+- Formularios: `@csrf`, `data-confirm` para destructivos, anti-doble envío y renovación CSRF cubiertos por `partials/form-guard.blade.php` (global). NO duplicar.
+- Eliminar con `data-confirm="..."` en el form (usa modal global `ConfirmModal`). PROHIBIDO `onsubmit confirm()`.
+- Menú del sidebar: agregar entrada "Presupuestos" en `resources/views/layouts/navigation.blade.php` ($navItems, con `@can('ver presupuestos')` y `request()->routeIs('estimates.*')`).
+- `@push('scripts')` para JS específico.
+
+## 5.3 Respuestas AJAX — Formato JSON exacto
+- **Nuevo endpoint `api/estimates/search`** (Tabulator): array plano de objetos:
+```json
+[
+  {
+    "id": 1,
+    "document_sn": "PRE01-000001",
+    "plate": "ABC123",
+    "client_name": "Juan Pérez",
+    "client_document": "12345678",
+    "insurance_company": "La Positiva",
+    "status": "draft",
+    "status_label": "Borrador",
+    "subtotal": "100.00",
+    "total": "118.00",
+    "created_at": "24/08/2026 12:00"
+  }
+]
+```
+(Convención: `status` (valor) + `status_label` (texto), igual que CheckInController::search.)
+
+- **Buscar clientes / aseguradoras** (Tom Select): reutilizar endpoint existente `api/parties/search?q=...&is_insurance_company=1`. Devuelve array plano de objetos con `id`, `display_name`, `document_number`, `is_insurance_company`, etc. (NO `{ results: [...] }`).
+- **Buscar vehículos** (Tom Select): reutilizar `api/vehicles/search?q=...&limit=100`. Devuelve array plano con `id`, `plate`, `brand`, `model`, `year`, `color`, `owner_name`.
+- **Configuración Tom Select obligatoria** (selección única estricta):
+```js
+new TomSelect('#client_id', {
+    valueField: 'id',
+    labelField: 'display_name',
+    searchField: ['display_name', 'document_number'],
+    maxItems: 1,
+    closeAfterSelect: true,
+    create: false,
+    copyClassesToDropdown: false,
+    load: function (query, callback) { /* fetch a api/parties/search */ },
+    render: { option: ..., item: ... }
+});
+// handlers obligatorios:
+sel.on('item_add', function () { sel.blur(); sel.close(); });
+sel.on('dropdown_open', function () { if (sel.items.length > 0) { sel.setTextValue(''); sel.input && sel.input.setSelectionRange(0, 0); } });
+```
+
+## 5.4 FormRequest — validación (patrón CheckInRequest)
+- `authorize(): { return true; }` (autorización en controlador con Gate).
+- `rules()` siguiendo convención:
+```php
+'vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
+'client_id' => ['required', 'integer', 'exists:parties,id'],
+'insurance_company_id' => ['nullable', 'integer', 'exists:parties,id', function ($attribute, $value, $fail) {
+    if ($value && !\App\Models\Party::whereKey($value)->where('is_insurance_company', true)->exists()) {
+        $fail('La aseguradora seleccionada no es válida (debe ser una compañía de seguros).');
+    }
+}],
+'items' => ['nullable', 'array'],
+'items.*.id' => ['nullable', 'integer'],
+'items.*.type' => ['required_with:items.*', Rule::in(['servicio', 'repuesto', 'orden_compra_tercero'])],
+'items.*.category' => ['nullable', 'string', 'max:255'],
+'items.*.description' => ['required_with:items.*', 'string', 'max:1000'],
+'items.*.quantity' => ['required_with:items.*', 'numeric', 'min:0'],
+'items.*.unit_price' => ['required_with:items.*', 'numeric', 'min:0'],
+'items.*.discount' => ['nullable', 'numeric', 'min:0'],
+'third_party_orders' => ['nullable', 'array'],
+'third_party_orders.*.id' => ['nullable', 'integer'],
+'third_party_orders.*.description' => ['required_with:third_party_orders.*', 'string', 'max:1000'],
+'third_party_orders.*.amount_without_iva' => ['required_with:third_party_orders.*', 'numeric', 'min:0'],
+'third_party_orders.*.provider_name' => ['nullable', 'string', 'max:255'],
+```
+- `messages()` con textos en español, ej: `'vehicle_id.required' => 'Seleccione un vehículo.'`.
+
+6. RELACIONES CLAVE PARA ESTE MÓDULO
+
+## 6.1 Presupuesto ↔ CheckIn (inventario)
+- `estimate.check_in_id` nullable → `check_ins.id`.
+- Un presupuesto puede crearse "desde" un CheckIn aprobado (recomendado: en `create()` aceptar query param `?check_in_id=...` y precargar `vehicle_id`, `client_id`, `insurance_company_id`, `claim_number` desde el inventario).
+- Relación Eloquent en Estimate: `checkIn()` belongsTo(CheckIn::class). En CheckIn: `estimates()` hasMany(Estimate::class) (añadir al modelo CheckIn).
+- NO es obligatorio que exista CheckIn previo: `check_in_id` nullable (presupuesto directo).
+
+## 6.2 Relaciones Eloquent a definir en Estimate
+- `vehicle()` belongsTo(Vehicle::class)->withTrashed() (patrón CheckIn)
+- `client()` belongsTo(Party::class, 'client_id')
+- `insuranceCompany()` belongsTo(Party::class, 'insurance_company_id')
+- `establishment()` belongsTo(Establishment::class)
+- `advisor()` belongsTo(User::class, 'advisor_id')
+- `checkIn()` belongsTo(CheckIn::class)
+- `documentSeries()` belongsTo(DocumentSeries::class)
+- `items()` hasMany(EstimateItem::class)->orderBy('sort_order')
+- `thirdPartyOrders()` hasMany(ThirdPartyOrder::class)
+- `franchiseCalculation()` hasOne(FranchiseCalculation::class)
+- `creator()` / `updater()` belongsTo(User::class, 'created_by'/'updated_by')
+- Accessor `getStatusLabelAttribute()` con STATUS_LABELS (mismo patrón CheckIn).
+- Accessor `getFormattedDocumentNumberAttribute()` → `$this->document_sn`.
+
+## 6.3 Actividad (activitylog)
+- Modelo Estimate: `LogsActivity` + `getActivitylogOptions()` con `->logOnly([...columnas relevantes...])->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('estimate')`. Mismo patrón que CheckIn/Vehicle.
+
+7. (OPCIONAL) REGLAS DE VALIDACIÓN ADICIONALES EXISTENTES
+- CheckInRequest ya tiene: aseguradora debe ser `is_insurance_company = true` (validación custom con Closure). Replicar en EstimateRequest.
+- Convención general: `nullable` + `integer` + `exists` para FKs opcionales; `required` para FKs obligatorias.
+- Fechas: `nullable|date`. No hay regla "fecha no pasada" en el proyecto actualmente.
+- Identidad de documento: `document_number` es `unsignedInteger` (no string). El `document_sn` es la clave de búsqueda.
+
+8. PENDIENTES PARA DEEPSEEK (checklist de entrega)
+- [ ] Migraciones: `create_estimates_table`, `create_estimate_items_table`, `create_third_party_orders_table`, `create_franchise_calculations_table` (con FKs, índices, softDeletes).
+- [ ] Modelos: `Estimate`, `EstimateItem`, `ThirdPartyOrder`, `FranchiseCalculation` (fillable, casts, relaciones, activitylog, const STATUS_LABELS).
+- [ ] Relación `estimates()` en CheckIn model.
+- [ ] `EstimateRequest` (FormRequest) con reglas de la sección 5.4.
+- [ ] `EstimateService` con create/update/delete + syncItems (diff/upsert, sección 3.4) + recálculo de totales (sección 3.2) + transiciones de estado (sección 3.3) + numeración PRE (sección 3.5).
+- [ ] `EstimateController` con resource + acciones de estado + `search()` AJAX.
+- [ ] `EstimatePolicy` (sección 4.3) + registro en AppServiceProvider.
+- [ ] Agregar permisos al `RolePermissionSeeder` (sección 4.2) — idempotente.
+- [ ] Vistas Blade: `estimates/index` (Tabulator + búsqueda), `estimates/create`, `estimates/edit`, `estimates/show` con app shell (sección 5.2).
+- [ ] Navegación: entrada "Presupuestos" en `navigation.blade.php` con `@can('ver presupuestos')`.
+- [ ] Pruebas: `tests/Unit/EstimateServiceTest.php` (cálculo de totales, diff/upsert, transiciones) + `tests/Feature/EstimateTest.php` (CRUD + permisos).

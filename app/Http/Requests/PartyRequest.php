@@ -44,6 +44,7 @@ class PartyRequest extends FormRequest
             'is_insurance_company' => ['sometimes', 'boolean'],
             'insurance_hourly_rate' => ['nullable', 'numeric', 'min:0'],
             'insurance_panel_rate' => ['nullable', 'numeric', 'min:0'],
+            'is_supplier' => ['sometimes', 'boolean'],
             'receive_promotions' => ['sometimes', 'boolean'],
         ];
     }

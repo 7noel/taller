@@ -1,9 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-wrap justify-between items-center gap-3">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Inventario #') }}{{ $checkIn->id }} — {{ $checkIn->vehicle?->plate }}
-            </h2>
+            <div class="flex flex-wrap items-center gap-3">
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    {{ __('Inventario') }}
+                </h2>
+                @if ($checkIn->document_sn)
+                    <x-document-badge :sn="$checkIn->document_sn" />
+                @endif
+                @if ($checkIn->vehicle?->plate)
+                    <span class="text-sm text-gray-500">{{ $checkIn->vehicle->plate }}</span>
+                @endif
+            </div>
             <div class="flex flex-wrap gap-2">
                 @can('editar inventarios')
                     <a href="{{ route('check-ins.edit', $checkIn) }}" class="inline-flex items-center px-3 py-1.5 bg-yellow-500 rounded-md font-semibold text-xs text-white uppercase hover:bg-yellow-600">Editar</a>
@@ -46,8 +54,8 @@
         ];
     @endphp
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             @if (session('success'))
                 <div class="mb-4 px-4 py-3 bg-green-100 border border-green-400 text-green-700 rounded">{{ session('success') }}</div>
             @endif
@@ -73,7 +81,7 @@
             <div id="tab-general" class="show-tab-content">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">🚗 Vehículo</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Vehículo</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                                 <p class="text-xs text-gray-500">Placa</p>
@@ -101,7 +109,7 @@
                             </div>
                         </div>
 
-                        <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">👤 Propietario</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Propietario</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                                 <p class="text-xs text-gray-500">Nombre</p>
@@ -121,7 +129,7 @@
                             </div>
                         </div>
 
-                        <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">📋 Datos de ingreso</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Datos de ingreso</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                                 <p class="text-xs text-gray-500">Servicio</p>
@@ -195,7 +203,7 @@
             <div id="tab-checklist" class="show-tab-content hidden">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">✅ Checklist del vehículo</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Checklist del vehículo</h3>
                         @if ($checkIn->checklistResults->isEmpty())
                             <p class="text-sm text-gray-500">No se registraron resultados de checklist.</p>
                         @else
@@ -240,7 +248,7 @@
             <div id="tab-damages" class="show-tab-content hidden">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">🔧 Daños registrados</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Daños registrados</h3>
 
                         @php
                             $hasWithCoords = $checkIn->damages->contains(fn ($d) => $d->pos_x !== null && $d->pos_y !== null);
@@ -252,7 +260,7 @@
                             {{-- Mockup con marcadores pintados --}}
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
                                 <div id="show-damage-mockup-wrap" class="relative inline-block max-w-full hidden">
-                                    <img id="show-damage-mockup" src="" alt="Mockup del vehículo" class="max-w-full h-auto rounded-lg border border-gray-200">
+                                    <img id="show-damage-mockup" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Mockup del vehículo" class="max-w-full h-auto rounded-lg border border-gray-200">
                                     <div id="show-damage-markers" class="absolute inset-0 pointer-events-none"></div>
                                 </div>
                                 <p id="show-damage-no-image" class="text-sm text-gray-500 {{ $hasWithCoords ? 'hidden' : '' }}">
@@ -290,7 +298,7 @@
             <div id="tab-photos" class="show-tab-content hidden">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">📷 Fotos del vehículo</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Fotos del vehículo</h3>
                         @if ($checkIn->photos->isEmpty())
                             <p class="text-sm text-gray-500">No se registraron fotos.</p>
                         @else
@@ -344,7 +352,11 @@
         }
 
         const colors = { 'scratch': '#10b981', 'dent': '#ef4444', 'crack': '#3b82f6' };
-        const icons = { 'scratch': '✕', 'dent': '●', 'crack': '▲' };
+        const icons = {
+            'scratch': '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
+            'dent': '<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>',
+            'crack': '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>'
+        };
         const exts = ['jpg', 'jpeg', 'png', 'svg'];
         let idx = 0;
 
@@ -372,7 +384,7 @@
                     marker.style.width = '22px';
                     marker.style.height = '22px';
                     marker.style.background = colors[d.damage_type] || '#6b7280';
-                    marker.textContent = icons[d.damage_type] || '•';
+                    marker.innerHTML = icons[d.damage_type] || '<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>';
                     markers.appendChild(marker);
                 });
             };

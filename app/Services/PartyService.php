@@ -65,6 +65,7 @@ class PartyService
         }
 
         $data['is_insurance_company'] = $data['is_insurance_company'] ?? false;
+        $data['is_supplier'] = $data['is_supplier'] ?? false;
         $data['receive_promotions'] = $data['receive_promotions'] ?? true;
 
         return $data;

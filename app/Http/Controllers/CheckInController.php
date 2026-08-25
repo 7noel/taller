@@ -60,6 +60,7 @@ class CheckInController extends Controller
             'client',
             'insuranceCompany',
             'establishment',
+            'documentSeries',
             'creator',
             'updater',
             'checklistResults.checklistItem',
@@ -83,6 +84,7 @@ class CheckInController extends Controller
             'vehicle.vehicleModel.brand',
             'client',
             'insuranceCompany',
+            'documentSeries.documentType',
             'checklistResults.checklistItem',
             'damages',
             'photos',
@@ -151,6 +153,7 @@ class CheckInController extends Controller
                 'client',
                 'insuranceCompany',
                 'establishment',
+                'documentSeries.documentType',
             ])
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = $request->query('q');
@@ -160,7 +163,11 @@ class CheckInController extends Controller
                         ->orWhereHas('client', fn ($c) => $c
                             ->where('business_name', 'like', "%{$term}%")
                             ->orWhere('first_name', 'like', "%{$term}%")
-                            ->orWhere('last_name', 'like', "%{$term}%"));
+                            ->orWhere('last_name', 'like', "%{$term}%"))
+                        ->orWhere('document_sn', 'like', "%{$term}%")
+                        ->orWhere('document_serie', 'like', "%{$term}%")
+                        ->orWhere('document_type_code', 'like', "%{$term}%")
+                        ->orWhereRaw('CAST(document_number AS CHAR) LIKE ?', ["%{$term}%"]);
                 });
             })
             ->when($request->filled('plate'), function ($q) use ($request) {
@@ -189,6 +196,13 @@ class CheckInController extends Controller
                 'vehicle_model' => $checkIn->vehicle?->vehicleModel?->name,
                 'client_name' => $checkIn->client?->display_name,
                 'client_document' => $checkIn->client?->document_number,
+                'document_type_code' => $checkIn->document_type_code,
+                'document_serie' => $checkIn->document_serie,
+                'document_number' => $checkIn->document_number,
+                'document_sn' => $checkIn->document_sn,
+                'formatted_document_number' => $checkIn->formatted_document_number,
+                'document_type_name' => $checkIn->documentSeries?->documentType?->name,
+                'is_electronic' => (bool) ($checkIn->documentSeries?->documentType?->is_electronic ?? false),
                 'service_type' => $checkIn->service_type_label,
                 'service_type_value' => $checkIn->service_type,
                 'insurance_company' => $checkIn->insuranceCompany?->display_name,

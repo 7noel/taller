@@ -10,6 +10,7 @@ use App\Models\VehicleRelationship;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class CheckInService
 {
@@ -23,6 +24,10 @@ class CheckInService
         $data['establishment_id'] = $data['establishment_id'] ?? Auth::user()?->establishment_id;
         $data['status'] = $data['status'] ?? 'draft';
 
+        if (empty($data['document_number'])) {
+            $this->assignDocumentNumber($data['establishment_id'], $data);
+        }
+
         $checkIn = DB::transaction(function () use ($data) {
             $checkIn = CheckIn::create($data);
 
@@ -33,7 +38,26 @@ class CheckInService
             return $checkIn;
         });
 
-        return $checkIn->load(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany', 'checklistResults.checklistItem', 'damages', 'photos']);
+        return $checkIn->load(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany', 'documentSeries.documentType', 'checklistResults.checklistItem', 'damages', 'photos']);
+    }
+
+    /**
+     * Asigna la serie IV01 y el siguiente número de documento al inventario.
+     */
+    protected function assignDocumentNumber(int $establishmentId, array &$data): void
+    {
+        $result = app(DocumentSeriesService::class)->getNextNumber($establishmentId, 'IV');
+
+        $data['document_series_id'] = $result['series']->id;
+
+        if ($result['number'] === null) {
+            throw new RuntimeException('La serie IV01 usa numeración por API. Configure la numeración local o asigne el número manualmente.');
+        }
+
+        $data['document_type_code'] = $result['document_type_code'];
+        $data['document_serie'] = $result['series']->prefix_serie;
+        $data['document_number'] = $result['number'];
+        $data['document_sn'] = $result['sn'];
     }
 
     /**

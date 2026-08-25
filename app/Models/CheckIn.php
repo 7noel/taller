@@ -19,6 +19,11 @@ class CheckIn extends Model
         'client_id',
         'insurance_company_id',
         'establishment_id',
+        'document_series_id',
+        'document_type_code',
+        'document_serie',
+        'document_number',
+        'document_sn',
         'created_by',
         'updated_by',
         'service_type',
@@ -36,6 +41,7 @@ class CheckIn extends Model
     ];
 
     protected $casts = [
+        'document_number' => 'integer',
         'has_remote_control' => 'boolean',
         'soat_expiration' => 'date',
         'technical_review_expiration' => 'date',
@@ -77,6 +83,7 @@ class CheckIn extends Model
         return LogOptions::defaults()
             ->logOnly([
                 'vehicle_id', 'client_id', 'insurance_company_id', 'establishment_id',
+                'document_series_id', 'document_type_code', 'document_serie', 'document_number', 'document_sn',
                 'service_type', 'claim_number', 'mileage', 'fuel_level', 'property_card',
                 'soat_expiration', 'technical_review_expiration', 'keys_count',
                 'has_remote_control', 'client_request', 'observations', 'status',
@@ -106,6 +113,15 @@ class CheckIn extends Model
         return self::PROPERTY_CARDS[$this->property_card] ?? $this->property_card ?? '';
     }
 
+    /**
+     * Documento formateado con el correlativo, ej. 'IV01-000001'.
+     * Prefiere la columna snapshot document_sn (SSSS-XXXXXX).
+     */
+    public function getFormattedDocumentNumberAttribute(): ?string
+    {
+        return $this->document_sn;
+    }
+
     public function vehicle()
     {
         return $this->belongsTo(Vehicle::class)->withTrashed();
@@ -124,6 +140,11 @@ class CheckIn extends Model
     public function establishment()
     {
         return $this->belongsTo(Establishment::class);
+    }
+
+    public function documentSeries()
+    {
+        return $this->belongsTo(DocumentSeries::class);
     }
 
     public function creator()

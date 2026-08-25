@@ -1,7 +1,7 @@
 @php $results = $isEdit ? $checkIn->checklistResults->keyBy('checklist_item_id') : collect(); @endphp
 <div class="border-b border-gray-200 pb-6 mb-6">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 class="text-lg font-semibold text-gray-800">✅ Checklist del vehículo</h3>
+        <h3 class="text-lg font-semibold text-gray-800">Checklist del vehículo</h3>
         <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer select-none">
             <input type="checkbox" id="only-issues" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
             Ver solo regulares y malos
@@ -9,10 +9,10 @@
     </div>
 
     <div class="flex flex-wrap gap-4 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs text-gray-600">
-        <span class="inline-flex items-center gap-1.5"><span class="inline-flex w-6 h-6 rounded-full bg-green-600 text-white items-center justify-center text-sm font-bold">✓</span> Bueno</span>
-        <span class="inline-flex items-center gap-1.5"><span class="inline-flex w-6 h-6 rounded-full bg-amber-500 text-white items-center justify-center text-sm font-bold">▲</span> Regular</span>
-        <span class="inline-flex items-center gap-1.5"><span class="inline-flex w-6 h-6 rounded-full bg-red-600 text-white items-center justify-center text-sm font-bold">✕</span> Malo</span>
-        <span class="inline-flex items-center gap-1.5"><span class="inline-flex w-6 h-6 rounded-full bg-gray-700 text-white items-center justify-center text-sm font-bold">●</span> No aplica</span>
+        <span class="inline-flex items-center gap-1.5"><span class="inline-flex w-6 h-6 rounded-full bg-green-600 text-white items-center justify-center"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span> Bueno</span>
+        <span class="inline-flex items-center gap-1.5"><span class="inline-flex w-6 h-6 rounded-full bg-amber-500 text-white items-center justify-center"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></span> Regular</span>
+        <span class="inline-flex items-center gap-1.5"><span class="inline-flex w-6 h-6 rounded-full bg-red-600 text-white items-center justify-center"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></span> Malo</span>
+        <span class="inline-flex items-center gap-1.5"><span class="inline-flex w-6 h-6 rounded-full bg-gray-700 text-white items-center justify-center"><svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></span> No aplica</span>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="checklist-grid">
@@ -22,8 +22,18 @@
                 <div class="flex items-start justify-between gap-2">
                     <p class="font-medium text-gray-800 text-sm leading-snug flex-1">{{ $item->name }}</p>
                     <div class="flex items-center gap-1 shrink-0">
-                        @foreach (['good'=>['✓','green'],'regular'=>['▲','amber'],'bad'=>['✕','red'],'not_applicable'=>['●','gray']] as $state => [$sym, $color])
-                        <button type="button" class="checklist-btn w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-colors {{ $status === $state ? "bg-{$color}-600 text-white border-transparent" : "border-{$color}-500 text-{$color}-500 hover:bg-{$color}-50" }}" data-state="{{ $state }}" data-card="{{ $loop->parent->index }}">{{ $sym }}</button>
+                        @foreach (['good'=>['green'],'regular'=>['amber'],'bad'=>['red'],'not_applicable'=>['gray']] as $state => [$color])
+                        <button type="button" class="checklist-btn w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors {{ $status === $state ? "bg-{$color}-600 text-white border-transparent" : "border-{$color}-500 text-{$color}-500 hover:bg-{$color}-50" }}" data-state="{{ $state }}" data-card="{{ $loop->parent->index }}">
+                            @if ($state === 'good')
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            @elseif ($state === 'regular')
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                            @elseif ($state === 'bad')
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            @else
+                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
+                            @endif
+                        </button>
                         @endforeach
                     </div>
                 </div>

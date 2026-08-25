@@ -10,7 +10,7 @@ Estas reglas son de **cumplimiento obligatorio** para todas las vistas del Talle
 
 ## Paleta de colores
 - Primario/acento: `#2563eb` (blue-600); hover `#1d4ed8` (blue-700); anillo focus `rgba(59,130,246,.5)`.
-- Neutros: fondo de página `#f3f4f6` (gray-100); superficie `#ffffff`; bordes `#e5e7eb` (gray-200); cabecera de tabla `#f8fafc`; texto primario `#111827`, secundario `#4b5563`, terciario `#6b7280`.
+- Neutros: fondo de página `#f9fafb` (gray-50); superficie `#ffffff`; bordes `#e5e7eb` (gray-200); cabecera de tabla `#f8fafc`; texto primario `#111827`, secundario `#4b5563`, terciario `#6b7280`.
 - Estados semánticos:
   - Error → `red-600/red-50`
   - Advertencia → `amber-600/amber-50`
@@ -63,13 +63,27 @@ Estas reglas son de **cumplimiento obligatorio** para todas las vistas del Talle
 - **Error en tabla:** el placeholder comunica el problema; errores de formulario bajo el campo con `text-red-600 text-sm`.
 - **Hover/focus en filas y botones:** siempre presentes (150 ms).
 
+## Layout y app shell
+- Todas las vistas autenticadas usan el **app shell** de `.clinerules/12-app-shell.md`: sidebar izquierda colapsable (desktop) con usuario en el footer, topbar solo móvil, header de página compacto (`border-b`, `px-4 py-4 sm:px-6 lg:px-8`), fondo `bg-gray-50`.
+- Contenido en contenedor `py-6` + `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`. Prohibido `py-12`/`py-10` (espacio muerto).
+- El `document_sn` de documentos se muestra con el componente `x-document-badge` (ver `.clinerules/10`).
+
 ## Responsividad
 - Mobile-first. `grid` `md:`/`lg:` para filtros. `responsiveLayout: 'collapse'` en todas las tablas. `max-w-7xl` en el contenedor de contenido.
 
+## Login (pantalla dividida — obligatorio)
+- **Regla obligatoria:** todos los logins del sistema deben usar el diseño de **pantalla dividida (Split Screen)** con temática de **taller mecánico** (panel izquierdo oscuro azul petróleo/gris acero con logo, etapas del flujo y engranajes; columna derecha con el formulario centrado sobre fondo claro).
+- Implementación de referencia: `resources/views/partials/auth-split-side.blade.php` (panel izquierdo reutilizable) + `<x-guest-layout variant="split">`.
+- **PROHIBIDO** usar el diseño por defecto de Laravel Breeze (card centrada con logo de Laravel sobre gris plano) para la pantalla de login.
+- En móvil (`< lg`) el panel izquierdo se oculta: se muestra solo el formulario con un logo compacto arriba.
+- Mantener siempre la lógica de backend intacta: `name` de inputs (`email`, `password`, `_token`), `action="{{ route('login') }}"`, `@csrf`, y el guard global de renovación CSRF/anti-doble envío (`partials/form-guard.blade.php`).
+- El resto de vistas guest (forgot-password, reset, verify-email, register) pueden usar la variante `centered` por defecto; la obligatoria split aplica al **login principal**.
+
 ## Verificación (antes de dar por terminada una vista)
 - [ ] Usa `<x-app-layout>` con `<x-slot name="header">` (nunca `@extends`).
-- [ ] Botones con clases `.btn*` / `.btn-icon*` y `title`.
+- [ ] Sigue el app shell y el patrón de listado base de `.clinerules/12-app-shell.md` (contenedor `py-6`, `px-4 sm:px-6 lg:px-8`, card `p-4 sm:p-5`).
+- [ ] Botones con clases `.btn*` / `.btn-icon*` y `title` (iconos SVG, sin emoji).
 - [ ] Tabla Tabulator con el tema del layout y columna Acciones con formatter.
 - [ ] Búsqueda con `.search-input` e icono de lupa.
 - [ ] Mensajes flash verde suave (`green-50`).
-- [ ] Sin emoji en lugares de iconos SVG; sin gradientes de texto ni sombras duras.
+- [ ] Sin gradientes de texto ni sombras duras.

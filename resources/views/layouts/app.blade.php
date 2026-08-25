@@ -5,47 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'Taller Mecánico'))</title>
+    <title>{{ $title ?? config('app.name', 'Taller Mecánico') }}</title>
+
+    {{-- Aplicar el estado colapsado de la sidebar ANTES del paint (evita parpadeo) --}}
+    <script>
+    (function () {
+        try {
+            if (localStorage.getItem('sidebar-collapsed') === '1') {
+                document.documentElement.classList.add('app-sidebar-collapsed');
+            }
+        } catch (e) {}
+    })();
+    </script>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style type="text/tailwindcss">
-        @layer base {
-            input[type='text'],
-            input[type='number'],
-            input[type='date'],
-            input[type='email'],
-            input[type='tel'],
-            input[type='password'],
-            select,
-            textarea {
-                @apply block w-full rounded-md border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm
-                       focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500;
-            }
-            select {
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
-                background-position: right 0.5rem center;
-                background-repeat: no-repeat;
-                background-size: 1.5em 1.5em;
-                padding-right: 2.5rem;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                appearance: none;
-            }
-            select[multiple] {
-                background-image: none;
-                padding-right: 0.75rem;
-            }
-            input[type='checkbox'],
-            input[type='radio'] {
-                @apply h-4 w-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500;
-            }
-            input[type='checkbox']:checked,
-            input[type='radio']:checked {
-                @apply border-transparent bg-current;
-            }
-        }
-    </style>
+    @include('partials.design-base')
     <style type="text/tailwindcss">
         /* ===== Tom Select: estilos consistentes con Tailwind ===== */
         .ts-wrapper .ts-control,
@@ -223,10 +198,45 @@
             color: #94a3b8 !important;
         }
 
-        /* Superficies del navegador con la paleta (craft-floor) */
-        ::selection { background: #bfdbfe; color: #1e3a8a; }
-        :focus-visible { outline: none; }
     </style>
+
+    {{-- App shell: sidebar colapsable (desktop) --}}
+    <style>
+        .tabulator .tabulator-header { font-family: inherit; }
+
+        /* Dropdown de usuario en el footer de la sidebar (abre hacia arriba) */
+        .user-dropdown {
+            position: absolute;
+            left: 0.75rem;
+            bottom: calc(100% + 0.5rem);
+            z-index: 60;
+            min-width: 12rem;
+            padding: 0.25rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background: #ffffff;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .app-sidebar-collapsed .user-dropdown { left: 0.75rem; }
+
+        /* El colapso del sidebar cambia de ancho sin animar propiedades de layout
+           (padding/width) para evitar jank; el drawer móvil anima solo translate-x. */
+        @media (min-width: 1024px) {
+            .app-nav-wrap { padding-left: 16rem; }
+            main { padding-left: 16rem; }
+            .app-sidebar-collapsed .app-nav-wrap { padding-left: 5rem; }
+            .app-sidebar-collapsed main { padding-left: 5rem; }
+            .app-sidebar-collapsed #sidebar { width: 5rem; }
+            .app-sidebar-collapsed #sidebar .flex.h-14 { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .app-sidebar-collapsed #sidebar nav { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .app-sidebar-collapsed .nav-label { display: none; }
+            .app-sidebar-collapsed .nav-item { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+            .app-sidebar-collapsed #sidebarCollapse { margin-left: auto; }
+            .app-sidebar-collapsed .user-sidebar-wrap { padding-left: 0.5rem; padding-right: 0.5rem; }
+            .app-sidebar-collapsed .user-sidebar-wrap button { justify-content: center; }
+        }
+    </style>
+
     <!-- Tabulator CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/6.2.0/css/tabulator.min.css" rel="stylesheet">
     <!-- Tom Select CSS -->
@@ -234,19 +244,10 @@
     @stack('styles')
 </head>
 <body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100">
+    <div class="min-h-screen bg-gray-50">
         @include('layouts.navigation')
 
-        @isset($header)
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
-            </header>
-        @endisset
-
         <main>
-            @yield('content')
             {{ $slot }}
         </main>
     </div>
@@ -255,7 +256,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/6.2.0/js/tabulator.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script>
     // Interceptor para errores 419 (CSRF expirado): recarga la página para renovar token
     document.addEventListener('DOMContentLoaded', function () {
@@ -279,6 +279,12 @@
         }).catch(() => {});
     }, 300000);
     </script>
+
+    {{-- Modal global de confirmación de acciones destructivas --}}
+    @include('partials.confirm-modal')
+
+    {{-- Modal pequeño para crear marca/categoría desde formularios (patrón "nueva placa") --}}
+    @include('partials.catalog-quick-create')
 
     {{-- Guard global: refresh CSRF antes de envío + anti-doble envío --}}
     @include('partials.form-guard')

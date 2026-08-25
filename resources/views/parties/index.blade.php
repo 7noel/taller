@@ -13,8 +13,8 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             @if (session('success'))
                 <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
                     {{ session('success') }}
@@ -22,8 +22,8 @@
             @endif
 
             <div class="card overflow-hidden">
-                <div class="p-6">
-                    <div class="mb-4">
+                <div class="p-4 sm:p-5">
+                    <div class="mb-3">
                         <div class="relative max-w-md">
                             <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -71,7 +71,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
                             </a>
-                            <form method="POST" action="/parties/${id}" class="inline" onsubmit="return confirm('¿Eliminar este contacto?')">
+                            <form method="POST" action="/parties/${id}" class="inline" data-confirm="¿Eliminar este contacto?">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" title="Eliminar contacto" class="btn-icon btn-icon-red">

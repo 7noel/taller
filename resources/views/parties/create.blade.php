@@ -5,8 +5,8 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <form method="POST" action="{{ route('parties.store') }}">
@@ -131,6 +131,14 @@
                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                                        @checked(old('is_insurance_company'))>
                                 <label for="is_insurance_company" class="text-sm font-medium text-gray-700">Es compañía de seguros</label>
+                            </div>
+
+                            {{-- Es proveedor --}}
+                            <div class="md:col-span-2 flex items-center gap-2">
+                                <input type="checkbox" id="is_supplier" name="is_supplier" value="1"
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                                       @checked(old('is_supplier'))>
+                                <label for="is_supplier" class="text-sm font-medium text-gray-700">Es proveedor</label>
                             </div>
 
                             {{-- Tarifas aseguradora (ocultas por defecto) --}}

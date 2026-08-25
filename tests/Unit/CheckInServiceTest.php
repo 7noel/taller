@@ -5,6 +5,8 @@ namespace Tests\Unit;
 use App\Models\Brand;
 use App\Models\CheckIn;
 use App\Models\CheckInChecklistItem;
+use App\Models\DocumentSeries;
+use App\Models\DocumentType;
 use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\User;
@@ -49,6 +51,22 @@ class CheckInServiceTest extends TestCase
         ]);
 
         $this->item1 = CheckInChecklistItem::create(['name' => 'LLANTAS', 'category' => 'EXTERIOR', 'order' => 1]);
+
+        // El servicio de números requiere la serie IV01 para asignar document_number.
+        $documentType = DocumentType::create([
+            'code' => 'IV',
+            'name' => 'Inventario Vehicular',
+            'is_electronic' => false,
+            'is_active' => true,
+        ]);
+        DocumentSeries::create([
+            'establishment_id' => $this->establishment->id,
+            'document_type_id' => $documentType->id,
+            'prefix_serie' => 'IV01',
+            'current_number' => 0,
+            'number_source' => 'LOCAL',
+            'status' => true,
+        ]);
 
         $this->service = app(CheckInService::class);
     }

@@ -14,7 +14,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UbigeoSeeder::class,
             RolePermissionSeeder::class,
+            CompanySettingSeeder::class,
+            DocumentTypeSeeder::class,
             EstablishmentSeeder::class,
+            DocumentSeriesSeeder::class,
             UserSeeder::class,
             BrandModelSeeder::class,
             InsuranceCompanySeeder::class,
@@ -23,6 +26,11 @@ class DatabaseSeeder extends Seeder
             VehicleRelationshipSeeder::class,
             ChecklistItemsSeeder::class,
             CheckInSeeder::class,
+            CatalogSeeder::class,
+            WarehouseSeeder::class,
+            RepairServiceSeeder::class,
+            PartSeeder::class,
+            StockSeeder::class,
         ]);
     }
 }

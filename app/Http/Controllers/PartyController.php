@@ -133,6 +133,32 @@ class PartyController extends Controller
             ]));
     }
 
+    public function suppliers(Request $request): JsonResponse
+    {
+        Gate::authorize('viewAny', Party::class);
+
+        $query = Party::query()
+            ->where('is_supplier', true)
+            ->when($request->filled('q'), function ($q) use ($request) {
+                $term = $request->query('q');
+                $q->where(function ($sub) use ($term) {
+                    $sub->where('business_name', 'like', "%{$term}%")
+                        ->orWhere('first_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%")
+                        ->orWhere('document_number', 'like', "%{$term}%");
+                });
+            })
+            ->when($request->filled('id'), fn ($q) => $q->whereKey($request->query('id')))
+            ->orderByRaw("COALESCE(business_name, CONCAT(last_name, ' ', first_name))")
+            ->limit($request->integer('limit', 20));
+
+        return response()->json($query->get()->map(fn (Party $party) => [
+            'id' => $party->id,
+            'display_name' => $party->display_name,
+            'document_number' => $party->document_number,
+        ]));
+    }
+
     public function quickStore(Request $request): JsonResponse
     {
         Gate::authorize('create', Party::class);

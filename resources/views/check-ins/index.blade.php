@@ -13,8 +13,8 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             @if (session('success'))
                 <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{ session('success') }}</div>
             @endif
@@ -158,9 +158,14 @@
         placeholder: 'No hay inventarios registrados',
         height: 'auto',
         columns: [
-            { title: 'Placa', field: 'plate', width: 110, hozAlign: 'center', formatter: function(cell) {
+            { title: 'Documento', field: 'document_sn', width: 150, hozAlign: 'center', headerHozAlign: 'center', formatter: function(cell) {
                 const d = cell.getData();
-                return `<a href="/check-ins/${d.id}" class="text-blue-600 font-medium">${d.plate || '-'}</a>`;
+                const label = d.document_sn || '—';
+                return `<a href="/check-ins/${d.id}" title="Ver inventario ${label}" class="font-mono font-semibold text-blue-600 hover:text-blue-800">${label}</a>`;
+            }},
+            { title: 'Placa', field: 'plate', width: 110, hozAlign: 'center', headerHozAlign: 'center', formatter: function(cell) {
+                const d = cell.getData();
+                return `<span class="text-gray-900">${d.plate || '-'}</span>`;
             }},
             { title: 'Cliente', field: 'client_name', minWidth: 170,
               formatter: function(cell) {
@@ -168,15 +173,14 @@
                 return `<div class="text-gray-900">${d.client_name || '-'}</div>
                         <div class="text-xs text-gray-500">${d.client_document || ''}</div>`;
               }},
-            { title: 'Servicio', field: 'service_type', width: 120, hozAlign: 'center' },
-            { title: 'Fecha', field: 'created_at', width: 130, hozAlign: 'center' },
-            { title: 'Estado', field: 'status_label', width: 180, hozAlign: 'center',
+            { title: 'Servicio', field: 'service_type', width: 120, hozAlign: 'center', headerHozAlign: 'center' },
+            { title: 'Estado', field: 'status_label', width: 180, hozAlign: 'center', headerHozAlign: 'center',
               formatter: function(cell) {
                 const d = cell.getData();
                 const colors = statusColors[d.status] || 'bg-gray-100 text-gray-800';
                 return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${colors}">${d.status_label}</span>`;
               }},
-            { title: 'Acciones', field: 'id', width: 160, hozAlign: 'center',
+            { title: 'Acciones', field: 'id', width: 160, hozAlign: 'center', headerHozAlign: 'center',
               formatter: function(cell) {
                 const id = cell.getData().id;
                 return `<div class="flex gap-2 justify-center">
@@ -194,7 +198,7 @@
                     </a>
                     @endcan
                     @can('eliminar inventarios')
-                    <form method="POST" action="/check-ins/${id}" class="inline" onsubmit="return confirm('¿Eliminar este inventario?')">
+                    <form method="POST" action="/check-ins/${id}" class="inline" data-confirm="¿Eliminar este inventario?">
                         @csrf @method('DELETE')
                         <button type="submit" title="Eliminar inventario" class="btn-icon btn-icon-red">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

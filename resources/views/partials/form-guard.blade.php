@@ -90,6 +90,19 @@
         const form = e.target;
         if (!(form instanceof HTMLFormElement)) return;
 
+        // 0) Confirmación global (data-confirm): la acción destructiva se
+        //    confirma con el modal ConfirmModal. Si aún no fue confirmada,
+        //    abrimos el modal y detenemos el envío. Al confirmar, form-guard
+        //    vuelve a entrar con data-confirmed="1" y continúa (CSRF + envío).
+        if (form.dataset.confirm && form.dataset.confirmed !== '1') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (window.ConfirmModal) window.ConfirmModal.open(form);
+            return;
+        }
+        // Limpiar el flag de confirmación tras pasar (por si se reenvía)
+        delete form.dataset.confirmed;
+
         // 1) Anti-doble envío: si ya se está enviando, bloquear reentrada
         if (form.dataset.submitting === '1') {
             e.preventDefault();

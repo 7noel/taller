@@ -16,18 +16,19 @@ class Party extends Model
         'document_type', 'document_number', 'first_name', 'last_name',
         'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code',
         'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate',
-        'receive_promotions', 'created_by', 'updated_by',
+        'is_supplier', 'receive_promotions', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'is_insurance_company' => 'boolean',
+        'is_supplier' => 'boolean',
         'receive_promotions' => 'boolean',
     ];
 
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['document_type', 'document_number', 'first_name', 'last_name', 'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code', 'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate', 'receive_promotions'])
+            ->logOnly(['document_type', 'document_number', 'first_name', 'last_name', 'business_name', 'email', 'phone', 'mobile', 'address', 'ubigeo_code', 'is_insurance_company', 'insurance_hourly_rate', 'insurance_panel_rate', 'is_supplier', 'receive_promotions'])
             ->logOnlyDirty()->dontSubmitEmptyLogs()->useLogName('party');
     }
 
@@ -75,5 +76,6 @@ class Party extends Model
     public function updater() { return $this->belongsTo(User::class, 'updated_by'); }
     public function contacts() { return $this->hasMany(PartyContact::class); }
     public function vehicleRelationships() { return $this->hasMany(VehicleRelationship::class); }
+    public function scopeSupplier($query) { return $query->where('is_supplier', true); }
     public function vehicles() { return $this->belongsToMany(Vehicle::class, 'vehicle_relationships')->withPivot(['role', 'is_primary_commercial', 'notes'])->wherePivotNull('deleted_at')->withTimestamps(); }
 }

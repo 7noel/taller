@@ -11,13 +11,16 @@
 
     let currentVehicle = null; // último vehículo cargado (para editar placa)
 
+    const ICON_PLUS = '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>';
+    const ICON_PENCIL = '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
+
     function refreshNewVehicleButton() {
         const btn = document.getElementById('btn-new-vehicle');
         if (!btn) return;
         if (currentVehicle) {
-            btn.textContent = '✏️ Editar placa';
+            btn.innerHTML = ICON_PENCIL + ' Editar placa';
         } else {
-            btn.textContent = '➕ Nueva placa';
+            btn.innerHTML = ICON_PLUS + ' Nueva placa';
         }
     }
 
@@ -226,7 +229,11 @@
     let selectedDamageType = 'scratch';
 
     const damageColors = { 'scratch': '#10b981', 'dent': '#ef4444', 'crack': '#3b82f6' };
-    const damageIcons = { 'scratch': '✕', 'dent': '●', 'crack': '▲' };
+    const damageIcons = {
+        'scratch': '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
+        'dent': '<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>',
+        'crack': '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>'
+    };
     const typeLabels = { 'scratch': 'Rayón', 'dent': 'Abolladura', 'crack': 'Quiñe' };
 
     function renderDamageCount() {
@@ -250,7 +257,10 @@
             <input type="hidden" name="damages[${index}][pos_x]" value="${damage.pos_x ?? ''}">
             <input type="hidden" name="damages[${index}][pos_y]" value="${damage.pos_y ?? ''}">
             <input type="text" name="damages[${index}][notes]" value="${damage.notes || ''}" placeholder="Nota..." class="flex-1 min-w-[120px] rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-xs">
-            <button type="button" class="damage-remove text-red-600 hover:text-red-800 text-xs font-medium">✕ Eliminar</button>
+            <button type="button" class="damage-remove text-red-600 hover:text-red-800 text-xs font-medium inline-flex items-center gap-1">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                Eliminar
+            </button>
         `;
         damageList.appendChild(row);
         renderDamageCount();
@@ -266,7 +276,7 @@
         marker.style.width = '22px';
         marker.style.height = '22px';
         marker.style.background = damageColors[type];
-        marker.textContent = damageIcons[type];
+        marker.innerHTML = damageIcons[type];
         if (key) marker.dataset.key = key;
         markersLayer.appendChild(marker);
     }
@@ -481,7 +491,9 @@
         div.dataset.id = photo.id;
         div.innerHTML = `
             <img src="${photo.url}" class="w-full h-32 object-cover rounded-lg border border-gray-200" alt="Foto del vehículo">
-            <button type="button" class="photo-delete absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 text-xs hidden group-hover:flex items-center justify-center" title="Eliminar">✕</button>
+            <button type="button" class="photo-delete absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 hidden group-hover:flex items-center justify-center" title="Eliminar">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         `;
         photoPreview.appendChild(div);
     }
@@ -504,9 +516,12 @@
     // ===== 6. Modal: Nueva / Editar placa =====
     // El modal maneja el guardado (quick-store / quick-update) y emite "vehicle-saved".
     document.getElementById('btn-new-vehicle')?.addEventListener('click', function () {
-        if (typeof window.openVehicleModal !== 'function') return;
+        if (typeof window.openVehicleModal !== 'function') {
+            console.error('[form-scripts] window.openVehicleModal no esta definido. Revisa el script de check-ins/_vehicle_modal.');
+            return;
+        }
         if (currentVehicle) {
-            // Modo edición: pre-rellenar todos los datos del vehículo seleccionado
+            // Modo edicion: pre-rellenar todos los datos del vehiculo seleccionado
             window.openVehicleModal(currentVehicle);
         } else {
             // Modo nueva placa: pre-rellenar la placa escrita en el buscador

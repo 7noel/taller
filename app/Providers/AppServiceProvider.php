@@ -4,16 +4,30 @@ namespace App\Providers;
 
 use App\Models\Brand;
 use App\Models\CheckIn;
+use App\Models\Part;
+use App\Models\PartBrand;
+use App\Models\PartCategory;
 use App\Models\Party;
+use App\Models\RepairService;
+use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleModel;
+use App\Models\Warehouse;
+use App\Models\WarehouseStock;
 use App\Policies\BrandPolicy;
 use App\Policies\CheckInPolicy;
+use App\Policies\PartBrandPolicy;
+use App\Policies\PartCategoryPolicy;
+use App\Policies\PartPolicy;
 use App\Policies\PartyPolicy;
+use App\Policies\RepairServicePolicy;
+use App\Policies\ServiceCategoryPolicy;
+use App\Policies\StockPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VehicleModelPolicy;
 use App\Policies\VehiclePolicy;
+use App\Policies\WarehousePolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -38,5 +52,12 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Vehicle::class, VehiclePolicy::class);
         Gate::policy(CheckIn::class, CheckInPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Part::class, PartPolicy::class);
+        Gate::policy(RepairService::class, RepairServicePolicy::class);
+        Gate::policy(Warehouse::class, WarehousePolicy::class);
+        Gate::policy(WarehouseStock::class, StockPolicy::class);
+        Gate::policy(ServiceCategory::class, ServiceCategoryPolicy::class);
+        Gate::policy(PartCategory::class, PartCategoryPolicy::class);
+        Gate::policy(PartBrand::class, PartBrandPolicy::class);
     }
 }

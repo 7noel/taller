@@ -1,10 +1,14 @@
+@php
+    $modelsByBrandData = $brands->mapWithKeys(fn ($b) => [$b->id => $b->models->map(fn ($m) => ['id' => $m->id, 'name' => $m->name])]);
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Editar Vehículo') }}</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <form method="POST" action="{{ route('vehicles.update', $vehicle) }}" id="vehicle-form">
@@ -73,7 +77,8 @@
 
                         <div class="flex gap-2 items-center mt-6">
                             <button type="button" id="btnSunarp" class="inline-flex items-center gap-2 bg-blue-600 font-semibold text-white text-xs px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                                📸 OBTENER DATOS DE SUNARP
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                OBTENER DATOS DE SUNARP
                             </button>
                         </div>
 
@@ -100,7 +105,7 @@
     const modelSelect = document.getElementById('model_id');
     const selectedModelId = @json($vehicle->model_id);
     const selectedBrandId = @json($vehicle->vehicleModel?->brand_id);
-    const modelsByBrand = @json($brands->mapWithKeys(fn ($b) => [$b->id => $b->models->map(fn ($m) => ['id' => $m->id, 'name' => $m->name])]));
+    const modelsByBrand = @json($modelsByBrandData);
 
     function fillModels(brandId) {
         modelSelect.innerHTML = '<option value="">Seleccionar modelo...</option>';

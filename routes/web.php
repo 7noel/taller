@@ -1,10 +1,18 @@
 <?php
 
+use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\CompanySettingController;
+use App\Http\Controllers\DocumentSeriesController;
+use App\Http\Controllers\EstablishmentController;
+use App\Http\Controllers\PartController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RepairServiceController;
+use App\Http\Controllers\StockController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -30,6 +38,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('vehicles', VehicleController::class);
     Route::resource('check-ins', CheckInController::class);
     Route::resource('users', UserController::class);
+
+    Route::resource('repair-services', RepairServiceController::class);
+    Route::resource('parts', PartController::class);
+    Route::resource('warehouses', WarehouseController::class);
+    Route::resource('stock', StockController::class)->only(['index', 'store']);
+
+    Route::resource('service-categories', CatalogController::class);
+    Route::resource('part-categories', CatalogController::class);
+    Route::resource('part-brands', CatalogController::class);
+
+    Route::get('company-settings', [CompanySettingController::class, 'edit'])->name('company-settings.edit');
+    Route::put('company-settings', [CompanySettingController::class, 'update'])->name('company-settings.update');
+
+    Route::resource('establishments', EstablishmentController::class);
+    Route::post('establishments/{establishment}/copy-from-company', [EstablishmentController::class, 'copyFromCompany'])->name('establishments.copy-from-company');
+    Route::post('establishments/{establishment}/regenerate-series', [EstablishmentController::class, 'regenerateSeries'])->name('establishments.regenerate-series');
+    Route::get('establishments/{establishment}/series', [DocumentSeriesController::class, 'index'])->name('establishments.series.index');
+    Route::post('establishments/{establishment}/series', [DocumentSeriesController::class, 'store'])->name('establishments.series.store');
+    Route::put('establishments/{establishment}/series/{series}', [DocumentSeriesController::class, 'update'])->name('establishments.series.update');
+    Route::delete('establishments/{establishment}/series/{series}', [DocumentSeriesController::class, 'destroy'])->name('establishments.series.destroy');
     Route::get('api/users/data', [UserController::class, 'fetchData'])->name('api.users.data');
 
     Route::post('check-ins/{checkIn}/approve', [CheckInController::class, 'approve'])->name('check-ins.approve');
@@ -44,6 +72,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('api/check-ins/{checkIn}/photos/{photo}', [CheckInController::class, 'destroyPhoto'])->name('api.check-ins.photos.destroy');
 
     Route::get('api/parties/search', [PartyController::class, 'search'])->name('api.parties.search');
+    Route::get('api/parties/suppliers', [PartyController::class, 'suppliers'])->name('api.parties.suppliers');
+    Route::get('api/repair-services/search', [RepairServiceController::class, 'search'])->name('api.repair-services.search');
+    Route::get('api/parts/search', [PartController::class, 'search'])->name('api.parts.search');
+    Route::get('api/warehouses/search', [WarehouseController::class, 'search'])->name('api.warehouses.search');
+    Route::get('api/stock/search', [StockController::class, 'search'])->name('api.stock.search');
+    Route::get('api/service-categories/search', [CatalogController::class, 'search'])->name('api.service-categories.search');
+    Route::get('api/part-categories/search', [CatalogController::class, 'search'])->name('api.part-categories.search');
+    Route::get('api/part-brands/search', [CatalogController::class, 'search'])->name('api.part-brands.search');
+    Route::post('api/service-categories/quick-store', [CatalogController::class, 'quickStore'])->name('api.service-categories.quick-store');
+    Route::post('api/part-categories/quick-store', [CatalogController::class, 'quickStore'])->name('api.part-categories.quick-store');
+    Route::post('api/part-brands/quick-store', [CatalogController::class, 'quickStore'])->name('api.part-brands.quick-store');
     Route::post('api/parties/quick-store', [PartyController::class, 'quickStore'])->name('api.parties.quick-store');
     Route::put('api/parties/{party}/quick-update', [PartyController::class, 'quickUpdate'])->name('api.parties.quick-update');
     Route::get('api/vehicles/search', [VehicleController::class, 'search'])->name('api.vehicles.search');

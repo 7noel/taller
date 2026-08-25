@@ -10,6 +10,7 @@ use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\DocumentSeriesService;
 use Illuminate\Database\Seeder;
 
 class CheckInSeeder extends Seeder
@@ -27,15 +28,24 @@ class CheckInSeeder extends Seeder
 
         $checklistItems = CheckInChecklistItem::query()->orderBy('order')->get();
         $insuranceCompany = Party::query()->where('is_insurance_company', true)->orderBy('id')->first();
+        $seriesService = app(DocumentSeriesService::class);
 
         foreach ($vehicles as $index => $vehicle) {
             $owner = $vehicle->relationships->first(fn ($r) => $r->role === 'owner')?->party;
+
+            // Asigna serie IV01 y correlativo incremental (IV01-00001, ...)
+            $seriesResult = $seriesService->getNextNumber($establishment->id, 'IV');
 
             $checkIn = CheckIn::create([
                 'vehicle_id' => $vehicle->id,
                 'client_id' => $owner?->id,
                 'insurance_company_id' => $index === 0 ? $insuranceCompany?->id : null,
                 'establishment_id' => $establishment->id,
+                'document_series_id' => $seriesResult['series']->id,
+                'document_type_code' => $seriesResult['document_type_code'],
+                'document_serie' => $seriesResult['series']->prefix_serie,
+                'document_number' => $seriesResult['number'],
+                'document_sn' => $seriesResult['sn'],
                 'created_by' => $user->id,
                 'updated_by' => $user->id,
                 'service_type' => $index === 0 ? 'siniestro' : ($index === 1 ? 'preventivo' : 'correctivo'),

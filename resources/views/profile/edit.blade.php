@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot:title>Mi Perfil</x-slot:title>
 
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6">
+        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h1 class="text-2xl font-bold mb-6">Mi Perfil</h1>
 

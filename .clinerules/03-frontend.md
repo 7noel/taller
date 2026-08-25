@@ -8,25 +8,27 @@
 
 ## Vistas
 - **REGLA OBLIGATORIA: patrón de componentes Blade.** Todas las vistas autenticadas deben usar `<x-app-layout>` (componente `layouts/app.blade.php` que ya contiene las CDN). **PROHIBIDO** usar `@extends('layouts.app')` + `@section('content')`: el layout renderiza `{{ $slot }}`, no `@yield`, por lo que mezclar ambos patrones causa el error `Undefined variable $slot`.
+- **App shell y espaciado:** aplicar el patrón de `.clinerules/12-app-shell.md` (sidebar colapsable con usuario en el footer, topbar solo móvil, contenedor `py-6` + `px-4 sm:px-6 lg:px-8`, card `.card` con `p-4 sm:p-5` en listados o `p-6` en formularios). Las vistas `parties/index` y `vehicles/index` son las plantillas de referencia de listado.
 - Estructura obligatoria:
   - `<x-slot name="header">` para el encabezado de la página (título y botones de acción).
   - Contenido principal directamente dentro de `<x-app-layout>` (slot por defecto).
   - `@push('scripts')` para JavaScript especifico de cada vista (se renderiza al final del layout dentro de `@stack('scripts')`).
-- Ejemplo base:
+- Ejemplo base (listado):
 ```blade
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Título') }}</h2>
-            <a href="#" class="inline-flex items-center px-4 py-2 bg-blue-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-blue-700">+ Nuevo</a>
+            <a href="#" class="btn btn-primary">+ Nuevo</a>
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{-- contenido --}}
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {{-- flash --}}
+            <div class="card overflow-hidden">
+                <div class="p-4 sm:p-5">
+                    {{-- buscador .search-input + tabulador --}}
                 </div>
             </div>
         </div>
@@ -37,8 +39,8 @@
     @endpush
 </x-app-layout>
 ```
-- Mensajes flash: mostrar `session('success')` en un bloque verde dentro del slot por defecto.
-- Enlaces del menú en `layouts/navigation.blade.php` deben protegerse con `@can('permiso')` y resaltarse con `request()->routeIs('ruta.*')`.
+- Mensajes flash: mostrar `session('success')` en un bloque verde (`bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm`) dentro del slot por defecto.
+- Enlaces del menú en `layouts/navigation.blade.php` se centralizan en `$navItems` (icono + etiqueta), se protegen con `@can('permiso')` y se resaltan con `request()->routeIs('ruta.*')`.
 
 ## Ejemplos de uso
 - Para una tabla de clientes:

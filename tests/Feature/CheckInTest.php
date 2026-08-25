@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Brand;
 use App\Models\CheckIn;
 use App\Models\CheckInChecklistItem;
+use App\Models\DocumentSeries;
+use App\Models\DocumentType;
 use App\Models\Establishment;
 use App\Models\Party;
 use App\Models\User;
@@ -41,6 +43,22 @@ class CheckInTest extends TestCase
             'brand_id' => $brand->id,
             'model_id' => $model->id,
             'plate' => 'ABC123',
+        ]);
+
+        // El servicio asigna el número IV01 al crear check-ins.
+        $documentType = DocumentType::create([
+            'code' => 'IV',
+            'name' => 'Inventario Vehicular',
+            'is_electronic' => false,
+            'is_active' => true,
+        ]);
+        DocumentSeries::create([
+            'establishment_id' => $this->establishment->id,
+            'document_type_id' => $documentType->id,
+            'prefix_serie' => 'IV01',
+            'current_number' => 0,
+            'number_source' => 'LOCAL',
+            'status' => true,
         ]);
     }
 

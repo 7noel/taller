@@ -5,7 +5,7 @@
 
 {{-- ============ SECCIÓN 1: VEHÍCULO ============ --}}
 <div class="border-b border-gray-200 pb-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">🚗 Vehículo</h3>
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Vehículo</h3>
 
     {{-- El propietario vive en la sección de contactos; aquí solo se guarda el client_id oculto --}}
     <input type="hidden" id="owner_id" name="client_id" value="{{ old('client_id', $checkIn->client_id ?? '') }}">
@@ -14,7 +14,10 @@
         <div>
             <div class="flex items-center justify-between gap-3">
                 <label for="vehicle_id" class="block text-sm font-medium text-gray-700">Buscar vehículo por placa *</label>
-                <button type="button" id="btn-new-vehicle" class="text-xs font-medium text-blue-600 hover:underline">➕ Nueva placa</button>
+                <button type="button" id="btn-new-vehicle" class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Nueva placa
+                </button>
             </div>
             <select id="vehicle_id" name="vehicle_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></select>
             @error('vehicle_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -94,14 +97,14 @@
         'vrRoles' => ['owner', 'approver', 'driver', 'operator'],
         'vrShowPrimary' => true,
         'vrInitialRows' => $ciRelationshipRows,
-        'vrTitle' => '📇 Contactos del vehículo',
+        'vrTitle' => 'Contactos del vehículo',
         'vrDescription' => 'Se cargan automáticamente desde las relaciones del vehículo. Puedes agregar, editar o quitar contactos.',
     ])
 </div>
 
 {{-- ============ SECCIÓN 3: DATOS DE INGRESO ============ --}}
 <div class="border-b border-gray-200 pb-6 mb-6">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">📋 Datos de ingreso</h3>
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Datos de ingreso</h3>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
@@ -191,7 +194,7 @@
 @include('check-ins._damages', ['checkIn' => $checkIn, 'isEdit' => $isEdit])
 @include('check-ins._photos', ['checkIn' => $checkIn, 'isEdit' => $isEdit])
 
-@include('check-ins._form-scripts', ['checkIn' => $checkIn, 'isEdit' => $isEdit])
-
 @include('check-ins._vehicle_modal')
 @include('partials.contact-modal')
+
+@include('check-ins._form-scripts', ['checkIn' => $checkIn, 'isEdit' => $isEdit])

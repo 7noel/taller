@@ -3,11 +3,12 @@
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-screen overflow-y-auto">
         <div class="flex items-center justify-between gap-3">
             <div>
-                <h3 id="vm-title" class="text-xl font-bold mb-1 text-gray-800">➕ Nueva placa (vehículo)</h3>
+                <h3 id="vm-title" class="text-xl font-bold mb-1 text-gray-800">Nueva placa (vehículo)</h3>
                 <p class="text-sm text-gray-500">Complete los datos del vehículo. Se creará y se seleccionará automáticamente en el inventario.</p>
             </div>
             <button type="button" id="btnSunarpVehicle" class="shrink-0 inline-flex items-center gap-2 bg-blue-600 font-semibold text-xs text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                📸 OBTENER DATOS DE SUNARP
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                OBTENER DATOS DE SUNARP
             </button>
         </div>
 
@@ -83,6 +84,7 @@
 <script>
 (function () {
     'use strict';
+    try {
 
     const modal = document.getElementById('vehicleModal');
     let editingVehicleId = null; // null = nueva placa, id = editar placa
@@ -90,6 +92,12 @@
 
     const brandSelect = document.getElementById('vm-brand');
     const modelSelect = document.getElementById('vm-model');
+
+    // Guardas: si falta algún elemento del modal, loguear en vez de fallar en silencio
+    if (!modal || !brandSelect || !modelSelect) {
+        console.error('[vehicle-modal] Faltan elementos del modal. vehicleModal:', !!modal, '| vm-brand:', !!brandSelect, '| vm-model:', !!modelSelect);
+        return;
+    }
 
     async function loadVmBrands() {
         try {
@@ -136,7 +144,7 @@
         if (vehicleOrPlate && typeof vehicleOrPlate === 'object' && vehicleOrPlate.id) {
             // MODO EDICIÓN
             editingVehicleId = vehicleOrPlate.id;
-            document.getElementById('vm-title').textContent = '✏️ Editar placa (vehículo)';
+            document.getElementById('vm-title').textContent = 'Editar placa (vehículo)';
             document.getElementById('vm-plate').value = vehicleOrPlate.plate || '';
             document.getElementById('vm-color').value = vehicleOrPlate.color || '';
             document.getElementById('vm-year').value = vehicleOrPlate.year || '';
@@ -154,7 +162,7 @@
         } else {
             // MODO NUEVO
             editingVehicleId = null;
-            document.getElementById('vm-title').textContent = '➕ Nueva placa (vehículo)';
+            document.getElementById('vm-title').textContent = 'Nueva placa (vehículo)';
             const plate = typeof vehicleOrPlate === 'string' ? vehicleOrPlate : '';
             document.getElementById('vm-plate').value = plate;
         }
@@ -238,7 +246,11 @@
             btn.disabled = false;
             btn.textContent = editingVehicleId ? 'Guardar cambios' : 'Guardar y seleccionar';
         }
-    });
+    }
+
+    } catch (error) {
+        console.error('[vehicle-modal] Error inicializando el modal:', error);
+    }
 })();
 </script>
 @endpush
