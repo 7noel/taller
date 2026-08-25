@@ -155,6 +155,28 @@
             }).catch(() => {});
     }
 
+    // Rellena el selector de aseguradora con todas las compañías registradas.
+    // Se ejecuta al seleccionar la placa para tener el listado completo disponible.
+    function loadInsuranceCompanies() {
+        return fetch('/api/parties/search?is_insurance_company=1&limit=100')
+            .then(r => r.json())
+            .then(data => {
+                // Preservar la selección previa (p. ej. aseguradora ya elegida o guardada)
+                const previous = insuranceSelect.getValue();
+                insuranceSelect.clearOptions();
+                (data || []).forEach(p => insuranceSelect.addOption({
+                    id: p.id,
+                    label: p.business_name || p.display_name,
+                    sub: p.document_number,
+                    hourly_rate: p.insurance_hourly_rate,
+                    panel_rate: p.insurance_panel_rate,
+                }));
+                if (previous) insuranceSelect.setValue(previous, true);
+                return data;
+            })
+            .catch(() => []);
+    }
+
     // =====================================================
     // Contactos del vehículo (miniselector rol → destinatario)
     // =====================================================
@@ -239,11 +261,15 @@
                     applyContact(defaultContact);
                 }
 
-                // Cargar la aseguradora asociada al vehículo (rol insurance_company).
+                // Cargar la aseguradora asociada al vehículo (rol insurance_company):
+                // 1º rellenar el listado completo de aseguradoras, 2º seleccionar la
+                // compañía relacionada del vehículo si aplica.
                 const insuranceContact = vehicleContacts.find(c => c.role === 'insurance_company');
-                if (insuranceContact?.party_id && (opts?.forceInsurance || !insuranceSelect.getValue())) {
-                    setInsuranceByPartyId(insuranceContact.party_id);
-                }
+                loadInsuranceCompanies().then(() => {
+                    if (insuranceContact?.party_id && (opts?.forceInsurance || !insuranceSelect.getValue())) {
+                        setInsuranceByPartyId(insuranceContact.party_id);
+                    }
+                });
             }).catch(() => {});
     }
 
