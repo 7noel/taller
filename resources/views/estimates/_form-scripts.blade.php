@@ -34,6 +34,7 @@
     const initialCheckInId = {{ $initialCheckInId ? (int) $initialCheckInId : 'null' }};
     const initialClientId = {{ $initialClientId ? (int) $initialClientId : 'null' }};
     const initialInsuranceId = {{ $initialInsuranceId ? (int) $initialInsuranceId : 'null' }};
+    const initialServiceType = "{{ old('service_type', $estimate->service_type ?? '') }}";
     const initialItems = @json($initialItems);
 
     const serviceCategories = @json($serviceCategories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values());
@@ -803,7 +804,27 @@
                 if (data.hourly_rate) document.getElementById('hourly_rate').value = data.hourly_rate;
                 if (data.panel_rate) document.getElementById('panel_rate').value = data.panel_rate;
                 if (data.currency) document.getElementById('currency').value = data.currency;
+                if (data.service_type) {
+                    document.getElementById('service_type').value = data.service_type;
+                    setClaimNumberVisibility(data.service_type);
+                }
             }).catch(() => {});
+    }
+
+    // =====================================================
+    // Servicio: mostrar/ocultar Nº Siniestro según el tipo
+    // =====================================================
+    function setClaimNumberVisibility(serviceType) {
+        const claimWrap = document.getElementById('claim-number-wrap');
+        if (claimWrap) claimWrap.classList.toggle('hidden', serviceType !== 'siniestro');
+    }
+    const serviceTypeSelect = document.getElementById('service_type');
+    if (serviceTypeSelect) {
+        serviceTypeSelect.addEventListener('change', function () {
+            setClaimNumberVisibility(this.value);
+        });
+        // Estado inicial (creación o edición)
+        setClaimNumberVisibility(initialServiceType || serviceTypeSelect.value);
     }
 
     if (initialCheckInId) {

@@ -184,6 +184,7 @@ class EstimateController extends Controller
                 'document_number' => $checkIn->insuranceCompany->document_number,
             ] : null,
             'claim_number' => $checkIn->claim_number,
+            'service_type' => $checkIn->service_type,
             'establishment_id' => $checkIn->establishment_id,
             'currency' => $checkIn->establishment?->base_currency ?? 'PEN',
             'exchange_rate' => 1,

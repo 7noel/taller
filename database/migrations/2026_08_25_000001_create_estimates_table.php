@@ -15,6 +15,7 @@ return new class extends Migration
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('insurance_company_id')->nullable();
             $table->string('claim_number')->nullable();
+            $table->string('service_type')->nullable();
             $table->unsignedBigInteger('advisor_id')->nullable();
             $table->unsignedBigInteger('establishment_id');
             $table->unsignedBigInteger('document_series_id')->nullable();

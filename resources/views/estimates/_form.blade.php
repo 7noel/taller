@@ -74,16 +74,26 @@
             @error('insurance_company_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
 
-        {{-- Nº Siniestro y Días de trabajo --}}
+        {{-- Servicio y Días de trabajo --}}
         <div class="sm:col-span-2 xl:col-span-1">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="claim_number" class="block text-sm font-medium text-gray-700">Nº Siniestro</label>
-                    <input type="text" id="claim_number" name="claim_number" value="{{ old('claim_number', $estimate->claim_number ?? '') }}" class="{{ $inputCls }}">
+                    <label for="service_type" class="block text-sm font-medium text-gray-700">Servicio <span class="text-red-500">*</span></label>
+                    <select id="service_type" name="service_type" class="{{ $inputCls }}">
+                        @foreach (\App\Models\CheckIn::SERVICE_TYPES as $value => $label)
+                            <option value="{{ $value }}" @selected(old('service_type', $estimate->service_type ?? '') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('service_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="work_days" class="block text-sm font-medium text-gray-700">Días de trabajo</label>
                     <input type="number" id="work_days" name="work_days" min="0" value="{{ old('work_days', $estimate->work_days ?? '') }}" class="{{ $inputCls }}">
+                </div>
+                {{-- Nº Siniestro (solo visible cuando el servicio es "siniestro") --}}
+                <div id="claim-number-wrap" class="{{ old('service_type', $estimate->service_type ?? '') === 'siniestro' ? '' : 'hidden' }}">
+                    <label for="claim_number" class="block text-sm font-medium text-gray-700">Nº Siniestro</label>
+                    <input type="text" id="claim_number" name="claim_number" value="{{ old('claim_number', $estimate->claim_number ?? '') }}" class="{{ $inputCls }}">
                 </div>
             </div>
         </div>

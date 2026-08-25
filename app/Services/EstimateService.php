@@ -343,6 +343,7 @@ class EstimateService
             'client_id' => $checkIn->client_id,
             'insurance_company_id' => $checkIn->insurance_company_id,
             'claim_number' => $checkIn->claim_number,
+            'service_type' => $checkIn->service_type,
             'establishment_id' => $checkIn->establishment_id,
             'advisor_id' => Auth::id(),
             'hourly_rate' => $rates['hourly_rate'],

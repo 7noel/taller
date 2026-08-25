@@ -20,6 +20,7 @@ class Estimate extends Model
         'client_id',
         'insurance_company_id',
         'claim_number',
+        'service_type',
         'advisor_id',
         'establishment_id',
         'document_series_id',
@@ -82,11 +83,15 @@ class Estimate extends Model
 
     public const FINAL_STATUSES = ['finalized', 'rejected_insurance', 'rejected_client'];
 
+    // Tipos de servicio: misma fuente que el inventario (CheckIn::SERVICE_TYPES).
+    // Agrega nuevos tipos en CheckIn::SERVICE_TYPES y aparecerán en ambos módulos.
+    public const SERVICE_TYPES = CheckIn::SERVICE_TYPES;
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->logOnly([
-                'check_in_id', 'vehicle_id', 'client_id', 'insurance_company_id', 'claim_number',
+                'check_in_id', 'vehicle_id', 'client_id', 'insurance_company_id', 'claim_number', 'service_type',
                 'advisor_id', 'establishment_id', 'document_type_code', 'document_serie',
                 'document_number', 'document_sn', 'work_days', 'contact_name', 'contact_phone',
                 'contact_email', 'hourly_rate', 'panel_rate', 'currency', 'exchange_rate',
@@ -106,6 +111,11 @@ class Estimate extends Model
     public function getFormattedDocumentNumberAttribute(): ?string
     {
         return $this->document_sn;
+    }
+
+    public function getServiceTypeLabelAttribute(): string
+    {
+        return self::SERVICE_TYPES[$this->service_type] ?? $this->service_type ?? '';
     }
 
     public function getIsFinalAttribute(): bool

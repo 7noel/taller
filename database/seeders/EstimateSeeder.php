@@ -86,6 +86,7 @@ class EstimateSeeder extends Seeder
                 'client_id' => $checkIn->client_id,
                 'insurance_company_id' => $checkIn->insurance_company_id,
                 'claim_number' => $checkIn->claim_number,
+                'service_type' => $checkIn->service_type ?? 'siniestro',
                 'establishment_id' => $establishment->id,
                 'advisor_id' => $advisor?->id,
                 'work_days' => $dataset['work_days'],
