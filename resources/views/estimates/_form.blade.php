@@ -56,25 +56,6 @@
             </div>
         </div>
 
-        {{-- Días de trabajo --}}
-        <div>
-            <label for="work_days" class="block text-sm font-medium text-gray-700">Días de trabajo</label>
-            <input type="number" id="work_days" name="work_days" min="0" value="{{ old('work_days', $estimate->work_days ?? '') }}" class="{{ $inputCls }}">
-        </div>
-
-        {{-- Aseguradora --}}
-        <div>
-            <label for="insurance_company_id" class="block text-sm font-medium text-gray-700">Aseguradora</label>
-            <select id="insurance_company_id" name="insurance_company_id" class="{{ $inputCls }}"></select>
-            @error('insurance_company_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-        </div>
-
-        {{-- Nº Siniestro --}}
-        <div>
-            <label for="claim_number" class="block text-sm font-medium text-gray-700">Nº Siniestro</label>
-            <input type="text" id="claim_number" name="claim_number" value="{{ old('claim_number', $estimate->claim_number ?? '') }}" class="{{ $inputCls }}">
-        </div>
-
         {{-- Asesor --}}
         <div>
             <label for="advisor_id" class="block text-sm font-medium text-gray-700">Asesor</label>
@@ -86,47 +67,74 @@
             </select>
         </div>
 
-        {{-- Tarifa hora hombre --}}
+        {{-- Aseguradora --}}
         <div>
-            <label for="hourly_rate" class="block text-sm font-medium text-gray-700">Tarifa hora hombre</label>
-            <input type="number" id="hourly_rate" name="hourly_rate" step="0.01" min="0" value="{{ old('hourly_rate', $estimate->hourly_rate ?? '') }}" class="{{ $inputCls }}">
+            <label for="insurance_company_id" class="block text-sm font-medium text-gray-700">Aseguradora</label>
+            <select id="insurance_company_id" name="insurance_company_id" class="{{ $inputCls }}"></select>
+            @error('insurance_company_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
 
-        {{-- Tarifa paño --}}
-        <div>
-            <label for="panel_rate" class="block text-sm font-medium text-gray-700">Tarifa paño de pintura</label>
-            <input type="number" id="panel_rate" name="panel_rate" step="0.01" min="0" value="{{ old('panel_rate', $estimate->panel_rate ?? '') }}" class="{{ $inputCls }}">
+        {{-- Nº Siniestro y Días de trabajo --}}
+        <div class="sm:col-span-2 xl:col-span-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="claim_number" class="block text-sm font-medium text-gray-700">Nº Siniestro</label>
+                    <input type="text" id="claim_number" name="claim_number" value="{{ old('claim_number', $estimate->claim_number ?? '') }}" class="{{ $inputCls }}">
+                </div>
+                <div>
+                    <label for="work_days" class="block text-sm font-medium text-gray-700">Días de trabajo</label>
+                    <input type="number" id="work_days" name="work_days" min="0" value="{{ old('work_days', $estimate->work_days ?? '') }}" class="{{ $inputCls }}">
+                </div>
+            </div>
         </div>
 
-        {{-- Moneda --}}
-        <div>
-            <label for="currency" class="block text-sm font-medium text-gray-700">Moneda</label>
-            <select id="currency" name="currency" class="{{ $inputCls }}">
-                <option value="PEN" @selected(old('currency', $estimate->currency ?? '') === 'PEN')>Soles (PEN)</option>
-                <option value="USD" @selected(old('currency', $estimate->currency ?? '') === 'USD')>Dólares (USD)</option>
-            </select>
+        {{-- Moneda y Tipo de cambio--}}
+        <div class="sm:col-span-2 xl:col-span-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="currency" class="block text-sm font-medium text-gray-700">Moneda</label>
+                    <select id="currency" name="currency" class="{{ $inputCls }}">
+                        <option value="PEN" @selected(old('currency', $estimate->currency ?? '') === 'PEN')>Soles (PEN)</option>
+                        <option value="USD" @selected(old('currency', $estimate->currency ?? '') === 'USD')>Dólares (USD)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="exchange_rate" class="block text-sm font-medium text-gray-700">Tipo de cambio</label>
+                    <input type="number" id="exchange_rate" name="exchange_rate" step="0.0001" min="0" value="{{ old('exchange_rate', $estimate->exchange_rate ?? 1) }}" class="{{ $inputCls }}">
+                </div>
+            </div>
         </div>
 
-        {{-- Tipo de cambio --}}
-        <div>
-            <label for="exchange_rate" class="block text-sm font-medium text-gray-700">Tipo de cambio</label>
-            <input type="number" id="exchange_rate" name="exchange_rate" step="0.0001" min="0" value="{{ old('exchange_rate', $estimate->exchange_rate ?? 1) }}" class="{{ $inputCls }}">
+        {{-- Descuento global tipo y valor--}}
+        <div class="sm:col-span-2 xl:col-span-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="global_discount_type" class="block text-sm font-medium text-gray-700">Dscto global — Tipo</label>
+                    <select id="global_discount_type" name="global_discount_type" class="{{ $inputCls }}">
+                        <option value="">Sin descuento</option>
+                        <option value="percentage" @selected(old('global_discount_type', $estimate->global_discount_type ?? '') === 'percentage')>Porcentaje (%)</option>
+                        <option value="fixed" @selected(old('global_discount_type', $estimate->global_discount_type ?? '') === 'fixed')>Monto fijo</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="global_discount_value" class="block text-sm font-medium text-gray-700">Dscto global — Valor</label>
+                    <input type="number" id="global_discount_value" name="global_discount_value" step="0.01" min="0" value="{{ old('global_discount_value', $estimate->global_discount_value ?? 0) }}" class="{{ $inputCls }}">
+                </div>
+            </div>
         </div>
 
-        {{-- Descuento global tipo --}}
-        <div>
-            <label for="global_discount_type" class="block text-sm font-medium text-gray-700">Descuento global — Tipo</label>
-            <select id="global_discount_type" name="global_discount_type" class="{{ $inputCls }}">
-                <option value="">Sin descuento</option>
-                <option value="percentage" @selected(old('global_discount_type', $estimate->global_discount_type ?? '') === 'percentage')>Porcentaje (%)</option>
-                <option value="fixed" @selected(old('global_discount_type', $estimate->global_discount_type ?? '') === 'fixed')>Monto fijo</option>
-            </select>
-        </div>
-
-        {{-- Descuento global valor --}}
-        <div>
-            <label for="global_discount_value" class="block text-sm font-medium text-gray-700">Descuento global — Valor</label>
-            <input type="number" id="global_discount_value" name="global_discount_value" step="0.01" min="0" value="{{ old('global_discount_value', $estimate->global_discount_value ?? 0) }}" class="{{ $inputCls }}">
+        {{-- Tarifa hora hombre y paño --}}
+        <div class="sm:col-span-2 xl:col-span-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="hourly_rate" class="block text-sm font-medium text-gray-700">Tarifa hora hombre</label>
+                    <input type="number" id="hourly_rate" name="hourly_rate" step="0.01" min="0" value="{{ old('hourly_rate', $estimate->hourly_rate ?? '') }}" class="{{ $inputCls }}">
+                </div>
+                <div>
+                    <label for="panel_rate" class="block text-sm font-medium text-gray-700">Tarifa paño de pintura</label>
+                    <input type="number" id="panel_rate" name="panel_rate" step="0.01" min="0" value="{{ old('panel_rate', $estimate->panel_rate ?? '') }}" class="{{ $inputCls }}">
+                </div>
+            </div>
         </div>
 
         {{-- Observaciones (ancho completo) --}}

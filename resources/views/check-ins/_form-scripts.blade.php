@@ -7,6 +7,7 @@
     const isEdit = {{ $isEdit ? 'true' : 'false' }};
     const checkInId = {{ $checkIn->id ?? 'null' }};
     const initialVehicleId = "{{ old('vehicle_id', $checkIn->vehicle_id ?? '') }}";
+    const initialInsuranceId = "{{ old('insurance_company_id', $checkIn->insurance_company_id ?? '') }}";
     const mockupPath = "{{ asset('images/mockups') }}";
 
     let currentVehicle = null; // último vehículo cargado (para editar placa)
@@ -159,7 +160,17 @@
             if (reviewEl) reviewEl.value = v.technical_review_date || '';
 
             // Cargar/recargar aseguradoras al seleccionar el vehículo
-            loadInsuranceCompanies();
+            const insuranceCompanies = await loadInsuranceCompanies();
+            // En edición, restaurar la aseguradora ya guardada del check-in
+            if (initialInsuranceId) {
+                const savedIns = (insuranceCompanies || []).find(c => String(c.id) === String(initialInsuranceId));
+                if (savedIns) {
+                    if (!insuranceSelect.options[savedIns.id]) {
+                        insuranceSelect.addOption({ id: savedIns.id, business_name: savedIns.business_name, document_number: savedIns.document_number });
+                    }
+                    insuranceSelect.setValue(savedIns.id, true);
+                }
+            }
             refreshNewVehicleButton();
 
             // Contactos del vehículo
@@ -170,6 +181,24 @@
             const owner = contacts.owner;
             const ownerInput = document.getElementById('owner_id');
             if (ownerInput) ownerInput.value = owner ? (owner.party_id || '') : '';
+
+            // Auto-seleccionar la aseguradora asociada al vehículo (rol insurance_company).
+            // En edición se respeta la aseguradora ya guardada del check-in.
+            const insuranceRel = contacts.insurance_company;
+            if (!initialInsuranceId) {
+                if (insuranceRel && insuranceRel.party_id) {
+                    if (!insuranceSelect.options[insuranceRel.party_id]) {
+                        insuranceSelect.addOption({
+                            id: insuranceRel.party_id,
+                            business_name: insuranceRel.business_name || insuranceRel.name || 'Aseguradora',
+                            document_number: insuranceRel.document_number || '',
+                        });
+                    }
+                    insuranceSelect.setValue(insuranceRel.party_id, true);
+                } else {
+                    insuranceSelect.setValue('');
+                }
+            }
 
             // Actualizar el componente de contactos del vehículo con las relaciones
             if (window.VehicleRelationships && window.VehicleRelationships.ci) {
@@ -204,17 +233,19 @@
     });
     insuranceSelect.on('dropdown_open', function () { if (insuranceSelect.items.length > 0) { insuranceSelect.setTextValue(''); insuranceSelect.input && insuranceSelect.input.setSelectionRange(0, 0); } });
 
-    function loadInsuranceCompanies() {
-        fetch('/api/check-ins/insurance-companies')
-            .then(r => r.json())
-            .then(data => {
-                // Preservar la selección previa (p. ej. al recargar en edición)
-                const previous = insuranceSelect.getValue();
-                insuranceSelect.clearOptions();
-                data.forEach(c => insuranceSelect.addOption({ id: c.id, business_name: c.business_name, document_number: c.document_number }));
-                if (previous) insuranceSelect.setValue(previous, true);
-            })
-            .catch(() => { /* noop */ });
+    async function loadInsuranceCompanies() {
+        try {
+            const res = await fetch('/api/check-ins/insurance-companies');
+            const data = await res.json();
+            // Preservar la selección previa (p. ej. al recargar en edición)
+            const previous = insuranceSelect.getValue();
+            insuranceSelect.clearOptions();
+            data.forEach(c => insuranceSelect.addOption({ id: c.id, business_name: c.business_name, document_number: c.document_number }));
+            if (previous) insuranceSelect.setValue(previous, true);
+            return data;
+        } catch (e) {
+            return [];
+        }
     }
 
     // =====================================================

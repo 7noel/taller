@@ -225,7 +225,7 @@ class CheckInController extends Controller
         $vehicle = Vehicle::with(['relationships.party'])
             ->findOrFail($vehicleId);
 
-        $types = ['owner', 'approver', 'driver', 'operator'];
+        $types = ['owner', 'approver', 'driver', 'operator', 'insurance_company'];
 
         $result = [];
         foreach ($types as $type) {
