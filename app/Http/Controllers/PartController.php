@@ -94,6 +94,7 @@ class PartController extends Controller
             'sku' => $p->sku,
             'brand' => $p->brand?->name,
             'category' => $p->category?->name,
+            'part_category_id' => $p->part_category_id,
             'sell_price' => $p->sell_price,
             'cost_price' => $p->cost_price,
             'currency' => $p->currency,

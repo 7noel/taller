@@ -5,6 +5,7 @@ use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\DocumentSeriesController;
 use App\Http\Controllers\EstablishmentController;
+use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('parties', PartyController::class);
     Route::resource('vehicles', VehicleController::class);
     Route::resource('check-ins', CheckInController::class);
+    Route::resource('estimates', EstimateController::class);
     Route::resource('users', UserController::class);
 
     Route::resource('repair-services', RepairServiceController::class);
@@ -71,6 +73,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('api/check-ins/{checkIn}/photos', [CheckInController::class, 'uploadPhoto'])->name('api.check-ins.photos.store');
     Route::delete('api/check-ins/{checkIn}/photos/{photo}', [CheckInController::class, 'destroyPhoto'])->name('api.check-ins.photos.destroy');
 
+    Route::post('estimates/{estimate}/send-to-insurance', [EstimateController::class, 'sendToInsurance'])->name('estimates.send-to-insurance');
+    Route::post('estimates/{estimate}/approve-insurance', [EstimateController::class, 'approveInsurance'])->name('estimates.approve-insurance');
+    Route::post('estimates/{estimate}/reject-insurance', [EstimateController::class, 'rejectInsurance'])->name('estimates.reject-insurance');
+    Route::post('estimates/{estimate}/send-to-client', [EstimateController::class, 'sendToClient'])->name('estimates.send-to-client');
+    Route::post('estimates/{estimate}/approve-client', [EstimateController::class, 'approveClient'])->name('estimates.approve-client');
+    Route::post('estimates/{estimate}/reject-client', [EstimateController::class, 'rejectClient'])->name('estimates.reject-client');
+    Route::post('estimates/{estimate}/start-repair', [EstimateController::class, 'startRepair'])->name('estimates.start-repair');
+    Route::post('estimates/{estimate}/finalize', [EstimateController::class, 'finalize'])->name('estimates.finalize');
+    Route::post('estimates/{estimate}/return-to-draft', [EstimateController::class, 'returnToDraft'])->name('estimates.return-to-draft');
+
+    Route::get('api/estimates/search', [EstimateController::class, 'search'])->name('api.estimates.search');
+    Route::post('api/estimates/calculate', [EstimateController::class, 'calculate'])->name('api.estimates.calculate');
+    Route::get('api/estimates/from-check-in/{checkIn}', [EstimateController::class, 'fromCheckIn'])->name('api.estimates.from-check-in');
+
     Route::get('api/parties/search', [PartyController::class, 'search'])->name('api.parties.search');
     Route::get('api/parties/suppliers', [PartyController::class, 'suppliers'])->name('api.parties.suppliers');
     Route::get('api/repair-services/search', [RepairServiceController::class, 'search'])->name('api.repair-services.search');
@@ -86,6 +102,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('api/parties/quick-store', [PartyController::class, 'quickStore'])->name('api.parties.quick-store');
     Route::put('api/parties/{party}/quick-update', [PartyController::class, 'quickUpdate'])->name('api.parties.quick-update');
     Route::get('api/vehicles/search', [VehicleController::class, 'search'])->name('api.vehicles.search');
+    Route::get('api/vehicles/{vehicle}/recipient', [VehicleController::class, 'recipient'])->name('api.vehicles.recipient');
+    Route::get('api/vehicles/{vehicle}/recipients', [VehicleController::class, 'recipients'])->name('api.vehicles.recipients');
+    Route::post('api/vehicles/{vehicle}/relationships', [VehicleController::class, 'attachRelationship'])->name('api.vehicles.relationships.attach');
     Route::get('api/brands', [VehicleController::class, 'brands'])->name('api.brands');
     Route::get('api/models', [VehicleController::class, 'models'])->name('api.models');
     Route::post('api/brands/find-or-create', [VehicleController::class, 'findOrCreateBrand'])->name('api.brands.find-or-create');

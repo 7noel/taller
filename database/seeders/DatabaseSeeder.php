@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             RepairServiceSeeder::class,
             PartSeeder::class,
             StockSeeder::class,
+            EstimateSeeder::class,
         ]);
     }
 }

@@ -5,6 +5,9 @@
             @if($checkIn->document_sn)
                 <x-document-badge :sn="$checkIn->document_sn" />
             @endif
+            @if ($checkIn->vehicle?->plate)
+                <span class="text-sm text-gray-500">{{ $checkIn->vehicle->plate }}</span>
+            @endif
         </div>
     </x-slot>
 

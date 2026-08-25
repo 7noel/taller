@@ -24,5 +24,20 @@ class UserSeeder extends Seeder
         if (! $user->hasRole('Administrador')) {
             $user->assignRole('Administrador');
         }
+
+        // Asesor para cotizaciones / presupuestos.
+        $asesor = User::firstOrCreate(
+            ['email' => 'asesor@taller.com'],
+            [
+                'name' => 'Asesor Demo',
+                'password' => Hash::make('password'),
+                'establishment_id' => 1,
+                'phone' => '987654321',
+            ]
+        );
+
+        if (! $asesor->hasRole('Asesor')) {
+            $asesor->assignRole('Asesor');
+        }
     }
 }

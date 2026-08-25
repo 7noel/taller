@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Vehicle;
 use App\Models\VehicleModel;
 use App\Services\BrandService;
+use App\Services\EstimateService;
 use App\Services\VehicleModelService;
 use App\Services\VehicleService;
 use Illuminate\Http\JsonResponse;
@@ -127,6 +128,86 @@ class VehicleController extends Controller
                 'technical_review_date' => $vehicle->technical_review_date?->format('Y-m-d'),
                 'owner_name' => $vehicle->relationships->first()?->party?->display_name,
             ]));
+    }
+
+    /**
+     * Devuelve el destinatario por defecto de un vehículo para el presupuesto
+     * (aprobador → propietario). Se usa para precargar el campo "Destinatario".
+     */
+    public function recipient(Vehicle $vehicle): JsonResponse
+    {
+        Gate::authorize('viewAny', Vehicle::class);
+
+        return response()->json(
+            app(EstimateService::class)->resolveRecipient($vehicle)
+        );
+    }
+
+    /**
+     * Devuelve todos los contactos del vehículo (por rol) para el miniselector
+     * "Contacto del vehículo" del formulario de presupuestos.
+     */
+    public function recipients(Vehicle $vehicle): JsonResponse
+    {
+        Gate::authorize('viewAny', Vehicle::class);
+
+        return response()->json(
+            app(EstimateService::class)->resolveRecipients($vehicle)
+        );
+    }
+
+    /**
+     * Asocia una Party existente al vehículo con un rol (crea VehicleRelationship).
+     * Se usa cuando el ContactModal guarda un contacto nuevo/existente.
+     */
+    public function attachRelationship(Request $request, Vehicle $vehicle): JsonResponse
+    {
+        Gate::authorize('update', $vehicle);
+
+        $validated = $request->validate([
+            'relationship_id' => ['nullable', 'integer', 'exists:vehicle_relationships,id'],
+            'party_id' => ['required', 'integer', 'exists:parties,id'],
+            'role' => ['required', 'string', Rule::in(array_keys(\App\Models\VehicleRelationship::roleLabels()))],
+            'is_primary_commercial' => ['nullable', 'boolean'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        // Diff/upsert: si se envía relationship_id, se actualiza la relación existente
+        // (mismo vehículo); si no, se crea una nueva. Esto evita duplicados al editar.
+        $relationship = \App\Models\VehicleRelationship::query()
+            ->where('vehicle_id', $vehicle->id)
+            ->find($validated['relationship_id'] ?? null);
+
+        if ($relationship) {
+            $relationship->update([
+                'party_id' => $validated['party_id'],
+                'role' => $validated['role'],
+                'is_primary_commercial' => $validated['is_primary_commercial'] ?? false,
+                'notes' => $validated['notes'] ?? null,
+                'updated_by' => auth()->id(),
+            ]);
+        } else {
+            $relationship = \App\Models\VehicleRelationship::create([
+                'vehicle_id' => $vehicle->id,
+                'party_id' => $validated['party_id'],
+                'role' => $validated['role'],
+                'is_primary_commercial' => $validated['is_primary_commercial'] ?? false,
+                'notes' => $validated['notes'] ?? null,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ]);
+        }
+
+        $relationship->load('party');
+
+        return response()->json([
+            'id' => $relationship->id,
+            'role' => $relationship->role,
+            'party_id' => $relationship->party_id,
+            'contact_name' => $relationship->party?->display_name,
+            'contact_phone' => $relationship->party?->mobile ?: $relationship->party?->phone,
+            'contact_email' => $relationship->party?->email,
+        ], 201);
     }
 
     public function quickStore(Request $request): JsonResponse

@@ -128,6 +128,8 @@ class PartyController extends Controller
                 'display_phone' => $party->mobile ?: $party->phone,
                 'email' => $party->email,
                 'is_insurance_company' => $party->is_insurance_company,
+                'insurance_hourly_rate' => $party->insurance_hourly_rate,
+                'insurance_panel_rate' => $party->insurance_panel_rate,
                 'ubigeo_code' => $party->ubigeo_code,
                 'address' => $party->address,
             ]));

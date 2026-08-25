@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Brand;
 use App\Models\CheckIn;
+use App\Models\Estimate;
 use App\Models\Part;
 use App\Models\PartBrand;
 use App\Models\PartCategory;
@@ -17,6 +18,7 @@ use App\Models\Warehouse;
 use App\Models\WarehouseStock;
 use App\Policies\BrandPolicy;
 use App\Policies\CheckInPolicy;
+use App\Policies\EstimatePolicy;
 use App\Policies\PartBrandPolicy;
 use App\Policies\PartCategoryPolicy;
 use App\Policies\PartPolicy;
@@ -51,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Party::class, PartyPolicy::class);
         Gate::policy(Vehicle::class, VehiclePolicy::class);
         Gate::policy(CheckIn::class, CheckInPolicy::class);
+        Gate::policy(Estimate::class, EstimatePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Part::class, PartPolicy::class);
         Gate::policy(RepairService::class, RepairServicePolicy::class);
