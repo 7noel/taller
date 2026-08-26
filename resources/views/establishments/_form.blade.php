@@ -76,6 +76,34 @@
         <label class="block text-sm font-medium text-gray-700">Tarifa paño por defecto</label>
         <input type="number" step="0.01" min="0" name="default_panel_rate" value="{{ old('default_panel_rate', $establishment->default_panel_rate ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
     </div>
+
+    {{-- Credenciales Evolution API (WhatsApp) por establecimiento --}}
+    <div class="md:col-span-2 mt-4 pt-4 border-t border-gray-200">
+        <h3 class="text-sm font-semibold text-gray-700">Evolution API (WhatsApp)</h3>
+        <p class="text-xs text-gray-500 mt-1">Se copian desde la configuración de empresa al crear el establecimiento.</p>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">API URL</label>
+        <input type="url" name="whatsapp_api_url" value="{{ old('whatsapp_api_url', $establishment->whatsapp_api_url ?? '') }}" placeholder="https://tuevolution.example.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        @error('whatsapp_api_url') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Token API</label>
+        <input type="password" name="whatsapp_api_token" value="{{ old('whatsapp_api_token', $establishment->whatsapp_api_token ?? '') }}" autocomplete="off" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        @error('whatsapp_api_token') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Nombre de instancia</label>
+        <input type="text" name="whatsapp_instance_name" value="{{ old('whatsapp_instance_name', $establishment->whatsapp_instance_name ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        @error('whatsapp_instance_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+    <div class="flex items-center gap-2">
+        <input type="hidden" name="whatsapp_enabled" value="0">
+        <input type="checkbox" id="whatsapp_enabled" name="whatsapp_enabled" value="1"
+               class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+               @checked(old('whatsapp_enabled', $establishment->whatsapp_enabled ?? false))>
+        <label for="whatsapp_enabled" class="text-sm font-medium text-gray-700">Envío de WhatsApp habilitado</label>
+    </div>
 </div>
 
 @push('scripts')

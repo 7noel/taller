@@ -22,6 +22,12 @@ class VehicleService
         $data['created_by'] = Auth::id();
         $data['updated_by'] = Auth::id();
 
+        // Todo vehículo nace con su token de acceso público (portal del cliente).
+        if (empty($data['access_token'])) {
+            $data['access_token'] = Vehicle::generateAccessToken();
+            $data['access_token_created_at'] = now();
+        }
+
         $relationships = $data['relationships'] ?? [];
         unset($data['relationships']);
 
@@ -56,6 +62,34 @@ class VehicleService
         $vehicle->relationships()->delete();
 
         return $vehicle->delete();
+    }
+
+    /**
+     * Regenera el token de acceso público: invalida el enlace anterior al instante.
+     */
+    public function regenerateToken(Vehicle $vehicle): Vehicle
+    {
+        $vehicle->update([
+            'access_token' => Vehicle::generateAccessToken(),
+            'access_token_created_at' => now(),
+            'updated_by' => Auth::id(),
+        ]);
+
+        return $vehicle->fresh();
+    }
+
+    /**
+     * Revoca el enlace público del vehículo (lo deshabilita por completo).
+     */
+    public function revokeToken(Vehicle $vehicle): Vehicle
+    {
+        $vehicle->update([
+            'access_token' => null,
+            'access_token_created_at' => null,
+            'updated_by' => Auth::id(),
+        ]);
+
+        return $vehicle->fresh();
     }
 
     public function createFromSunarp(array $data): Vehicle

@@ -78,8 +78,8 @@
         ])->values();
 
         $numCols = 3;
-        $itemsPerCol = ceil($checklistRows->count() / $numCols);
-        $columns = array_chunk($checklistRows->toArray(), $itemsPerCol);
+        $itemsPerCol = (int) ceil($checklistRows->count() / $numCols);
+        $columns = $itemsPerCol > 0 ? array_chunk($checklistRows->toArray(), $itemsPerCol) : [];
      ?>
 	<title>INVENTARIO: {{ $checkIn->document_sn }}</title>
     <style>

@@ -30,12 +30,32 @@ return new class extends Migration
             $table->text('observations')->nullable();
             $table->enum('status', ['draft', 'pending_approval', 'approved', 'rejected', 'closed'])->default('draft');
 
+            // ===== Quién aprobó/rechazó (usuario interno o cliente vía portal) =====
+            $table->unsignedBigInteger('approved_by_user_id')->nullable();
+            $table->string('approved_by_recipient')->nullable(); // snapshot: nombre del cliente al que se envió el enlace
+            $table->string('approved_by_phone')->nullable();
+            $table->timestamp('approved_at')->nullable();
+            $table->unsignedBigInteger('rejected_by_user_id')->nullable();
+            $table->string('rejected_by_recipient')->nullable();
+            $table->string('rejected_by_phone')->nullable();
+            $table->text('rejection_reason')->nullable();
+            $table->timestamp('rejected_at')->nullable();
+
+            // ===== Último envío del enlace por WhatsApp (se graba al enviar) =====
+            $table->string('last_sent_to')->nullable();
+            $table->string('last_sent_to_phone')->nullable();
+            $table->timestamp('last_sent_at')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('approved_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('rejected_by_user_id')->references('id')->on('users')->nullOnDelete();
 
             $table->index(['vehicle_id', 'status']);
             $table->index('establishment_id');
             $table->index('service_type');
+            $table->index('approved_at');
         });
     }
 

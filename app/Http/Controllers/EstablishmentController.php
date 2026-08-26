@@ -44,9 +44,22 @@ class EstablishmentController extends Controller
 
         $validated = $this->validateData($request, null);
 
-        // Copia el IGV por defecto desde la configuración de empresa si no se envió
+        $setting = CompanySetting::get();
+
+        // Copia el IGV y las credenciales de Evolution API desde la configuración
+        // de empresa si no se enviaron en el formulario.
         if (! array_key_exists('igv_rate', $validated) || $validated['igv_rate'] === null) {
-            $validated['igv_rate'] = CompanySetting::get()?->igv_rate ?? 0.18;
+            $validated['igv_rate'] = $setting?->igv_rate ?? 0.18;
+        }
+
+        foreach (['whatsapp_api_url', 'whatsapp_api_token', 'whatsapp_instance_name'] as $field) {
+            if (empty($validated[$field])) {
+                $validated[$field] = $setting?->{$field} ?? null;
+            }
+        }
+
+        if (! array_key_exists('whatsapp_enabled', $validated) || $validated['whatsapp_enabled'] === null) {
+            $validated['whatsapp_enabled'] = (bool) ($setting?->whatsapp_enabled ?? false);
         }
 
         $establishment = Establishment::create($validated);
@@ -106,6 +119,11 @@ class EstablishmentController extends Controller
                 'celular' => $setting->celular ?? $establishment->celular,
                 'email' => $setting->email ?? $establishment->email,
                 'igv_rate' => $setting->igv_rate ?? $establishment->igv_rate,
+                // Accesos de Evolution API (WhatsApp): se copian también.
+                'whatsapp_api_url' => $setting->whatsapp_api_url ?? $establishment->whatsapp_api_url,
+                'whatsapp_api_token' => $setting->whatsapp_api_token ?? $establishment->whatsapp_api_token,
+                'whatsapp_instance_name' => $setting->whatsapp_instance_name ?? $establishment->whatsapp_instance_name,
+                'whatsapp_enabled' => $setting->whatsapp_enabled ?? $establishment->whatsapp_enabled,
             ]);
         }
 
@@ -144,6 +162,10 @@ class EstablishmentController extends Controller
             'prices_include_tax' => ['sometimes', 'boolean'],
             'default_hourly_rate' => ['nullable', 'numeric', 'min:0'],
             'default_panel_rate' => ['nullable', 'numeric', 'min:0'],
+            'whatsapp_api_url' => ['nullable', 'url', 'max:255'],
+            'whatsapp_api_token' => ['nullable', 'string', 'max:255'],
+            'whatsapp_instance_name' => ['nullable', 'string', 'max:100'],
+            'whatsapp_enabled' => ['sometimes', 'boolean'],
         ]);
     }
 }

@@ -20,6 +20,12 @@ return new class extends Migration
             $table->string('body_type')->nullable();
             $table->date('technical_review_date')->nullable();
             $table->integer('review_reminder_days')->default(15);
+
+            // Token de acceso público del vehículo (portal del cliente).
+            // Se genera al crear el vehículo (ver VehicleService::create).
+            $table->string('access_token', 64)->unique()->nullable();
+            $table->timestamp('access_token_created_at')->nullable();
+
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->softDeletes();

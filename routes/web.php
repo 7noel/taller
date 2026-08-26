@@ -8,6 +8,7 @@ use App\Http\Controllers\EstablishmentController;
 use App\Http\Controllers\EstimateController;
 use App\Http\Controllers\PartController;
 use App\Http\Controllers\PartyController;
+use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RepairServiceController;
 use App\Http\Controllers\StockController;
@@ -34,9 +35,24 @@ Route::get('/api/csrf-token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
 })->name('api.csrf-token');
 
+// ===== Portal público del cliente (un enlace por vehículo) =====
+// Sin autenticación: la seguridad se basa en el token aleatorio de vehicles.access_token.
+Route::prefix('c')->group(function () {
+    Route::get('{token}', [PortalController::class, 'show'])->name('public.portal');
+    Route::get('{token}/check-ins/{checkIn}', [PortalController::class, 'showCheckIn'])->name('public.portal.check-in');
+    Route::get('{token}/estimates/{estimate}', [PortalController::class, 'showEstimate'])->name('public.portal.estimate');
+
+    Route::post('{token}/check-ins/{checkIn}/approve', [PortalController::class, 'approveCheckIn'])->middleware('throttle:10,1')->name('public.portal.check-in.approve');
+    Route::post('{token}/check-ins/{checkIn}/reject', [PortalController::class, 'rejectCheckIn'])->middleware('throttle:10,1')->name('public.portal.check-in.reject');
+    Route::post('{token}/estimates/{estimate}/approve', [PortalController::class, 'approveEstimate'])->middleware('throttle:10,1')->name('public.portal.estimate.approve');
+    Route::post('{token}/estimates/{estimate}/reject', [PortalController::class, 'rejectEstimate'])->middleware('throttle:10,1')->name('public.portal.estimate.reject');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('parties', PartyController::class);
     Route::resource('vehicles', VehicleController::class);
+    Route::post('vehicles/{vehicle}/token/regenerate', [VehicleController::class, 'regenerateToken'])->name('vehicles.token.regenerate');
+    Route::post('vehicles/{vehicle}/token/revoke', [VehicleController::class, 'revokeToken'])->name('vehicles.token.revoke');
     Route::resource('check-ins', CheckInController::class);
     Route::resource('estimates', EstimateController::class);
     Route::resource('users', UserController::class);
@@ -66,6 +82,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('check-ins/{checkIn}/reject', [CheckInController::class, 'reject'])->name('check-ins.reject');
     Route::post('check-ins/{checkIn}/send-to-client', [CheckInController::class, 'sendToClient'])->name('check-ins.send-to-client');
     Route::get('check-ins/{checkIn}/pdf', [CheckInController::class, 'pdf'])->name('check-ins.pdf');
+    Route::post('check-ins/{checkIn}/whatsapp', [CheckInController::class, 'sendWhatsApp'])->name('check-ins.whatsapp');
 
     Route::get('api/check-ins/search', [CheckInController::class, 'search'])->name('api.check-ins.search');
     Route::get('api/check-ins/contacts', [CheckInController::class, 'contacts'])->name('api.check-ins.contacts');
@@ -80,6 +97,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('estimates/{estimate}/send-to-client', [EstimateController::class, 'sendToClient'])->name('estimates.send-to-client');
     Route::post('estimates/{estimate}/approve-client', [EstimateController::class, 'approveClient'])->name('estimates.approve-client');
     Route::post('estimates/{estimate}/reject-client', [EstimateController::class, 'rejectClient'])->name('estimates.reject-client');
+    Route::post('estimates/{estimate}/whatsapp', [EstimateController::class, 'sendWhatsApp'])->name('estimates.whatsapp');
     Route::post('estimates/{estimate}/start-repair', [EstimateController::class, 'startRepair'])->name('estimates.start-repair');
     Route::post('estimates/{estimate}/finalize', [EstimateController::class, 'finalize'])->name('estimates.finalize');
     Route::post('estimates/{estimate}/return-to-draft', [EstimateController::class, 'returnToDraft'])->name('estimates.return-to-draft');

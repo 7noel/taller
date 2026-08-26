@@ -18,6 +18,14 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('code')->unique();
+
+            // Credenciales Evolution API (WhatsApp) por establecimiento.
+            // Se copian desde company_settings al crear (ver EstablishmentController).
+            $table->string('whatsapp_api_url')->nullable();
+            $table->string('whatsapp_api_token')->nullable();
+            $table->string('whatsapp_instance_name')->nullable();
+            $table->boolean('whatsapp_enabled')->default(false);
+
             $table->timestamps();
         });
     }

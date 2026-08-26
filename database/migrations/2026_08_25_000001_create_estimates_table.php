@@ -47,10 +47,30 @@ return new class extends Migration
             $table->decimal('franchise_percentage_applied', 12, 2)->nullable();
             $table->decimal('franchise_amount', 12, 2)->nullable();
             $table->string('status')->default('draft');
+
+            // ===== Quién aprobó/rechazó el gate del CLIENTE (usuario o vía portal) =====
+            $table->unsignedBigInteger('approved_by_user_id')->nullable();
+            $table->string('approved_by_recipient')->nullable();
+            $table->string('approved_by_phone')->nullable();
+            $table->timestamp('approved_at')->nullable();
+            $table->unsignedBigInteger('rejected_by_user_id')->nullable();
+            $table->string('rejected_by_recipient')->nullable();
+            $table->string('rejected_by_phone')->nullable();
+            $table->text('rejection_reason')->nullable();
+            $table->timestamp('rejected_at')->nullable();
+
+            // ===== Último envío del enlace por WhatsApp =====
+            $table->string('last_sent_to')->nullable();
+            $table->string('last_sent_to_phone')->nullable();
+            $table->timestamp('last_sent_at')->nullable();
+
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
+
+            $table->foreign('approved_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('rejected_by_user_id')->references('id')->on('users')->nullOnDelete();
 
             $table->foreign('check_in_id')->references('id')->on('check_ins')->nullOnDelete();
             $table->foreign('vehicle_id')->references('id')->on('vehicles')->restrictOnDelete();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EstimateRequest;
+use App\Jobs\SendWhatsAppMessage;
 use App\Models\CheckIn;
 use App\Models\Estimate;
 use App\Models\PartCategory;
@@ -11,6 +12,8 @@ use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Services\EstimateCalculationService;
 use App\Services\EstimateService;
+use App\Services\NotificationService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -81,7 +84,29 @@ class EstimateController extends Controller
 
         $grouped = $this->service->getClientGroupedItems($estimate);
 
-        return view('estimates.show', compact('estimate', 'grouped'));
+        // Datos para el botón "Enviar por WhatsApp" / "Copiar enlace" del portal.
+        $vehicle = $estimate->vehicle;
+        $recipient = $vehicle ? $this->service->resolveRecipient($vehicle) : null;
+        $publicLink = $vehicle?->public_link;
+        $initialMessage = app(NotificationService::class)->buildMessage('estimate_ready', [
+            'recipient' => $recipient['contact_name'] ?? 'cliente',
+            'plate' => $vehicle?->plate ?? '',
+            'sn' => $estimate->document_sn,
+            'total' => number_format((float) $estimate->total, 2) . ' ' . ($estimate->currency ?? 'PEN'),
+            'link' => $publicLink ?? '',
+        ]);
+        $recipientsUrl = $vehicle ? route('api.vehicles.recipients', $vehicle) : '';
+        $actionUrl = route('estimates.whatsapp', $estimate);
+
+        return view('estimates.show', compact(
+            'estimate',
+            'grouped',
+            'recipient',
+            'publicLink',
+            'initialMessage',
+            'recipientsUrl',
+            'actionUrl'
+        ));
     }
 
     public function edit(Estimate $estimate): View
@@ -251,6 +276,55 @@ class EstimateController extends Controller
         $this->service->changeStatus($estimate, 'rejected_client', $request->input('reason'));
 
         return back()->with('success', 'Presupuesto rechazado por el cliente.');
+    }
+
+    /**
+     * Envía el enlace del portal por WhatsApp (wa.me manual o Evolution API en cola).
+     *
+     * Graba el snapshot del destinatario (last_sent_to / last_sent_to_phone) en el
+     * momento del envío: será quien aparezca como responsable si el cliente aprueba
+     * o rechaza el presupuesto desde el portal.
+     */
+    public function sendWhatsApp(Request $request, Estimate $estimate)
+    {
+        Gate::authorize('view', $estimate);
+
+        $validated = $request->validate([
+            'recipient_name' => ['nullable', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:30'],
+            'message' => ['required', 'string', 'max:1500'],
+            'send_method' => ['required', 'in:wa_me,api'],
+        ]);
+
+        $estimate->update([
+            'last_sent_to' => $validated['recipient_name'] ?: null,
+            'last_sent_to_phone' => $validated['phone'],
+            'last_sent_at' => now(),
+        ]);
+
+        $establishment = $estimate->establishment ?? auth()->user()?->establishment;
+
+        if ($validated['send_method'] === 'api') {
+            $whatsapp = app(WhatsAppService::class);
+            $credentials = $establishment ? $whatsapp->resolveCredentials($establishment) : [];
+            $configured = $establishment
+                && ! empty($credentials['api_url'])
+                && ! empty($credentials['token'])
+                && ! empty($credentials['instance'])
+                && $credentials['enabled'];
+
+            if (! $configured) {
+                return back()->with('error', 'WhatsApp no está configurado en este establecimiento. Configura API URL, Token, Instancia y habilita el envío (o usa "Abrir WhatsApp").');
+            }
+
+            SendWhatsAppMessage::dispatch($establishment, $validated['phone'], $validated['message']);
+
+            return back()->with('success', 'Mensaje encolado para envío por WhatsApp.');
+        }
+
+        $waLink = app(WhatsAppService::class)->buildWaLink($validated['phone'], $validated['message']);
+
+        return redirect()->away($waLink);
     }
 
     public function startRepair(Estimate $estimate)

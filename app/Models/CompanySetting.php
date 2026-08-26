@@ -28,11 +28,14 @@ class CompanySetting extends Model
         'facturador_secret',
         'whatsapp_api_url',
         'whatsapp_api_token',
+        'whatsapp_instance_name',
+        'whatsapp_enabled',
     ];
 
     protected $casts = [
         'default_number_source' => 'string',
         'facturador_provider' => 'string',
+        'whatsapp_enabled' => 'boolean',
     ];
 
     /**

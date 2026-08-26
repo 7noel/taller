@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckInRequest;
+use App\Jobs\SendWhatsAppMessage;
 use App\Models\CheckIn;
 use App\Models\CheckInChecklistItem;
-use App\Models\CompanySetting;
 use App\Models\Party;
 use App\Models\Vehicle;
+use App\Services\CheckInPdfService;
 use App\Services\CheckInService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\EstimateService;
+use App\Services\NotificationService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -70,35 +74,33 @@ class CheckInController extends Controller
             'photos',
         ]);
 
-        return view('check-ins.show', compact('checkIn'));
+        // Datos para el botón "Enviar por WhatsApp" / "Copiar enlace" del portal.
+        $vehicle = $checkIn->vehicle;
+        $recipient = $vehicle ? app(EstimateService::class)->resolveRecipient($vehicle) : null;
+        $publicLink = $vehicle?->public_link;
+        $initialMessage = app(NotificationService::class)->buildMessage('checkin_ready', [
+            'recipient' => $recipient['contact_name'] ?? 'cliente',
+            'plate' => $vehicle?->plate ?? '',
+            'link' => $publicLink ?? '',
+        ]);
+        $recipientsUrl = $vehicle ? route('api.vehicles.recipients', $vehicle) : '';
+        $actionUrl = route('check-ins.whatsapp', $checkIn);
+
+        return view('check-ins.show', compact(
+            'checkIn',
+            'recipient',
+            'publicLink',
+            'initialMessage',
+            'recipientsUrl',
+            'actionUrl'
+        ));
     }
 
-    public function pdf(CheckIn $checkIn)
+    public function pdf(CheckIn $checkIn): Response
     {
         Gate::authorize('view', $checkIn);
 
-        $checkIn->load([
-            'vehicle.vehicleModel.brand',
-            'vehicle.relationships.party',
-            'client.ubigeo',
-            'insuranceCompany',
-            'establishment.ubigeo',
-            'creator',
-            'checklistResults.checklistItem',
-            'damages',
-        ]);
-
-        $company = CompanySetting::get();
-
-        $checklistItems = CheckInChecklistItem::query()
-            ->where('is_active', true)
-            ->orderBy('order')
-            ->get();
-
-        $pdf = Pdf::loadView('check-ins.pdf', compact('checkIn', 'company', 'checklistItems'))
-            ->setPaper('a4', 'portrait');
-
-        return $pdf->stream('inventario-' . ($checkIn->document_sn ?? $checkIn->id) . '.pdf');
+        return app(CheckInPdfService::class)->serve($checkIn);
     }
 
     public function edit(CheckIn $checkIn): View
@@ -171,6 +173,55 @@ class CheckInController extends Controller
         $this->checkInService->reject($checkIn, $request->input('reason'));
 
         return back()->with('success', 'Inventario rechazado.');
+    }
+
+    /**
+     * Envía el enlace del portal por WhatsApp (wa.me manual o Evolution API en cola).
+     *
+     * Graba el snapshot del destinatario (last_sent_to / last_sent_to_phone) en el
+     * momento del envío: será quien aparezca como responsable si el cliente aprueba
+     * o rechaza desde el portal.
+     */
+    public function sendWhatsApp(Request $request, CheckIn $checkIn)
+    {
+        Gate::authorize('view', $checkIn);
+
+        $validated = $request->validate([
+            'recipient_name' => ['nullable', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:30'],
+            'message' => ['required', 'string', 'max:1500'],
+            'send_method' => ['required', 'in:wa_me,api'],
+        ]);
+
+        $checkIn->update([
+            'last_sent_to' => $validated['recipient_name'] ?: null,
+            'last_sent_to_phone' => $validated['phone'],
+            'last_sent_at' => now(),
+        ]);
+
+        $establishment = $checkIn->establishment ?? auth()->user()?->establishment;
+
+        if ($validated['send_method'] === 'api') {
+            $whatsapp = app(WhatsAppService::class);
+            $credentials = $establishment ? $whatsapp->resolveCredentials($establishment) : [];
+            $configured = $establishment
+                && ! empty($credentials['api_url'])
+                && ! empty($credentials['token'])
+                && ! empty($credentials['instance'])
+                && $credentials['enabled'];
+
+            if (! $configured) {
+                return back()->with('error', 'WhatsApp no está configurado en este establecimiento. Configura API URL, Token, Instancia y habilita el envío (o usa "Abrir WhatsApp").');
+            }
+
+            SendWhatsAppMessage::dispatch($establishment, $validated['phone'], $validated['message']);
+
+            return back()->with('success', 'Mensaje encolado para envío por WhatsApp.');
+        }
+
+        $waLink = app(WhatsAppService::class)->buildWaLink($validated['phone'], $validated['message']);
+
+        return redirect()->away($waLink);
     }
 
     public function search(Request $request): JsonResponse

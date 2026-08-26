@@ -54,6 +54,18 @@ class Estimate extends Model
         'status',
         'created_by',
         'updated_by',
+        'approved_by_user_id',
+        'approved_by_recipient',
+        'approved_by_phone',
+        'approved_at',
+        'rejected_by_user_id',
+        'rejected_by_recipient',
+        'rejected_by_phone',
+        'rejection_reason',
+        'rejected_at',
+        'last_sent_to',
+        'last_sent_to_phone',
+        'last_sent_at',
     ];
 
     protected $casts = [
@@ -75,6 +87,9 @@ class Estimate extends Model
         'franchise_base' => 'float',
         'franchise_percentage_applied' => 'float',
         'franchise_amount' => 'float',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'last_sent_at' => 'datetime',
     ];
 
     public const STATUS_LABELS = [
@@ -203,5 +218,49 @@ class Estimate extends Model
     public function thirdPartyOrders()
     {
         return $this->hasMany(ThirdPartyOrder::class)->orderBy('id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by_user_id');
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by_user_id');
+    }
+
+    /**
+     * Etiqueta legible de quién aprobó el gate del cliente (usuario o vía portal).
+     */
+    public function getApprovedByLabelAttribute(): string
+    {
+        if ($this->approved_by_user_id) {
+            return 'Aprobado por ' . ($this->approvedBy?->name ?? 'usuario del sistema') . ' (asesor)';
+        }
+
+        if ($this->approved_by_recipient) {
+            $label = 'Aprobado por ' . $this->approved_by_recipient . ' (cliente, vía WhatsApp)';
+            return $this->approved_at ? $label . ' · ' . $this->approved_at->format('d/m/Y H:i') : $label;
+        }
+
+        return 'Sin aprobación de cliente registrada';
+    }
+
+    /**
+     * Etiqueta legible de quién rechazó el gate del cliente.
+     */
+    public function getRejectedByLabelAttribute(): string
+    {
+        if ($this->rejected_by_user_id) {
+            return 'Rechazado por ' . ($this->rejectedBy?->name ?? 'usuario del sistema') . ' (asesor)';
+        }
+
+        if ($this->rejected_by_recipient) {
+            $label = 'Rechazado por ' . $this->rejected_by_recipient . ' (cliente, vía WhatsApp)';
+            return $this->rejected_at ? $label . ' · ' . $this->rejected_at->format('d/m/Y H:i') : $label;
+        }
+
+        return 'Sin rechazo de cliente registrado';
     }
 }

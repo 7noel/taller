@@ -172,6 +172,17 @@
                                 <label class="block text-sm font-medium text-gray-700">Token (WhatsApp)</label>
                                 <input type="password" name="whatsapp_api_token" value="{{ old('whatsapp_api_token', $setting->whatsapp_api_token) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Instancia (WhatsApp)</label>
+                                <input type="text" name="whatsapp_instance_name" value="{{ old('whatsapp_instance_name', $setting->whatsapp_instance_name) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="whatsapp_enabled" value="0">
+                                <input type="checkbox" id="whatsapp_enabled" name="whatsapp_enabled" value="1"
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                                       @checked(old('whatsapp_enabled', $setting->whatsapp_enabled ?? false))>
+                                <label for="whatsapp_enabled" class="text-sm font-medium text-gray-700">Envío de WhatsApp habilitado</label>
+                            </div>
                         </div>
                     </div>
 

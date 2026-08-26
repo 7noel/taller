@@ -6,6 +6,7 @@ use App\Models\CheckIn;
 use App\Models\CheckInChecklistResult;
 use App\Models\CheckInDamage;
 use App\Models\Party;
+use App\Models\PublicApprovalLog;
 use App\Models\VehicleRelationship;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -100,32 +101,132 @@ class CheckInService
     }
 
     /**
-     * Aprueba el inventario.
+     * Aprueba el inventario (usuario interno: asesor o administrador).
+     * Registra quién aprobó en approved_by_user_id y en el log de auditoría.
      */
     public function approve(CheckIn $checkIn): CheckIn
     {
-        $checkIn->update([
-            'status' => 'approved',
-            'updated_by' => Auth::id(),
-        ]);
+        DB::transaction(function () use ($checkIn) {
+            $checkIn->update([
+                'status' => 'approved',
+                'approved_by_user_id' => Auth::id(),
+                'approved_at' => now(),
+                'updated_by' => Auth::id(),
+            ]);
+
+            $this->logApproval($checkIn, 'approved', 'internal', Auth::id());
+        });
 
         return $checkIn->fresh();
     }
 
     /**
-     * Rechaza el inventario.
+     * Rechaza el inventario (usuario interno).
      */
     public function reject(CheckIn $checkIn, ?string $reason = null): CheckIn
     {
-        $checkIn->update([
-            'status' => 'rejected',
-            'updated_by' => Auth::id(),
-            'observations' => $reason
-                ? trim($checkIn->observations . "\n" . 'Rechazo: ' . $reason)
-                : $checkIn->observations,
-        ]);
+        DB::transaction(function () use ($checkIn, $reason) {
+            $checkIn->update([
+                'status' => 'rejected',
+                'rejected_by_user_id' => Auth::id(),
+                'rejected_at' => now(),
+                'rejection_reason' => $reason ?: $checkIn->rejection_reason,
+                'observations' => $reason
+                    ? trim($checkIn->observations . "\n" . 'Rechazo: ' . $reason)
+                    : $checkIn->observations,
+                'updated_by' => Auth::id(),
+            ]);
+
+            $this->logApproval($checkIn, 'rejected', 'internal', Auth::id(), $reason);
+        });
 
         return $checkIn->fresh();
+    }
+
+    /**
+     * Aprueba el inventario desde el portal del cliente.
+     *
+     * El snapshot del destinatario (a quién se le envió el enlace por última vez)
+     * ya quedó grabado en last_sent_to / last_sent_to_phone al momento del envío
+     * y se copia aquí como responsable de la aprobación.
+     */
+    public function approveByClient(CheckIn $checkIn, string $ip = '', string $userAgent = ''): CheckIn
+    {
+        if ($checkIn->status !== 'pending_approval') {
+            throw new RuntimeException('Este inventario ya no está pendiente de aprobación.');
+        }
+
+        DB::transaction(function () use ($checkIn, $ip, $userAgent) {
+            $recipient = $checkIn->last_sent_to ?: $checkIn->client?->display_name;
+            $phone = $checkIn->last_sent_to_phone;
+
+            $checkIn->update([
+                'status' => 'approved',
+                'approved_by_recipient' => $recipient,
+                'approved_by_phone' => $phone,
+                'approved_at' => now(),
+            ]);
+
+            $this->logApproval($checkIn, 'approved', 'portal', null, null, $recipient, $phone, $ip, $userAgent);
+        });
+
+        return $checkIn->fresh();
+    }
+
+    /**
+     * Rechaza el inventario desde el portal del cliente (el motivo es obligatorio).
+     */
+    public function rejectByClient(CheckIn $checkIn, string $reason, string $ip = '', string $userAgent = ''): CheckIn
+    {
+        if ($checkIn->status !== 'pending_approval') {
+            throw new RuntimeException('Este inventario ya no está pendiente de aprobación.');
+        }
+
+        DB::transaction(function () use ($checkIn, $reason, $ip, $userAgent) {
+            $recipient = $checkIn->last_sent_to ?: $checkIn->client?->display_name;
+            $phone = $checkIn->last_sent_to_phone;
+
+            $checkIn->update([
+                'status' => 'rejected',
+                'rejected_by_recipient' => $recipient,
+                'rejected_by_phone' => $phone,
+                'rejection_reason' => $reason,
+                'rejected_at' => now(),
+            ]);
+
+            $this->logApproval($checkIn, 'rejected', 'portal', null, $reason, $recipient, $phone, $ip, $userAgent);
+        });
+
+        return $checkIn->fresh();
+    }
+
+    /**
+     * Registra la aprobación/rechazo (interno o portal) en public_approval_logs.
+     */
+    protected function logApproval(
+        CheckIn $checkIn,
+        string $action,
+        string $actorType,
+        ?int $userId = null,
+        ?string $reason = null,
+        ?string $recipient = null,
+        ?string $phone = null,
+        string $ip = '',
+        string $userAgent = ''
+    ): void {
+        PublicApprovalLog::create([
+            'vehicle_id' => $checkIn->vehicle_id,
+            'action' => $action,
+            'entity_type' => 'check_in',
+            'entity_id' => $checkIn->id,
+            'actor_type' => $actorType,
+            'actor_user_id' => $userId,
+            'actor_recipient' => $recipient,
+            'actor_phone' => $phone,
+            'reason' => $reason,
+            'ip_address' => $ip ?: null,
+            'user_agent' => $userAgent ?: null,
+        ]);
     }
 
     /**

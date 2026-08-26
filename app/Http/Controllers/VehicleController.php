@@ -90,6 +90,30 @@ class VehicleController extends Controller
             ->with('success', 'Vehículo eliminado correctamente.');
     }
 
+    /**
+     * Regenera el enlace público del vehículo (invalida el anterior).
+     */
+    public function regenerateToken(Vehicle $vehicle)
+    {
+        Gate::authorize('update', $vehicle);
+
+        $this->vehicleService->regenerateToken($vehicle);
+
+        return back()->with('success', 'Enlace público regenerado. El enlace anterior quedó invalidado.');
+    }
+
+    /**
+     * Revoca (deshabilita) el enlace público del vehículo.
+     */
+    public function revokeToken(Vehicle $vehicle)
+    {
+        Gate::authorize('update', $vehicle);
+
+        $this->vehicleService->revokeToken($vehicle);
+
+        return back()->with('success', 'Enlace público del vehículo revocado.');
+    }
+
     public function search(Request $request): JsonResponse
     {
         Gate::authorize('viewAny', Vehicle::class);

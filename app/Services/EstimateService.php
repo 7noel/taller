@@ -8,6 +8,7 @@ use App\Models\Estimate;
 use App\Models\EstimateItem;
 use App\Models\Part;
 use App\Models\Party;
+use App\Models\PublicApprovalLog;
 use App\Models\RepairService;
 use App\Models\ThirdPartyOrder;
 use App\Models\Vehicle;
@@ -276,7 +277,13 @@ class EstimateService
     }
 
     /**
-     * Valida y registra el cambio de estado.
+     * Valida y registra el cambio de estado (usuario interno).
+     *
+     * Cuando el nuevo estado es una aprobación/rechazo (seguro o cliente), registra
+     * en las columnas approved_by_* / rejected_by_* quién lo hizo y escribe el log
+     * de auditoría public_approval_logs. La aprobación del seguro y del cliente
+     * comparten las columnas: gana la última (el gate final habilita la reparación);
+     * el historial completo queda en estimate_status_history.
      */
     public function changeStatus(Estimate $estimate, string $newStatus, ?string $reason = null): Estimate
     {
@@ -288,10 +295,25 @@ class EstimateService
         }
 
         DB::transaction(function () use ($estimate, $from, $newStatus, $reason) {
-            $estimate->update([
+            $approvalFields = [];
+
+            if (in_array($newStatus, ['approved_insurance', 'approved_client'], true)) {
+                $approvalFields = [
+                    'approved_by_user_id' => Auth::id(),
+                    'approved_at' => now(),
+                ];
+            } elseif (in_array($newStatus, ['rejected_insurance', 'rejected_client'], true)) {
+                $approvalFields = [
+                    'rejected_by_user_id' => Auth::id(),
+                    'rejected_at' => now(),
+                    'rejection_reason' => $reason,
+                ];
+            }
+
+            $estimate->update(array_merge([
                 'status' => $newStatus,
                 'updated_by' => Auth::id(),
-            ]);
+            ], $approvalFields));
 
             $estimate->statusHistory()->create([
                 'from_status' => $from,
@@ -299,9 +321,105 @@ class EstimateService
                 'user_id' => Auth::id(),
                 'comments' => $reason,
             ]);
+
+            if (in_array($newStatus, ['approved_insurance', 'rejected_insurance', 'approved_client', 'rejected_client'], true)) {
+                $this->logApproval(
+                    $estimate,
+                    str_starts_with($newStatus, 'approved') ? 'approved' : 'rejected',
+                    'internal',
+                    $reason
+                );
+            }
         });
 
         return $estimate->fresh();
+    }
+
+    /**
+     * Cambia el estado del presupuesto desde el portal del cliente.
+     *
+     * Solo permite la aprobación/rechazo del gate del cliente (sent_client →
+     * approved_client / rejected_client). El responsable se copia del snapshot
+     * last_sent_to / last_sent_to_phone grabado al momento del envío del enlace.
+     */
+    public function changeStatusByClient(
+        Estimate $estimate,
+        string $newStatus,
+        ?string $reason = null,
+        string $ip = '',
+        string $userAgent = ''
+    ): Estimate {
+        $from = $estimate->status;
+        $allowed = self::TRANSITIONS[$from] ?? [];
+
+        if (!in_array($newStatus, $allowed, true)) {
+            throw new RuntimeException("Transición de estado inválida: {$from} → {$newStatus}.");
+        }
+
+        if (!in_array($newStatus, ['approved_client', 'rejected_client'], true)) {
+            throw new RuntimeException('El portal del cliente solo puede aprobar o rechazar la aprobación del cliente.');
+        }
+
+        $recipient = $estimate->last_sent_to ?: $estimate->contact_name ?: $estimate->client?->display_name;
+        $phone = $estimate->last_sent_to_phone ?: $estimate->contact_phone;
+
+        DB::transaction(function () use ($estimate, $from, $newStatus, $reason, $recipient, $phone, $ip, $userAgent) {
+            $approvalFields = $newStatus === 'approved_client'
+                ? ['approved_by_recipient' => $recipient, 'approved_by_phone' => $phone, 'approved_at' => now()]
+                : ['rejected_by_recipient' => $recipient, 'rejected_by_phone' => $phone, 'rejection_reason' => $reason, 'rejected_at' => now()];
+
+            $estimate->update(array_merge(['status' => $newStatus], $approvalFields));
+
+            $estimate->statusHistory()->create([
+                'from_status' => $from,
+                'to_status' => $newStatus,
+                'user_id' => null,
+                'comments' => $reason ?: ($newStatus === 'approved_client'
+                    ? 'Aprobado por el cliente vía portal'
+                    : 'Rechazado por el cliente vía portal'),
+            ]);
+
+            $this->logApproval(
+                $estimate,
+                $newStatus === 'approved_client' ? 'approved' : 'rejected',
+                'portal',
+                $reason,
+                $recipient,
+                $phone,
+                $ip,
+                $userAgent
+            );
+        });
+
+        return $estimate->fresh();
+    }
+
+    /**
+     * Registra la aprobación/rechazo (interno o portal) en public_approval_logs.
+     */
+    protected function logApproval(
+        Estimate $estimate,
+        string $action,
+        string $actorType,
+        ?string $reason = null,
+        ?string $recipient = null,
+        ?string $phone = null,
+        string $ip = '',
+        string $userAgent = ''
+    ): void {
+        PublicApprovalLog::create([
+            'vehicle_id' => $estimate->vehicle_id,
+            'action' => $action,
+            'entity_type' => 'estimate',
+            'entity_id' => $estimate->id,
+            'actor_type' => $actorType,
+            'actor_user_id' => $actorType === 'internal' ? Auth::id() : null,
+            'actor_recipient' => $recipient,
+            'actor_phone' => $phone,
+            'reason' => $reason,
+            'ip_address' => $ip ?: null,
+            'user_agent' => $userAgent ?: null,
+        ]);
     }
 
     /**

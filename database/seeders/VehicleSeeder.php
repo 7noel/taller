@@ -29,6 +29,10 @@ class VehicleSeeder extends Seeder
             $vehicle['brand_id'] = $brand->id;
             $vehicle['model_id'] = $model->id;
 
+            // Todo vehículo se crea con su token de acceso público (portal del cliente).
+            $vehicle['access_token'] = Vehicle::generateAccessToken();
+            $vehicle['access_token_created_at'] = now();
+
             Vehicle::firstOrCreate(['plate' => $vehicle['plate']], $vehicle);
         }
     }

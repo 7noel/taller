@@ -17,12 +17,14 @@ class Vehicle extends Model
     protected $fillable = [
         'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
         'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+        'access_token', 'access_token_created_at',
         'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'technical_review_date' => 'date',
         'review_reminder_days' => 'integer',
+        'access_token_created_at' => 'datetime',
     ];
 
     public function getActivitylogOptions(): LogOptions
@@ -94,5 +96,28 @@ class Vehicle extends Model
     public function owner()
     {
         return $this->hasOne(VehicleRelationship::class)->where('role', 'owner');
+    }
+
+    /**
+     * Genera un token de acceso público único para el portal del cliente.
+     * Se guarda en la columna access_token de vehicles (token plano, no hasheado)
+     * para poder reconstruir y copiar el enlace en cualquier momento.
+     */
+    public static function generateAccessToken(): string
+    {
+        return \Illuminate\Support\Str::random(64);
+    }
+
+    /**
+     * Enlace público del portal del vehículo (ej. {APP_URL}/c/Ab3xY...).
+     */
+    public function getPublicLinkAttribute(): ?string
+    {
+        return $this->access_token ? url('/c/' . $this->access_token) : null;
+    }
+
+    public function approvalLogs()
+    {
+        return $this->hasMany(PublicApprovalLog::class);
     }
 }

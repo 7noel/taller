@@ -11,6 +11,16 @@
                 @endif
             </div>
             <div class="flex flex-wrap gap-2">
+                @if ($publicLink)
+                    <button type="button" data-whatsapp-open class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase hover:bg-gray-50">
+                        <svg class="h-4 w-4 mr-1.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.2 14.2c-.2.6-1.2 1.2-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.1c.2-.3.5-.3.7-.3h.5c.2 0 .4-.1.6.4.2.6.7 2 .8 2.1.1.1.1.3 0 .5-.1.2-.1.3-.3.5l-.4.5c-.1.1-.3.3-.1.5.2.3.8 1.3 1.7 2.1 1.2 1.1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 .9c.3.2.5.3.6.4.1.2.1.7-.1 1.3z"/></svg>
+                        WhatsApp
+                    </button>
+                    <button type="button" data-copy-link="{{ $publicLink }}" title="Copiar enlace del portal del cliente" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase hover:bg-gray-50">
+                        <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m9.314-9.314a4 4 0 00-5.656 0l-1.5 1.5"/></svg>
+                        Copiar enlace
+                    </button>
+                @endif
                 @can('update', $estimate)
                     @if (!$estimate->is_final)
                         <a href="{{ route('estimates.edit', $estimate) }}" class="btn btn-secondary">Editar</a>
@@ -110,6 +120,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             @if (session('success'))
                 <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{{ session('error') }}</div>
             @endif
 
             <div class="mb-4 flex items-center gap-2">
@@ -294,4 +307,14 @@
             @endif
         </div>
     </div>
+
+    @include('partials.whatsapp-modal')
+
+    @push('scripts')
+    @include('partials.whatsapp-modal-scripts', [
+        'actionUrl' => $actionUrl ?? '',
+        'recipientsUrl' => $recipientsUrl ?? '',
+        'initialMessage' => $initialMessage ?? '',
+    ])
+    @endpush
 </x-app-layout>

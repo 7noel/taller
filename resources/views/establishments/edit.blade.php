@@ -38,7 +38,7 @@
                     <div class="mt-6 pt-6 border-t border-gray-200">
                         <h3 class="text-sm font-semibold text-gray-700 mb-3">Acciones rápidas</h3>
                         <div class="flex flex-wrap gap-2">
-                            <form method="POST" action="{{ route('establishments.copy-from-company', $establishment) }}" data-confirm="¿Copiar dirección, teléfono, celular, email y ubigeo desde la configuración de empresa? No se copiará RUC, Razón Social ni Nombre Comercial.">
+                            <form method="POST" action="{{ route('establishments.copy-from-company', $establishment) }}" data-confirm="¿Copiar dirección, teléfono, celular, email, ubigeo y los accesos de Evolution API (WhatsApp) desde la configuración de empresa? No se copiará RUC, Razón Social ni Nombre Comercial.">
                                 @csrf
                                 <button type="submit" class="btn btn-secondary">
                                     <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3m2-8V4a1 1 0 00-1-1h-3m4 0v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V4m-4 8l-3 3m0 0l3 3m-3-3h12"/></svg>

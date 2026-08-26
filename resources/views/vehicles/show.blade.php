@@ -112,6 +112,48 @@
                     </div>
                 </div>
             </div>
+            {{-- Enlace público del portal del cliente --}}
+            <div class="card mt-4">
+                <div class="p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">Enlace público del cliente</h3>
+                            <p class="text-sm text-gray-500 mt-1">El cliente abre este enlace para aprobar inventarios y presupuestos, ver avances e histórico.</p>
+                        </div>
+                        @if ($vehicle->access_token)
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" data-copy-link="{{ $vehicle->public_link }}" title="Copiar enlace del portal del cliente" class="btn btn-secondary">
+                                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m9.314-9.314a4 4 0 00-5.656 0l-1.5 1.5"/></svg>
+                                    Copiar enlace
+                                </button>
+                                <form method="POST" action="{{ route('vehicles.token.regenerate', $vehicle) }}" data-confirm="¿Regenerar el enlace público? El enlace anterior quedará invalidado al instante.">
+                                    @csrf
+                                    <button type="submit" class="btn btn-secondary">Regenerar</button>
+                                </form>
+                                <form method="POST" action="{{ route('vehicles.token.revoke', $vehicle) }}" data-confirm="¿Revocar el enlace público? El cliente ya no podrá acceder con ese enlace.">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger">Revocar</button>
+                                </form>
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route('vehicles.token.regenerate', $vehicle) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-primary">Generar enlace</button>
+                            </form>
+                        @endif
+                    </div>
+                    @if ($vehicle->access_token)
+                        <div class="mt-4 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm break-all">
+                            <span class="text-gray-500">Enlace: </span>
+                            <a href="{{ $vehicle->public_link }}" target="_blank" class="text-blue-600 hover:underline">{{ $vehicle->public_link }}</a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
         </div>
     </div>
+    @push('scripts')
+    @include('partials.whatsapp-modal-scripts')
+    @endpush
 </x-app-layout>

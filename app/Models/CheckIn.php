@@ -38,6 +38,18 @@ class CheckIn extends Model
         'client_request',
         'observations',
         'status',
+        'approved_by_user_id',
+        'approved_by_recipient',
+        'approved_by_phone',
+        'approved_at',
+        'rejected_by_user_id',
+        'rejected_by_recipient',
+        'rejected_by_phone',
+        'rejection_reason',
+        'rejected_at',
+        'last_sent_to',
+        'last_sent_to_phone',
+        'last_sent_at',
     ];
 
     protected $casts = [
@@ -47,6 +59,9 @@ class CheckIn extends Model
         'technical_review_expiration' => 'date',
         'keys_count' => 'integer',
         'mileage' => 'integer',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'last_sent_at' => 'datetime',
     ];
 
     public const STATUS_LABELS = [
@@ -170,5 +185,54 @@ class CheckIn extends Model
     public function photos()
     {
         return $this->hasMany(CheckInPhoto::class)->orderBy('order');
+    }
+
+    public function estimates()
+    {
+        return $this->hasMany(Estimate::class, 'check_in_id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by_user_id');
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by_user_id');
+    }
+
+    /**
+     * Etiqueta legible de quién aprobó el inventario (usuario interno o cliente vía portal).
+     */
+    public function getApprovedByLabelAttribute(): string
+    {
+        if ($this->approved_by_user_id) {
+            return 'Aprobado por ' . ($this->approvedBy?->name ?? 'usuario del sistema') . ' (asesor)';
+        }
+
+        if ($this->approved_by_recipient) {
+            $label = 'Aprobado por ' . $this->approved_by_recipient . ' (cliente, vía WhatsApp)';
+            return $this->approved_at ? $label . ' · ' . $this->approved_at->format('d/m/Y H:i') : $label;
+        }
+
+        return 'Sin aprobación registrada';
+    }
+
+    /**
+     * Etiqueta legible de quién rechazó el inventario.
+     */
+    public function getRejectedByLabelAttribute(): string
+    {
+        if ($this->rejected_by_user_id) {
+            return 'Rechazado por ' . ($this->rejectedBy?->name ?? 'usuario del sistema') . ' (asesor)';
+        }
+
+        if ($this->rejected_by_recipient) {
+            $label = 'Rechazado por ' . $this->rejected_by_recipient . ' (cliente, vía WhatsApp)';
+            return $this->rejected_at ? $label . ' · ' . $this->rejected_at->format('d/m/Y H:i') : $label;
+        }
+
+        return 'Sin rechazo registrado';
     }
 }

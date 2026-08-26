@@ -21,6 +21,10 @@ class Establishment extends Model
         'prices_include_tax',
         'default_hourly_rate',
         'default_panel_rate',
+        'whatsapp_api_url',
+        'whatsapp_api_token',
+        'whatsapp_instance_name',
+        'whatsapp_enabled',
     ];
 
     protected $casts = [
@@ -28,6 +32,7 @@ class Establishment extends Model
         'prices_include_tax' => 'boolean',
         'default_hourly_rate' => 'float',
         'default_panel_rate' => 'float',
+        'whatsapp_enabled' => 'boolean',
     ];
 
     public function ubigeo(): BelongsTo

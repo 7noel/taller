@@ -28,6 +28,8 @@ return new class extends Migration
             $table->string('facturador_secret')->nullable();
             $table->string('whatsapp_api_url')->nullable();
             $table->string('whatsapp_api_token')->nullable();
+            $table->string('whatsapp_instance_name')->nullable();
+            $table->boolean('whatsapp_enabled')->default(false);
             $table->timestamps();
 
             $table->foreign('ubigeo_code')->references('code')->on('ubigeos')->nullOnDelete();
