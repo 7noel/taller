@@ -200,8 +200,8 @@
         	text-transform: uppercase;
         }
 .legend-icon{
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     vertical-align: middle;
     margin-right: 6px;
 }
@@ -388,12 +388,12 @@
                      style="position: absolute; 
                             left: {{ $x_px }}px; 
                             top: {{ $y_px }}px; 
-                            width: 14px; 
-                            height: 14px; 
+                            width: 16px; 
+                            height: 16px; 
                             z-index: 2;
                             /* Centrado exacto del icono en el punto */
-                            margin-left: -7px; 
-                            margin-top: -7px;">
+                            margin-left: -8px; 
+                            margin-top: -8px;">
             @endforeach
         @endif
     </div>

@@ -16,15 +16,15 @@
 
     <div class="flex flex-wrap gap-2 mb-4">
         <button type="button" data-type="scratch" class="damage-tool-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white bg-green-600 hover:bg-green-700">
-            <svg class="h-3 w-3" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="3.2"/></svg>
+            <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="7,1 13,13 1,13"/></svg>
             Rayón
         </button>
         <button type="button" data-type="dent" class="damage-tool-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white bg-red-600 hover:bg-red-700">
-            <svg class="h-3 w-3" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="3.2"/></svg>
+            <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="7" cy="7" r="5"/></svg>
             Abolladura
         </button>
         <button type="button" data-type="crack" class="damage-tool-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700">
-            <svg class="h-3 w-3" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="3.2"/></svg>
+            <svg class="h-3 w-3" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
             Quiñe
         </button>
         <button type="button" id="btn-damage-undo" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300">

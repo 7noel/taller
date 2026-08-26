@@ -357,11 +357,11 @@
             return;
         }
 
-        const colors = { 'scratch': '#10b981', 'dent': '#ef4444', 'crack': '#3b82f6' };
+        const colors = { 'scratch': '#008000', 'dent': '#ff0000', 'crack': '#0000ff' };
         const icons = {
-            'scratch': '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
-            'dent': '<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>',
-            'crack': '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>'
+            'scratch': `<svg class='h-5 w-5' fill='none' viewBox='0 0 14 14' stroke='currentColor' stroke-width='2'><polygon points='7,1 13,13 1,13'/></svg>`,
+            'dent': `<svg class='h-5 w-5' fill='none' viewBox='0 0 14 14' stroke='currentColor' stroke-width='2'><circle cx='7' cy='7' r='5'/></svg>`,
+            'crack': `<svg class='h-5 w-5' fill='none' viewBox='0 0 14 14' stroke='currentColor' stroke-width='2'><line x1='2' y1='2' x2='12' y2='12'/><line x1='12' y1='2' x2='2' y2='12'/></svg>`
         };
         const exts = ['jpg', 'jpeg', 'png', 'svg'];
         let idx = 0;
@@ -383,14 +383,13 @@
 
                 damages.forEach(d => {
                     const marker = document.createElement('div');
-                    marker.className = 'absolute rounded-full flex items-center justify-center text-white text-xs font-bold';
+                    marker.className = 'absolute flex items-center justify-center';
                     marker.style.left = d.pos_x + '%';
                     marker.style.top = d.pos_y + '%';
                     marker.style.transform = 'translate(-50%, -50%)';
-                    marker.style.width = '22px';
-                    marker.style.height = '22px';
-                    marker.style.background = colors[d.damage_type] || '#6b7280';
-                    marker.innerHTML = icons[d.damage_type] || '<svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>';
+                    marker.style.color = colors[d.damage_type] || '#6b7280';
+                    marker.style.filter = 'drop-shadow(0 0 2px #ffffff) drop-shadow(0 0 4px rgba(255, 255, 255, 0.7))';
+                    marker.innerHTML = icons[d.damage_type] || '';
                     markers.appendChild(marker);
                 });
             };
