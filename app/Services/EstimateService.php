@@ -9,6 +9,7 @@ use App\Models\EstimateItem;
 use App\Models\Part;
 use App\Models\Party;
 use App\Models\RepairService;
+use App\Models\ThirdPartyOrder;
 use App\Models\Vehicle;
 use App\Models\VehicleRelationship;
 use Illuminate\Support\Facades\Auth;
@@ -58,6 +59,7 @@ class EstimateService
             $estimate = Estimate::create($this->onlyEstimateFields($data));
 
             $this->syncItems($estimate, $data['items'] ?? []);
+            $this->syncThirdPartyOrders($estimate, $data['third_party_orders'] ?? []);
 
             $this->calculation->calculate($estimate);
 
@@ -79,6 +81,7 @@ class EstimateService
             $estimate->update($this->onlyEstimateFields($data));
 
             $this->syncItems($estimate, $data['items'] ?? []);
+            $this->syncThirdPartyOrders($estimate, $data['third_party_orders'] ?? []);
 
             $this->calculation->calculate($estimate);
         });
@@ -163,6 +166,46 @@ class EstimateService
         // Eliminar los ítems que ya no vienen en el request.
         foreach ($existing as $item) {
             $item->delete();
+        }
+    }
+
+    /**
+     * Sincroniza las órdenes de compra de terceros por diff/upsert
+     * (mismo patrón que syncItems).
+     */
+    public function syncThirdPartyOrders(Estimate $estimate, array $orders): void
+    {
+        $existing = $estimate->thirdPartyOrders()->get()->keyBy('id');
+
+        foreach ($orders as $order) {
+            // Fila totalmente vacía: se ignora (si tenía id previo, se elimina).
+            if ($this->isEmptyOrder($order)) {
+                $id = $order['id'] ?? null;
+                if ($id && isset($existing[$id])) {
+                    $existing[$id]->delete();
+                    $existing->forget($id);
+                }
+                continue;
+            }
+
+            $payload = [
+                'description' => $order['description'] ?? null,
+                'amount_without_iva' => $order['amount_without_iva'] ?? 0,
+                'provider_name' => $order['provider_name'] ?? null,
+            ];
+
+            $id = $order['id'] ?? null;
+            if ($id && isset($existing[$id])) {
+                $existing[$id]->update($payload);
+                $existing->forget($id);
+            } else {
+                ThirdPartyOrder::create(array_merge(['estimate_id' => $estimate->id], $payload));
+            }
+        }
+
+        // Eliminar las OC que ya no vienen en el request.
+        foreach ($existing as $order) {
+            $order->delete();
         }
     }
 
@@ -507,6 +550,11 @@ class EstimateService
         return $isEmpty;
     }
 
+    protected function isEmptyOrder(array $order): bool
+    {
+        return empty($order['description']) && empty($order['amount_without_iva']);
+    }
+
     protected function defaultRelations(): array
     {
         return [
@@ -520,6 +568,7 @@ class EstimateService
             'items.part.category',
             'items.serviceCategory',
             'items.partCategory',
+            'thirdPartyOrders',
         ];
     }
 }

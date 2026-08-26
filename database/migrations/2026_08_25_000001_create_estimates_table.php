@@ -39,6 +39,13 @@ return new class extends Migration
             $table->decimal('taxable_base', 12, 2)->default(0);
             $table->decimal('iva', 12, 2)->default(0);
             $table->decimal('total', 12, 2)->default(0);
+            $table->decimal('franchise_minimum_amount', 12, 2)->nullable();
+            $table->decimal('franchise_percentage', 5, 2)->nullable();
+            $table->boolean('franchise_minimum_includes_tax')->default(false);
+            $table->decimal('franchise_minimum_without_tax', 12, 2)->nullable();
+            $table->decimal('franchise_base', 12, 2)->nullable();
+            $table->decimal('franchise_percentage_applied', 12, 2)->nullable();
+            $table->decimal('franchise_amount', 12, 2)->nullable();
             $table->string('status')->default('draft');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

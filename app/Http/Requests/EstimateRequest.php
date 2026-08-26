@@ -122,6 +122,18 @@ class EstimateRequest extends FormRequest
             'items.*.discount_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'items.*.supply_source' => ['nullable', Rule::in(['internal', 'external', 'insurance'])],
             'items.*.cost_price' => ['nullable', 'numeric', 'min:0'],
+
+            // Órdenes de compra de terceros
+            'third_party_orders' => ['nullable', 'array'],
+            'third_party_orders.*.id' => ['nullable', 'integer'],
+            'third_party_orders.*.description' => ['required_with:third_party_orders.*.amount_without_iva', 'string', 'max:1000'],
+            'third_party_orders.*.amount_without_iva' => ['nullable', 'numeric', 'min:0'],
+            'third_party_orders.*.provider_name' => ['nullable', 'string', 'max:255'],
+
+            // Franquicia (informativa; no afecta totales del presupuesto)
+            'franchise_minimum_amount' => ['nullable', 'numeric', 'min:0'],
+            'franchise_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'franchise_minimum_includes_tax' => ['nullable', 'boolean'],
         ];
     }
 
@@ -162,6 +174,23 @@ class EstimateRequest extends FormRequest
             }
             $this->merge(['items' => $normalized]);
         }
+
+        $orders = $this->input('third_party_orders', []);
+
+        if (is_array($orders)) {
+            $normalized = [];
+            foreach ($orders as $index => $order) {
+                $order['amount_without_iva'] = (float) ($order['amount_without_iva'] ?? 0);
+                $normalized[$index] = $order;
+            }
+            $this->merge(['third_party_orders' => $normalized]);
+        }
+
+        $this->merge([
+            'franchise_minimum_amount' => $this->has('franchise_minimum_amount') ? (float) $this->input('franchise_minimum_amount') : null,
+            'franchise_percentage' => $this->has('franchise_percentage') ? (float) $this->input('franchise_percentage') : null,
+            'franchise_minimum_includes_tax' => $this->boolean('franchise_minimum_includes_tax'),
+        ]);
     }
 
     /**

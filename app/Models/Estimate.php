@@ -44,6 +44,13 @@ class Estimate extends Model
         'taxable_base',
         'iva',
         'total',
+        'franchise_minimum_amount',
+        'franchise_percentage',
+        'franchise_minimum_includes_tax',
+        'franchise_minimum_without_tax',
+        'franchise_base',
+        'franchise_percentage_applied',
+        'franchise_amount',
         'status',
         'created_by',
         'updated_by',
@@ -61,6 +68,13 @@ class Estimate extends Model
         'taxable_base' => 'float',
         'iva' => 'float',
         'total' => 'float',
+        'franchise_minimum_amount' => 'float',
+        'franchise_percentage' => 'float',
+        'franchise_minimum_includes_tax' => 'boolean',
+        'franchise_minimum_without_tax' => 'float',
+        'franchise_base' => 'float',
+        'franchise_percentage_applied' => 'float',
+        'franchise_amount' => 'float',
     ];
 
     public const STATUS_LABELS = [
@@ -96,7 +110,10 @@ class Estimate extends Model
                 'document_number', 'document_sn', 'work_days', 'contact_name', 'contact_phone',
                 'contact_email', 'hourly_rate', 'panel_rate', 'currency', 'exchange_rate',
                 'global_discount_type', 'global_discount_value', 'subtotal', 'discount',
-                'taxable_base', 'iva', 'total', 'status',
+                'taxable_base', 'iva', 'total',
+                'franchise_minimum_amount', 'franchise_percentage', 'franchise_minimum_includes_tax',
+                'franchise_minimum_without_tax', 'franchise_base', 'franchise_percentage_applied',
+                'franchise_amount', 'status',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -183,6 +200,8 @@ class Estimate extends Model
         return $this->hasMany(EstimateDiscount::class);
     }
 
-    // Nota: la relación hasOne(FranchiseCalculation) se añadirá cuando exista el
-    // modelo de franquicia (módulo posterior). El presupuesto actual no la requiere.
+    public function thirdPartyOrders()
+    {
+        return $this->hasMany(ThirdPartyOrder::class)->orderBy('id');
+    }
 }

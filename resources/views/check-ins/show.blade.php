@@ -13,6 +13,12 @@
                 @endif
             </div>
             <div class="flex flex-wrap gap-2">
+                @can('view', $checkIn)
+                    <a href="{{ route('check-ins.pdf', $checkIn) }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase hover:bg-gray-50">
+                        <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        PDF
+                    </a>
+                @endcan
                 @can('editar inventarios')
                     <a href="{{ route('check-ins.edit', $checkIn) }}" class="inline-flex items-center px-3 py-1.5 bg-yellow-500 rounded-md font-semibold text-xs text-white uppercase hover:bg-yellow-600">Editar</a>
                 @endcan

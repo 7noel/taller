@@ -22,6 +22,15 @@
             'cost_price' => (float) $i->cost_price,
         ])->values()
         : collect();
+
+    $initialThirdPartyOrders = $isEdit
+        ? $estimate->thirdPartyOrders->map(fn ($o) => [
+            'id' => $o->id,
+            'description' => $o->description,
+            'provider_name' => $o->provider_name,
+            'amount_without_iva' => (float) $o->amount_without_iva,
+        ])->values()
+        : collect();
 @endphp
 
 @push('scripts')
@@ -36,6 +45,7 @@
     const initialInsuranceId = {{ $initialInsuranceId ? (int) $initialInsuranceId : 'null' }};
     const initialServiceType = "{{ old('service_type', $estimate->service_type ?? '') }}";
     const initialItems = @json($initialItems);
+    const initialThirdPartyOrders = @json($initialThirdPartyOrders);
 
     const serviceCategories = @json($serviceCategories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values());
     const partCategories = @json($partCategories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values());
@@ -452,6 +462,166 @@
     });
 
     // =====================================================
+    // Órdenes de compra de terceros
+    // =====================================================
+    let orders = initialThirdPartyOrders.map(o => ({ ...o }));
+    const ordersBody = document.getElementById('third-party-orders-body');
+    let editingOrderIndex = null;
+
+    function orderHiddenInputs(order, index) {
+        const escape = escapeHtml;
+        return `
+            <input type="hidden" name="third_party_orders[${index}][id]" value="${escape(order.id || '')}">
+            <input type="hidden" name="third_party_orders[${index}][description]" value="${escape(order.description || '')}">
+            <input type="hidden" name="third_party_orders[${index}][provider_name]" value="${escape(order.provider_name || '')}">
+            <input type="hidden" name="third_party_orders[${index}][amount_without_iva]" value="${order.amount_without_iva || 0}">
+        `;
+    }
+
+    function renderOrders() {
+        ordersBody.innerHTML = orders.map((order, index) => {
+            return `
+            <tr>
+                <td class="px-3 py-2 font-medium text-gray-900">${escapeHtml(order.description || '')}</td>
+                <td class="px-3 py-2 text-gray-600">${escapeHtml(order.provider_name || '-')}</td>
+                <td class="px-3 py-2 text-right text-gray-700">${money(order.amount_without_iva)}</td>
+                <td class="px-3 py-2">
+                    <div class="flex items-center justify-end gap-1">
+                        <button type="button" class="btn-icon btn-icon-blue order-edit" data-index="${index}" title="Editar orden">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </button>
+                        <button type="button" class="btn-icon btn-icon-red order-remove" data-index="${index}" title="Quitar orden">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    ${orderHiddenInputs(order, index)}
+                </td>
+            </tr>`;
+        }).join('') || '<tr><td colspan="4" class="px-3 py-8 text-center text-sm text-gray-500">Sin órdenes. Haz clic en "Agregar orden".</td></tr>';
+    }
+
+    ordersBody.addEventListener('click', function (e) {
+        const editBtn = e.target.closest('.order-edit');
+        if (editBtn) {
+            openOrderModal(parseInt(editBtn.dataset.index, 10));
+            return;
+        }
+        const removeBtn = e.target.closest('.order-remove');
+        if (removeBtn) {
+            const index = parseInt(removeBtn.dataset.index, 10);
+            orders.splice(index, 1);
+            renderOrders();
+            calcTotals();
+        }
+    });
+
+    // Modal de órdenes de compra de terceros
+    const orderModal = document.getElementById('third-party-order-modal');
+    const orderModalTitle = document.getElementById('third-party-order-modal-title');
+    const orderDescriptionEl = document.getElementById('third-party-order-description');
+    const orderProviderEl = document.getElementById('third-party-order-provider');
+    const orderAmountEl = document.getElementById('third-party-order-amount');
+    const orderIdEl = document.getElementById('third-party-order-id');
+    const orderDescError = document.getElementById('third-party-order-description-error');
+    const orderAmountError = document.getElementById('third-party-order-amount-error');
+
+    function clearOrderModal() {
+        editingOrderIndex = null;
+        orderModalTitle.textContent = 'Agregar orden de compra';
+        orderDescriptionEl.value = '';
+        orderProviderEl.value = '';
+        orderAmountEl.value = 0;
+        orderIdEl.value = '';
+        orderDescError.classList.add('hidden');
+        orderAmountError.classList.add('hidden');
+    }
+
+    function openOrderModal(index) {
+        clearOrderModal();
+        if (index !== null && index !== undefined && orders[index]) {
+            const order = orders[index];
+            editingOrderIndex = index;
+            orderModalTitle.textContent = 'Editar orden de compra';
+            orderIdEl.value = order.id || '';
+            orderDescriptionEl.value = order.description || '';
+            orderProviderEl.value = order.provider_name || '';
+            orderAmountEl.value = order.amount_without_iva || 0;
+        }
+        orderModal.classList.remove('hidden');
+        orderModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeOrderModal() {
+        orderModal.classList.add('hidden');
+        orderModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('overflow-hidden');
+        clearOrderModal();
+    }
+
+    function saveOrder() {
+        const description = orderDescriptionEl.value.trim();
+        const amount = num(orderAmountEl.value);
+
+        let valid = true;
+        orderDescError.classList.add('hidden');
+        orderAmountError.classList.add('hidden');
+
+        if (!description) {
+            orderDescError.textContent = 'Escriba una descripción de la orden.';
+            orderDescError.classList.remove('hidden');
+            valid = false;
+        }
+        if (amount <= 0) {
+            orderAmountError.textContent = 'El monto debe ser mayor a cero.';
+            orderAmountError.classList.remove('hidden');
+            valid = false;
+        }
+        if (!valid) return;
+
+        const order = {
+            id: orderIdEl.value || null,
+            description: description,
+            provider_name: orderProviderEl.value.trim() || null,
+            amount_without_iva: amount,
+        };
+
+        if (editingOrderIndex === null) {
+            orders.push(order);
+        } else {
+            orders[editingOrderIndex] = order;
+        }
+
+        renderOrders();
+        calcTotals();
+        closeOrderModal();
+    }
+
+    let savingOrder = false;
+    const orderSaveBtn = document.getElementById('third-party-order-modal-save');
+    orderSaveBtn.addEventListener('click', function () {
+        if (savingOrder) return;
+        savingOrder = true;
+        orderSaveBtn.disabled = true;
+        orderSaveBtn.textContent = 'Guardando...';
+        try {
+            saveOrder();
+        } finally {
+            orderSaveBtn.disabled = false;
+            orderSaveBtn.textContent = 'Guardar orden';
+            savingOrder = false;
+        }
+    });
+
+    document.getElementById('btn-add-third-party-order').addEventListener('click', function () { openOrderModal(null); });
+    document.getElementById('third-party-order-modal-cancel').addEventListener('click', closeOrderModal);
+    document.getElementById('third-party-order-modal-close-x').addEventListener('click', closeOrderModal);
+    document.getElementById('third-party-order-modal-overlay').addEventListener('click', closeOrderModal);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !orderModal.classList.contains('hidden')) closeOrderModal();
+    });
+
+    // =====================================================
     // Cálculo de totales
     // =====================================================
     function calcTotals() {
@@ -474,22 +644,41 @@
         else if (gType === 'fixed' && gValue > 0) globalDiscount = round2(gValue);
         globalDiscount = Math.min(globalDiscount, netAfterLines);
 
-        // Franquicia / descuentos adicionales (por ahora sin UI → 0 on create).
-        const franchise = 0;
-
-        const totalDiscount = round2(linesDiscount + globalDiscount + franchise);
+        // La franquicia y las OC no afectan el total del presupuesto.
+        const totalDiscount = round2(linesDiscount + globalDiscount);
         const taxableBase = Math.max(0, round2(subtotalTotal - totalDiscount));
         const iva = round2(taxableBase * igvRate);
         const total = round2(taxableBase + iva);
 
+        // Órdenes de compra de terceros: solo suman a la base de la franquicia.
+        const ordersTotal = orders.reduce((sum, o) => sum + num(o.amount_without_iva), 0);
+
+        // Franquicia (informativa).
+        const franchiseMinAmount = num(document.getElementById('franchise_minimum_amount').value);
+        const franchisePct = Math.min(100, Math.max(0, num(document.getElementById('franchise_percentage').value)));
+        const franchiseIncludesTax = document.getElementById('franchise_minimum_includes_tax').checked;
+        const franchiseBase = round2(taxableBase + ordersTotal);
+        const minWithoutTax = franchiseMinAmount > 0
+            ? round2(franchiseIncludesTax ? (franchiseMinAmount / (1 + igvRate)) : franchiseMinAmount)
+            : 0;
+        const pctApplied = (franchisePct > 0 && franchiseBase > 0) ? round2(franchiseBase * (franchisePct / 100)) : 0;
+        const franchiseAmount = Math.max(minWithoutTax, pctApplied) || 0;
+
         document.getElementById('total-subtotal').textContent = money(subtotalTotal);
         document.getElementById('total-lines-discount').textContent = '- ' + money(linesDiscount);
         document.getElementById('total-global-discount').textContent = '- ' + money(globalDiscount);
-        document.getElementById('total-franchise').textContent = '- ' + money(franchise);
+        document.getElementById('total-orders').textContent = '+ ' + money(ordersTotal);
         document.getElementById('total-taxable').textContent = money(taxableBase);
         document.getElementById('igv-rate-label').textContent = Math.round(igvRate * 100);
         document.getElementById('total-iva').textContent = money(iva);
         document.getElementById('total-total').textContent = money(total);
+
+        // Desglose de franquicia
+        document.getElementById('franchise-minimum-amount').textContent = money(franchiseMinAmount);
+        document.getElementById('franchise-minimum-without-tax').textContent = money(minWithoutTax);
+        document.getElementById('franchise-base').textContent = money(franchiseBase);
+        document.getElementById('franchise-percentage-applied').textContent = money(pctApplied);
+        document.getElementById('franchise-amount').textContent = money(franchiseAmount);
     }
 
     // =====================================================
@@ -762,6 +951,12 @@
         if (el) { el.addEventListener('input', calcTotals); el.addEventListener('change', calcTotals); }
     });
 
+    // Recalcular al cambiar la franquicia
+    ['franchise_minimum_amount', 'franchise_percentage', 'franchise_minimum_includes_tax'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.addEventListener('input', calcTotals); el.addEventListener('change', calcTotals); }
+    });
+
     // =====================================================
     // Precarga desde check-in o valores iniciales
     // =====================================================
@@ -837,6 +1032,7 @@
     }
 
     renderItems();
+    renderOrders();
     calcTotals();
 })();
 </script>

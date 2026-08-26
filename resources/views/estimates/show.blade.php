@@ -196,9 +196,7 @@
                 $linesDiscount = (float) $estimate->items()->sum('discount_amount');
                 $globalDiscount = (float) $estimate->discounts()
                     ->where('source', 'global')->where('applied_to', 'subtotal')->sum('amount');
-                $franchise = (float) $estimate->discounts()
-                    ->whereIn('source', ['insurance', 'promotion', 'other'])
-                    ->where('applied_to', 'subtotal')->sum('amount');
+                $ordersTotal = (float) $estimate->thirdPartyOrders()->sum('amount_without_iva');
             @endphp
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div class="md:col-span-2"></div>
@@ -207,13 +205,70 @@
                         <div class="flex justify-between"><span class="text-gray-500">Valor Bruto</span><span class="font-medium">{{ number_format((float) $estimate->subtotal, 2) }}</span></div>
                         <div class="flex justify-between"><span class="text-gray-500">Descuentos por ítem</span><span class="font-medium text-red-600">- {{ number_format($linesDiscount, 2) }}</span></div>
                         <div class="flex justify-between"><span class="text-gray-500">Descuento global</span><span class="font-medium text-red-600">- {{ number_format($globalDiscount, 2) }}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Franquicia</span><span class="font-medium text-red-600">- {{ number_format($franchise, 2) }}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Órdenes de compra (para franquicia)</span><span class="font-medium text-gray-600">+ {{ number_format($ordersTotal, 2) }}</span></div>
                         <div class="flex justify-between border-t border-gray-100 pt-2"><span class="font-medium text-gray-700">Valor Venta (Base Imponible)</span><span class="font-medium">{{ number_format((float) $estimate->taxable_base, 2) }}</span></div>
                         <div class="flex justify-between"><span class="text-gray-500">IGV ({{ round($estimate->iva > 0 ? (($estimate->iva / $estimate->taxable_base) * 100) : 0, 0) }}%)</span><span class="font-medium">{{ number_format((float) $estimate->iva, 2) }}</span></div>
                         <div class="flex justify-between border-t border-gray-200 pt-2 text-base"><span class="font-semibold">Total a Pagar</span><span class="font-semibold text-gray-900">{{ number_format((float) $estimate->total, 2) }}</span></div>
                     </div>
                 </div>
             </div>
+
+            {{-- Órdenes de compra de terceros --}}
+            @if ($estimate->thirdPartyOrders->isNotEmpty())
+                <div class="card mb-4">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Órdenes de compra de terceros</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Descripción</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Proveedor</th>
+                                        <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Monto sin IGV</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @foreach ($estimate->thirdPartyOrders as $order)
+                                        <tr>
+                                            <td class="px-3 py-2 font-medium">{{ $order->description }}</td>
+                                            <td class="px-3 py-2 text-gray-600">{{ $order->provider_name ?? '-' }}</td>
+                                            <td class="px-3 py-2 text-right">{{ number_format((float) $order->amount_without_iva, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-gray-50">
+                                        <td colspan="2" class="px-3 py-2 text-right font-medium text-gray-700">Total</td>
+                                        <td class="px-3 py-2 text-right font-semibold text-gray-900">{{ number_format($ordersTotal, 2) }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Franquicia (informativa) --}}
+            @if ($estimate->franchise_amount !== null)
+                <div class="card mb-4">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-1">Franquicia</h3>
+                        <p class="text-sm text-gray-500 mb-4">Informativa: no descuenta del total del presupuesto.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="md:col-span-2"></div>
+                            <div class="card">
+                                <div class="p-5 space-y-2 text-sm">
+                                    <div class="flex justify-between"><span class="text-gray-500">Monto mínimo</span><span class="font-medium">{{ number_format((float) $estimate->franchise_minimum_amount, 2) }}</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-500">Mínimo sin IGV</span><span class="font-medium">{{ number_format((float) $estimate->franchise_minimum_without_tax, 2) }}</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-500">Base (Base Imponible + OC)</span><span class="font-medium">{{ number_format((float) $estimate->franchise_base, 2) }}</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-500">% Aplicado</span><span class="font-medium">{{ number_format((float) $estimate->franchise_percentage_applied, 2) }}</span></div>
+                                    <div class="flex justify-between border-t border-gray-200 pt-2 text-base"><span class="font-semibold">Franquicia a pagar (sin IGV)</span><span class="font-semibold text-gray-900">{{ number_format((float) $estimate->franchise_amount, 2) }}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- Historial --}}
             @if ($estimate->statusHistory->isNotEmpty())

@@ -65,6 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('check-ins/{checkIn}/approve', [CheckInController::class, 'approve'])->name('check-ins.approve');
     Route::post('check-ins/{checkIn}/reject', [CheckInController::class, 'reject'])->name('check-ins.reject');
     Route::post('check-ins/{checkIn}/send-to-client', [CheckInController::class, 'sendToClient'])->name('check-ins.send-to-client');
+    Route::get('check-ins/{checkIn}/pdf', [CheckInController::class, 'pdf'])->name('check-ins.pdf');
 
     Route::get('api/check-ins/search', [CheckInController::class, 'search'])->name('api.check-ins.search');
     Route::get('api/check-ins/contacts', [CheckInController::class, 'contacts'])->name('api.check-ins.contacts');

@@ -199,7 +199,7 @@
                 <div class="flex justify-between"><span class="text-gray-500">Valor Bruto</span><span id="total-subtotal" class="font-medium">0.00</span></div>
                 <div class="flex justify-between"><span class="text-gray-500">Descuentos por ítem</span><span id="total-lines-discount" class="font-medium text-red-600">- 0.00</span></div>
                 <div class="flex justify-between"><span class="text-gray-500">Descuento global</span><span id="total-global-discount" class="font-medium text-red-600">- 0.00</span></div>
-                <div class="flex justify-between" id="franchise-row"><span class="text-gray-500">Franquicia</span><span id="total-franchise" class="font-medium text-red-600">- 0.00</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Órdenes de compra (para franquicia)</span><span id="total-orders" class="font-medium text-gray-600">+ 0.00</span></div>
                 <div class="flex justify-between border-t border-gray-100 pt-2"><span class="font-medium text-gray-700">Valor Venta (Base Imponible)</span><span id="total-taxable" class="font-medium">0.00</span></div>
                 <div class="flex justify-between"><span class="text-gray-500">IGV (<span id="igv-rate-label">0</span>%)</span><span id="total-iva" class="font-medium">0.00</span></div>
                 <div class="flex justify-between border-t border-gray-200 pt-2 text-base"><span class="font-semibold">Total a Pagar</span><span id="total-total" class="font-semibold text-gray-900">0.00</span></div>
@@ -208,5 +208,79 @@
     </div>
 </div>
 
-{{-- Modal de ítems --}}
+{{-- Órdenes de compra de terceros --}}
+<div class="mt-6">
+    <div class="flex items-center justify-between mb-3">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800">Órdenes de compra de terceros</h3>
+            <p class="text-sm text-gray-500 mt-0.5">Se suman a la base para el cálculo de la franquicia (no afectan el total).</p>
+        </div>
+        <button type="button" id="btn-add-third-party-order" class="btn btn-primary">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Agregar orden
+        </button>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm" id="third-party-orders-table">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Descripción</th>
+                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Proveedor</th>
+                        <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Monto sin IGV</th>
+                        <th class="px-3 py-2"></th>
+                    </tr>
+                </thead>
+                <tbody id="third-party-orders-body" class="divide-y divide-gray-100">
+                    {{-- Las OC existentes se renderizan desde el estado JS en _form-scripts --}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{-- Franquicia --}}
+<div class="mt-6">
+    <div class="card p-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800">Franquicia</h3>
+            <p class="text-sm text-gray-500 mt-0.5">Informativa: no descuenta del total del presupuesto.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+            <div>
+                <label for="franchise_minimum_amount" class="block text-sm font-medium text-gray-700">Monto mínimo</label>
+                <input type="number" id="franchise_minimum_amount" name="franchise_minimum_amount" step="0.01" min="0" value="{{ old('franchise_minimum_amount', $estimate->franchise_minimum_amount ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-right">
+            </div>
+            <div>
+                <label for="franchise_percentage" class="block text-sm font-medium text-gray-700">% Franquicia</label>
+                <input type="number" id="franchise_percentage" name="franchise_percentage" step="0.01" min="0" max="100" value="{{ old('franchise_percentage', $estimate->franchise_percentage ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-right">
+            </div>
+            <div class="flex items-end">
+                <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <input type="checkbox" id="franchise_minimum_includes_tax" name="franchise_minimum_includes_tax" value="1" @checked(old('franchise_minimum_includes_tax', $estimate->franchise_minimum_includes_tax ?? false)) class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    El monto mínimo incluye IGV
+                </label>
+            </div>
+        </div>
+
+        {{-- Desglose de franquicia (calculado en vivo) --}}
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2"></div>
+            <div class="card">
+                <div class="p-5 space-y-2 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Monto mínimo</span><span id="franchise-minimum-amount" class="font-medium">0.00</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Mínimo sin IGV</span><span id="franchise-minimum-without-tax" class="font-medium">0.00</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Base (Base Imponible + OC)</span><span id="franchise-base" class="font-medium">0.00</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">% Aplicado</span><span id="franchise-percentage-applied" class="font-medium">0.00</span></div>
+                    <div class="flex justify-between border-t border-gray-200 pt-2 text-base"><span class="font-semibold">Franquicia a pagar (sin IGV)</span><span id="franchise-amount" class="font-semibold text-gray-900">0.00</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modales --}}
 @include('estimates._item-modal')
+@include('estimates._third-party-order-modal')

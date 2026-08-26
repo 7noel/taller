@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CheckInRequest;
 use App\Models\CheckIn;
 use App\Models\CheckInChecklistItem;
+use App\Models\CompanySetting;
 use App\Models\Party;
 use App\Models\Vehicle;
 use App\Services\CheckInService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -69,6 +71,34 @@ class CheckInController extends Controller
         ]);
 
         return view('check-ins.show', compact('checkIn'));
+    }
+
+    public function pdf(CheckIn $checkIn)
+    {
+        Gate::authorize('view', $checkIn);
+
+        $checkIn->load([
+            'vehicle.vehicleModel.brand',
+            'vehicle.relationships.party',
+            'client.ubigeo',
+            'insuranceCompany',
+            'establishment.ubigeo',
+            'creator',
+            'checklistResults.checklistItem',
+            'damages',
+        ]);
+
+        $company = CompanySetting::get();
+
+        $checklistItems = CheckInChecklistItem::query()
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+
+        $pdf = Pdf::loadView('check-ins.pdf', compact('checkIn', 'company', 'checklistItems'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('inventario-' . ($checkIn->document_sn ?? $checkIn->id) . '.pdf');
     }
 
     public function edit(CheckIn $checkIn): View

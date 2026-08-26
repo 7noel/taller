@@ -76,6 +76,7 @@ class EstimateController extends Controller
             'creator',
             'updater',
             'statusHistory.user',
+            'thirdPartyOrders',
         ]);
 
         $grouped = $this->service->getClientGroupedItems($estimate);
@@ -94,6 +95,7 @@ class EstimateController extends Controller
             'establishment',
             'items.service',
             'items.part',
+            'thirdPartyOrders',
         ]);
 
         $advisors = User::role('Asesor')->orderBy('name')->get();
@@ -145,7 +147,11 @@ class EstimateController extends Controller
             $items,
             $request->input('global_discount_type'),
             (float) $request->input('global_discount_value', 0),
-            $establishmentId ? (int) $establishmentId : null
+            $establishmentId ? (int) $establishmentId : null,
+            $request->input('third_party_orders', []),
+            (float) $request->input('franchise_minimum_amount', 0),
+            (float) $request->input('franchise_percentage', 0),
+            (bool) $request->input('franchise_minimum_includes_tax', false)
         );
 
         return response()->json($result);
