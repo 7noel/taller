@@ -33,12 +33,14 @@ class EstimateService
         'draft' => ['sent_insurance', 'sent_client'],
         'sent_insurance' => ['approved_insurance', 'rejected_insurance', 'draft'],
         'sent_client' => ['approved_client', 'rejected_client', 'draft'],
-        'approved_insurance' => ['in_repair', 'draft'],
+        'approved_insurance' => ['in_repair', 'draft', 'sent_client'],
         'approved_client' => ['in_repair', 'draft'],
         'in_repair' => ['finalized', 'draft'],
         'finalized' => [],
-        'rejected_insurance' => [],
-        'rejected_client' => [],
+        // Los rechazados no son terminales: se pueden reabrir (draft) o reenviar
+        // directamente tras corregirlos (sent_insurance / sent_client).
+        'rejected_insurance' => ['draft', 'sent_insurance'],
+        'rejected_client' => ['draft', 'sent_client'],
     ];
 
     public function create(array $data): Estimate
@@ -72,8 +74,8 @@ class EstimateService
 
     public function update(Estimate $estimate, array $data): Estimate
     {
-        if ($estimate->is_final) {
-            throw new RuntimeException('No se puede editar un presupuesto en estado final. Reabra el presupuesto antes de editarlo.');
+        if ($estimate->status === 'finalized') {
+            throw new RuntimeException('No se puede editar un presupuesto finalizado.');
         }
 
         $data['updated_by'] = Auth::id();
@@ -285,7 +287,7 @@ class EstimateService
      * comparten las columnas: gana la última (el gate final habilita la reparación);
      * el historial completo queda en estimate_status_history.
      */
-    public function changeStatus(Estimate $estimate, string $newStatus, ?string $reason = null): Estimate
+    public function changeStatus(Estimate $estimate, string $newStatus, ?string $reason = null, ?string $date = null): Estimate
     {
         $from = $estimate->status;
         $allowed = self::TRANSITIONS[$from] ?? [];
@@ -294,15 +296,29 @@ class EstimateService
             throw new RuntimeException("Transición de estado inválida: {$from} → {$newStatus}.");
         }
 
-        DB::transaction(function () use ($estimate, $from, $newStatus, $reason) {
+        $date = $date ?: now()->format('Y-m-d');
+
+        DB::transaction(function () use ($estimate, $from, $newStatus, $reason, $date) {
             $approvalFields = [];
 
-            if (in_array($newStatus, ['approved_insurance', 'approved_client'], true)) {
+            if ($newStatus === 'approved_insurance') {
+                // Gate del SEGURO: fecha registrada manualmente por el usuario.
+                $approvalFields = [
+                    'insurance_approved_by_user_id' => Auth::id(),
+                    'insurance_approved_at' => $date,
+                ];
+            } elseif ($newStatus === 'rejected_insurance') {
+                $approvalFields = [
+                    'insurance_rejected_by_user_id' => Auth::id(),
+                    'insurance_rejected_at' => $date,
+                    'insurance_rejection_reason' => $reason,
+                ];
+            } elseif ($newStatus === 'approved_client') {
                 $approvalFields = [
                     'approved_by_user_id' => Auth::id(),
                     'approved_at' => now(),
                 ];
-            } elseif (in_array($newStatus, ['rejected_insurance', 'rejected_client'], true)) {
+            } elseif ($newStatus === 'rejected_client') {
                 $approvalFields = [
                     'rejected_by_user_id' => Auth::id(),
                     'rejected_at' => now(),
@@ -330,6 +346,20 @@ class EstimateService
                     $reason
                 );
             }
+
+            // Cuando el presupuesto se finaliza, el vehículo salió del taller:
+            // se cierra automáticamente el inventario asociado (estado terminal).
+            if ($newStatus === 'finalized' && $estimate->check_in_id) {
+                $checkIn = CheckIn::find($estimate->check_in_id);
+                if ($checkIn && ! in_array($checkIn->status, ['closed', 'rejected'], true)) {
+                    $checkIn->update([
+                        'status' => 'closed',
+                        'closed_by' => Auth::id(),
+                        'closed_at' => now(),
+                        'updated_by' => Auth::id(),
+                    ]);
+                }
+            }
         });
 
         return $estimate->fresh();
@@ -354,6 +384,10 @@ class EstimateService
 
         if (!in_array($newStatus, $allowed, true)) {
             throw new RuntimeException("Transición de estado inválida: {$from} → {$newStatus}.");
+        }
+
+        if ($estimate->service_type === 'siniestro' && ! $estimate->insurance_approved_at) {
+            throw new RuntimeException('Para un siniestro, el presupuesto debe estar aprobado por el seguro antes de que el cliente lo apruebe o rechace.');
         }
 
         if (!in_array($newStatus, ['approved_client', 'rejected_client'], true)) {

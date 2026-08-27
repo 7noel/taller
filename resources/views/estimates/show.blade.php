@@ -36,7 +36,7 @@
                 @endcan
 
                 @can('sendToInsurance', $estimate)
-                    @if ($estimate->status === 'draft')
+                    @if (in_array($estimate->status, ['draft', 'rejected_insurance']))
                         <form method="POST" action="{{ route('estimates.send-to-insurance', $estimate) }}">
                             @csrf
                             <button type="submit" class="btn btn-primary">Enviar a seguro</button>
@@ -44,7 +44,7 @@
                     @endif
                 @endcan
                 @can('sendToClient', $estimate)
-                    @if ($estimate->status === 'draft')
+                    @if (in_array($estimate->status, ['approved_insurance', 'rejected_client']) || ($estimate->status === 'draft' && $estimate->service_type !== 'siniestro'))
                         <form method="POST" action="{{ route('estimates.send-to-client', $estimate) }}">
                             @csrf
                             <button type="submit" class="btn btn-primary">Enviar a cliente</button>
@@ -54,15 +54,16 @@
 
                 @can('approveInsurance', $estimate)
                     @if ($estimate->status === 'sent_insurance')
-                        <form method="POST" action="{{ route('estimates.approve-insurance', $estimate) }}">
+                        <form id="form-insurance-approve" method="POST" action="{{ route('estimates.approve-insurance', $estimate) }}">
                             @csrf
-                            <button type="submit" class="btn btn-primary">Aprobar seguro</button>
+                            <input type="hidden" name="date">
+                            <button type="button" data-insurance-approve class="btn btn-primary">Aprobar seguro</button>
                         </form>
-                    @endif
-                    @if ($estimate->status === 'sent_insurance')
-                        <form method="POST" action="{{ route('estimates.reject-insurance', $estimate) }}">
+                        <form id="form-insurance-reject" method="POST" action="{{ route('estimates.reject-insurance', $estimate) }}">
                             @csrf
-                            <button type="submit" class="btn btn-danger">Rechazar seguro</button>
+                            <input type="hidden" name="date">
+                            <input type="hidden" name="reason">
+                            <button type="button" data-insurance-reject class="btn btn-danger">Rechazar seguro</button>
                         </form>
                     @endif
                 @endcan
@@ -125,11 +126,44 @@
                 <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{{ session('error') }}</div>
             @endif
 
-            <div class="mb-4 flex items-center gap-2">
+            <div class="mb-4 flex flex-wrap items-center gap-2">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium {{ $statusColors[$estimate->status] ?? 'bg-gray-100 text-gray-800' }}">
                     {{ $estimate->status_label }}
                 </span>
+                @if ($estimate->insurance_approved_at)
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-blue-50 text-blue-700">
+                        Seguro aprobó · {{ $estimate->insurance_approved_at->format('d/m/Y') }}
+                    </span>
+                @endif
             </div>
+
+            @if ($estimate->status === 'rejected_insurance')
+                <div class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="h-5 w-5 shrink-0 text-red-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                        <div>
+                            <p class="text-sm font-semibold text-red-700">Presupuesto rechazado por el seguro</p>
+                            @if ($estimate->insurance_rejection_reason)
+                                <p class="mt-1 text-sm text-red-700">{{ $estimate->insurance_rejection_reason }}</p>
+                            @endif
+                            <p class="mt-2 text-xs text-red-600/80">{{ $estimate->insurance_rejection_label }}</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if ($estimate->status === 'rejected_client' && $estimate->rejection_reason)
+                <div class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="h-5 w-5 shrink-0 text-red-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                        <div>
+                            <p class="text-sm font-semibold text-red-700">Presupuesto rechazado por el cliente</p>
+                            <p class="mt-1 text-sm text-red-700">{{ $estimate->rejection_reason }}</p>
+                            <p class="mt-2 text-xs text-red-600/80">{{ $estimate->rejected_by_label }}@if ($estimate->rejected_at && $estimate->rejected_by_user_id) · {{ $estimate->rejected_at->format('d/m/Y H:i') }}@endif</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- Cabecera --}}
             <div class="card mb-4">
@@ -307,6 +341,8 @@
             @endif
         </div>
     </div>
+
+    @include('estimates._insurance-modal')
 
     @include('partials.whatsapp-modal')
 

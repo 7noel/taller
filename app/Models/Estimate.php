@@ -63,6 +63,11 @@ class Estimate extends Model
         'rejected_by_phone',
         'rejection_reason',
         'rejected_at',
+        'insurance_approved_by_user_id',
+        'insurance_approved_at',
+        'insurance_rejected_by_user_id',
+        'insurance_rejected_at',
+        'insurance_rejection_reason',
         'last_sent_to',
         'last_sent_to_phone',
         'last_sent_at',
@@ -89,6 +94,8 @@ class Estimate extends Model
         'franchise_amount' => 'float',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'insurance_approved_at' => 'datetime',
+        'insurance_rejected_at' => 'datetime',
         'last_sent_at' => 'datetime',
     ];
 
@@ -110,7 +117,7 @@ class Estimate extends Model
         'insurance' => 'Seguro',
     ];
 
-    public const FINAL_STATUSES = ['finalized', 'rejected_insurance', 'rejected_client'];
+    public const FINAL_STATUSES = ['finalized'];
 
     // Tipos de servicio: misma fuente que el inventario (CheckIn::SERVICE_TYPES).
     // Agrega nuevos tipos en CheckIn::SERVICE_TYPES y aparecerán en ambos módulos.
@@ -128,7 +135,8 @@ class Estimate extends Model
                 'taxable_base', 'iva', 'total',
                 'franchise_minimum_amount', 'franchise_percentage', 'franchise_minimum_includes_tax',
                 'franchise_minimum_without_tax', 'franchise_base', 'franchise_percentage_applied',
-                'franchise_amount', 'status',
+                'franchise_amount', 'status', 'insurance_approved_at', 'insurance_rejected_at',
+                'insurance_rejection_reason',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -228,6 +236,44 @@ class Estimate extends Model
     public function rejectedBy()
     {
         return $this->belongsTo(User::class, 'rejected_by_user_id');
+    }
+
+    public function insuranceApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'insurance_approved_by_user_id');
+    }
+
+    public function insuranceRejectedBy()
+    {
+        return $this->belongsTo(User::class, 'insurance_rejected_by_user_id');
+    }
+
+    /**
+     * Etiqueta legible de la aprobación del seguro (quién y fecha registrada).
+     */
+    public function getInsuranceApprovalLabelAttribute(): string
+    {
+        if ($this->insurance_approved_at) {
+            $who = $this->insuranceApprovedBy?->name ?? 'Asesor';
+
+            return 'Aprobado por el seguro el ' . $this->insurance_approved_at->format('d/m/Y') . ' · ' . $who;
+        }
+
+        return 'Sin aprobación de seguro registrada';
+    }
+
+    /**
+     * Etiqueta legible del rechazo del seguro (quién, fecha y motivo).
+     */
+    public function getInsuranceRejectionLabelAttribute(): string
+    {
+        if ($this->insurance_rejected_at) {
+            $who = $this->insuranceRejectedBy?->name ?? 'Asesor';
+
+            return 'Rechazado por el seguro el ' . $this->insurance_rejected_at->format('d/m/Y') . ' · ' . $who;
+        }
+
+        return 'Sin rechazo de seguro registrado';
     }
 
     /**

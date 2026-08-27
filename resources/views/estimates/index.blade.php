@@ -48,7 +48,7 @@
         };
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        const finalStatuses = ['finalized', 'rejected_insurance', 'rejected_client'];
+        const finalStatuses = ['finalized'];
 
         const table = new Tabulator('#estimate-table', {
             ajaxURL: "{{ route('api.estimates.search') }}?limit=100",

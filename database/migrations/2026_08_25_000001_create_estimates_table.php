@@ -59,6 +59,13 @@ return new class extends Migration
             $table->text('rejection_reason')->nullable();
             $table->timestamp('rejected_at')->nullable();
 
+            // ===== Quién aprobó/rechazó el gate del SEGURO (fechas registradas manualmente) =====
+            $table->unsignedBigInteger('insurance_approved_by_user_id')->nullable();
+            $table->timestamp('insurance_approved_at')->nullable();
+            $table->unsignedBigInteger('insurance_rejected_by_user_id')->nullable();
+            $table->timestamp('insurance_rejected_at')->nullable();
+            $table->text('insurance_rejection_reason')->nullable();
+
             // ===== Último envío del enlace por WhatsApp =====
             $table->string('last_sent_to')->nullable();
             $table->string('last_sent_to_phone')->nullable();
@@ -71,6 +78,8 @@ return new class extends Migration
 
             $table->foreign('approved_by_user_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign('rejected_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('insurance_approved_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('insurance_rejected_by_user_id')->references('id')->on('users')->nullOnDelete();
 
             $table->foreign('check_in_id')->references('id')->on('check_ins')->nullOnDelete();
             $table->foreign('vehicle_id')->references('id')->on('vehicles')->restrictOnDelete();

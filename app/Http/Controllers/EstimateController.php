@@ -236,10 +236,11 @@ class EstimateController extends Controller
         return back()->with('success', 'Presupuesto enviado a aprobación del seguro.');
     }
 
-    public function approveInsurance(Estimate $estimate)
+    public function approveInsurance(Request $request, Estimate $estimate)
     {
         Gate::authorize('approveInsurance', $estimate);
-        $this->service->changeStatus($estimate, 'approved_insurance');
+        $request->validate(['date' => ['nullable', 'date']]);
+        $this->service->changeStatus($estimate, 'approved_insurance', null, $request->input('date'));
 
         return back()->with('success', 'Presupuesto aprobado por el seguro.');
     }
@@ -247,8 +248,11 @@ class EstimateController extends Controller
     public function rejectInsurance(Request $request, Estimate $estimate)
     {
         Gate::authorize('rejectInsurance', $estimate);
-        $request->validate(['reason' => ['nullable', 'string', 'max:500']]);
-        $this->service->changeStatus($estimate, 'rejected_insurance', $request->input('reason'));
+        $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+            'date' => ['nullable', 'date'],
+        ], ['reason.required' => 'Indica el motivo del rechazo del seguro.']);
+        $this->service->changeStatus($estimate, 'rejected_insurance', $request->input('reason'), $request->input('date'));
 
         return back()->with('success', 'Presupuesto rechazado por el seguro.');
     }
@@ -256,6 +260,11 @@ class EstimateController extends Controller
     public function sendToClient(Estimate $estimate)
     {
         Gate::authorize('sendToClient', $estimate);
+
+        if ($estimate->service_type === 'siniestro' && ! in_array($estimate->status, ['approved_insurance', 'rejected_client'], true)) {
+            return back()->with('error', 'Para un siniestro, el seguro debe aprobar el presupuesto antes de enviarlo al cliente.');
+        }
+
         $this->service->changeStatus($estimate, 'sent_client');
 
         return back()->with('success', 'Presupuesto enviado a aprobación del cliente.');
