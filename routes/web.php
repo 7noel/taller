@@ -1,20 +1,29 @@
 <?php
 
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CheckInChecklistItemController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\DocumentSeriesController;
 use App\Http\Controllers\EstablishmentController;
 use App\Http\Controllers\EstimateController;
+use App\Http\Controllers\FormTemplateController;
+use App\Http\Controllers\InventoryGuideController;
+use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\PartController;
+use App\Http\Controllers\PartOrderController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\RepairServiceController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\ProviderSettlementController;
+use App\Http\Controllers\ServiceVoucherController;
+use App\Http\Controllers\WorkOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,11 +50,14 @@ Route::prefix('c')->group(function () {
     Route::get('{token}', [PortalController::class, 'show'])->name('public.portal');
     Route::get('{token}/check-ins/{checkIn}', [PortalController::class, 'showCheckIn'])->name('public.portal.check-in');
     Route::get('{token}/estimates/{estimate}', [PortalController::class, 'showEstimate'])->name('public.portal.estimate');
+    Route::get('{token}/work-orders/{workOrder}', [PortalController::class, 'showWorkOrder'])->name('public.work-order');
+    Route::get('{token}/work-orders/{workOrder}/survey', [PortalController::class, 'showSurvey'])->name('public.work-order.survey');
 
     Route::post('{token}/check-ins/{checkIn}/approve', [PortalController::class, 'approveCheckIn'])->middleware('throttle:10,1')->name('public.portal.check-in.approve');
     Route::post('{token}/check-ins/{checkIn}/reject', [PortalController::class, 'rejectCheckIn'])->middleware('throttle:10,1')->name('public.portal.check-in.reject');
     Route::post('{token}/estimates/{estimate}/approve', [PortalController::class, 'approveEstimate'])->middleware('throttle:10,1')->name('public.portal.estimate.approve');
     Route::post('{token}/estimates/{estimate}/reject', [PortalController::class, 'rejectEstimate'])->middleware('throttle:10,1')->name('public.portal.estimate.reject');
+    Route::post('{token}/work-orders/{workOrder}/survey', [PortalController::class, 'submitSurvey'])->middleware('throttle:10,1')->name('public.work-order.survey.store');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -54,13 +66,67 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('vehicles/{vehicle}/token/regenerate', [VehicleController::class, 'regenerateToken'])->name('vehicles.token.regenerate');
     Route::post('vehicles/{vehicle}/token/revoke', [VehicleController::class, 'revokeToken'])->name('vehicles.token.revoke');
     Route::resource('check-ins', CheckInController::class);
+    Route::get('kanban', [KanbanController::class, 'index'])->middleware('can:ver tablero')->name('kanban.index');
+    Route::get('api/kanban/data', [KanbanController::class, 'data'])->middleware('can:ver tablero')->name('api.kanban.data');
     Route::resource('estimates', EstimateController::class);
+    Route::resource('work-orders', WorkOrderController::class)->except(['edit', 'update', 'create']);
+    Route::post('work-orders/{workOrder}/attach-estimate', [WorkOrderController::class, 'attachEstimate'])->name('work-orders.attach-estimate');
+    Route::delete('work-orders/{workOrder}/estimates/{estimate}', [WorkOrderController::class, 'detachEstimate'])->name('work-orders.detach-estimate');
+    Route::post('work-orders/{workOrder}/transition', [WorkOrderController::class, 'transition'])->name('work-orders.transition');
+    Route::get('work-orders/{workOrder}/quality-control', [WorkOrderController::class, 'qualityControl'])->name('work-orders.quality-control');
+    Route::post('work-orders/{workOrder}/quality-control', [WorkOrderController::class, 'submitQualityControl'])->name('work-orders.quality-control.store');
+    Route::post('work-orders/{workOrder}/whatsapp', [WorkOrderController::class, 'whatsapp'])->name('work-orders.whatsapp');
+    Route::get('api/work-orders/{workOrder}/recipients', [WorkOrderController::class, 'recipients'])->name('api.work-orders.recipients');
+    Route::post('work-orders/{workOrder}/assignments', [WorkOrderController::class, 'addAssignment'])->name('work-orders.assignments.store');
+    Route::post('work-orders/{workOrder}/assignments/{assignment}/status', [WorkOrderController::class, 'updateAssignmentStatus'])->name('work-orders.assignments.status');
+    Route::delete('work-orders/{workOrder}/assignments/{assignment}', [WorkOrderController::class, 'deleteAssignment'])->name('work-orders.assignments.destroy');
+    Route::get('api/work-orders/search', [WorkOrderController::class, 'search'])->name('api.work-orders.search');
+
+    Route::resource('service-vouchers', ServiceVoucherController::class);
+    Route::post('service-vouchers/{service_voucher}/complete', [ServiceVoucherController::class, 'complete'])->name('service-vouchers.complete');
+    Route::get('api/service-vouchers/search', [ServiceVoucherController::class, 'search'])->name('api.service-vouchers.search');
+
+    Route::resource('provider-settlements', ProviderSettlementController::class);
+    Route::post('provider-settlements/{provider_settlement}/approve', [ProviderSettlementController::class, 'approve'])->name('provider-settlements.approve');
+    Route::post('provider-settlements/{provider_settlement}/pay', [ProviderSettlementController::class, 'pay'])->name('provider-settlements.pay');
+    Route::delete('provider-settlements/{provider_settlement}/vouchers/{service_voucher}', [ProviderSettlementController::class, 'detachVoucher'])->name('provider-settlements.vouchers.detach');
+    Route::get('api/provider-settlements/search', [ProviderSettlementController::class, 'search'])->name('api.provider-settlements.search');
+    Route::get('api/provider-settlements/available-vouchers', [ProviderSettlementController::class, 'availableVouchers'])->name('api.provider-settlements.available-vouchers');
+
+    Route::resource('form-templates', FormTemplateController::class);
+    Route::post('form-templates/{formTemplate}/duplicate', [FormTemplateController::class, 'duplicate'])->name('form-templates.duplicate');
+    Route::get('api/form-templates/search', [FormTemplateController::class, 'search'])->name('api.form-templates.search');
+    Route::resource('checklist-items', CheckInChecklistItemController::class);
+    Route::get('api/checklist-items/search', [CheckInChecklistItemController::class, 'search'])->name('api.checklist-items.search');
     Route::resource('users', UserController::class);
 
     Route::resource('repair-services', RepairServiceController::class);
     Route::resource('parts', PartController::class);
     Route::resource('warehouses', WarehouseController::class);
     Route::resource('stock', StockController::class)->only(['index', 'store']);
+
+    // Kardex / movimientos y alertas de stock mínimo
+    Route::get('stock/movements', [StockController::class, 'movements'])->name('stock.movements');
+    Route::get('api/stock/movements', [StockController::class, 'movementsJson'])->name('api.stock.movements');
+    Route::get('api/stock/alerts', [StockController::class, 'alerts'])->name('api.stock.alerts');
+
+    // Compras (OC01)
+    Route::resource('purchase-orders', PurchaseOrderController::class);
+    Route::post('purchase-orders/{purchase_order}/receive', [PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
+    Route::post('purchase-orders/{purchase_order}/cancel', [PurchaseOrderController::class, 'cancel'])->name('purchase-orders.cancel');
+    Route::get('api/purchase-orders/search', [PurchaseOrderController::class, 'search'])->name('api.purchase-orders.search');
+
+    // Guías de inventario (NIA1 / NSA1 / NTA1)
+    Route::resource('inventory-guides', InventoryGuideController::class);
+    Route::get('api/inventory-guides/search', [InventoryGuideController::class, 'search'])->name('api.inventory-guides.search');
+
+    // Pedidos de repuestos de seguro (PartOrder)
+    Route::resource('part-orders', PartOrderController::class)->only(['index', 'store', 'destroy']);
+    Route::post('part-orders/{part_order}/status', [PartOrderController::class, 'updateStatus'])->name('part-orders.status');
+    Route::get('api/part-orders/search', [PartOrderController::class, 'search'])->name('api.part-orders.search');
+
+    // Salida de repuestos vinculada a la OT (NSA1 motivo 10)
+    Route::post('work-orders/{workOrder}/stock-exit', [WorkOrderController::class, 'stockExit'])->name('work-orders.stock-exit');
 
     Route::resource('service-categories', CatalogController::class);
     Route::resource('part-categories', CatalogController::class);
@@ -81,6 +147,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('check-ins/{checkIn}/approve', [CheckInController::class, 'approve'])->name('check-ins.approve');
     Route::post('check-ins/{checkIn}/reject', [CheckInController::class, 'reject'])->name('check-ins.reject');
     Route::post('check-ins/{checkIn}/send-to-client', [CheckInController::class, 'sendToClient'])->name('check-ins.send-to-client');
+    Route::post('check-ins/{checkIn}/close', [CheckInController::class, 'close'])->name('check-ins.close');
     Route::get('check-ins/{checkIn}/pdf', [CheckInController::class, 'pdf'])->name('check-ins.pdf');
     Route::post('check-ins/{checkIn}/whatsapp', [CheckInController::class, 'sendWhatsApp'])->name('check-ins.whatsapp');
 

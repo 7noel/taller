@@ -80,6 +80,7 @@ class EstimateController extends Controller
             'updater',
             'statusHistory.user',
             'thirdPartyOrders',
+            'workOrder',
         ]);
 
         $grouped = $this->service->getClientGroupedItems($estimate);
@@ -145,7 +146,11 @@ class EstimateController extends Controller
     {
         Gate::authorize('delete', $estimate);
 
-        $this->service->delete($estimate);
+        try {
+            $this->service->delete($estimate);
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['estimate' => $e->getMessage()]);
+        }
 
         return redirect()->route('estimates.index')
             ->with('success', 'Presupuesto eliminado correctamente.');

@@ -31,6 +31,7 @@ class DocumentSeriesService
         'IV' => ['IV01'],
         'CST' => ['CST01'],
         'LST' => ['LST01'],
+        'OC' => ['OC01'],
     ];
 
     /**

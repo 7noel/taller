@@ -37,6 +37,7 @@ class CompanySettingController extends Controller
             'celular' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
             'detraccion_account' => ['nullable', 'string', 'max:20'],
+            'detraccion_rate' => ['nullable', 'numeric', 'min:0', 'max:1'],
             'igv_rate' => ['required', 'numeric', 'min:0', 'max:1'],
             'default_number_source' => ['required', 'in:LOCAL,API'],
             'facturador_provider' => ['required', 'in:local,nubefact,propio'],

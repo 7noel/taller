@@ -111,6 +111,11 @@
                                 <input type="text" name="detraccion_account" value="{{ old('detraccion_account', $setting->detraccion_account) }}" maxlength="20" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Detracción (%) *</label>
+                                <input type="number" step="0.0001" min="0" max="1" name="detraccion_rate" value="{{ old('detraccion_rate', $setting->detraccion_rate ?? '0.1200') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p class="mt-1 text-xs text-gray-500">Porcentaje de detracción para servicios (SPOT). Ej: 0.12 = 12%.</p>
+                            </div>
+                            <div>
                                 <label class="block text-sm font-medium text-gray-700">IGV (%) *</label>
                                 <input type="number" step="0.0001" min="0" name="igv_rate" value="{{ old('igv_rate', $setting->igv_rate ?? '0.1800') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <p class="mt-1 text-xs text-gray-500">Se copia como valor por defecto a los nuevos establecimientos.</p>

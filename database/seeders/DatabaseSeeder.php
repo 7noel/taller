@@ -27,11 +27,16 @@ class DatabaseSeeder extends Seeder
             ChecklistItemsSeeder::class,
             CheckInSeeder::class,
             CatalogSeeder::class,
+            UnitMeasureSeeder::class,
+            InventoryMovementReasonSeeder::class,
             WarehouseSeeder::class,
             RepairServiceSeeder::class,
             PartSeeder::class,
             StockSeeder::class,
             EstimateSeeder::class,
+            WorkOrderSubstageSeeder::class,
+            FormTemplateSeeder::class,
+            DemoDataSeeder::class,
         ]);
     }
 }

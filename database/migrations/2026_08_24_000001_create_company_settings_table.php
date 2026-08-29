@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('logo_path')->nullable();
             $table->string('favicon_path')->nullable();
             $table->string('detraccion_account')->nullable();
+            $table->decimal('igv_rate', 5, 4)->default(0.1800);
+            $table->decimal('detraccion_rate', 5, 4)->default(0.1200);
             $table->enum('default_number_source', ['LOCAL', 'API'])->default('LOCAL');
             $table->enum('facturador_provider', ['local', 'nubefact', 'propio'])->default('local');
             $table->string('facturador_api_url')->nullable();
@@ -30,6 +32,7 @@ return new class extends Migration
             $table->string('whatsapp_api_token')->nullable();
             $table->string('whatsapp_instance_name')->nullable();
             $table->boolean('whatsapp_enabled')->default(false);
+            $table->boolean('qc_require_assignments_completed')->default(true);
             $table->timestamps();
 
             $table->foreign('ubigeo_code')->references('code')->on('ubigeos')->nullOnDelete();

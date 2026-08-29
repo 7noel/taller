@@ -94,7 +94,10 @@ class EstimateService
 
     public function delete(Estimate $estimate): bool
     {
-        // Por ahora no hay OT asociada; el soft delete es seguro.
+        if ($estimate->work_order_id) {
+            throw new RuntimeException('No se puede eliminar un presupuesto vinculado a una orden de trabajo. Desvincúlelo primero desde la OT.');
+        }
+
         return (bool) $estimate->delete();
     }
 
@@ -131,15 +134,18 @@ class EstimateService
                 $item['item_type'] = 'service';
                 $item['service_category_id'] = $service?->service_category_id;
                 $item['part_category_id'] = null;
+                $item['uom'] = $service?->uom ?? 'HUR'; // snapshot SUNAT
             } elseif ($partId) {
                 $part = $partCache[$partId] ??= Part::find($partId);
                 $item['item_type'] = 'part';
                 $item['part_category_id'] = $part?->part_category_id;
                 $item['service_category_id'] = null;
+                $item['uom'] = $part?->uom ?? 'NIU'; // snapshot SUNAT
             } else {
                 // Ítem libre: el tipo y la categoría vienen del formulario (validados).
                 $item['service_category_id'] = $item['service_category_id'] ?? null;
                 $item['part_category_id'] = $item['part_category_id'] ?? null;
+                $item['uom'] = $item['uom'] ?? null;
             }
 
             $id = $item['id'] ?? null;
@@ -152,6 +158,7 @@ class EstimateService
                 'description' => $item['description'] ?? null,
                 'quantity' => $item['quantity'] ?? 1,
                 'unit_price' => $item['unit_price'] ?? 0,
+                'uom' => $item['uom'] ?? null,
                 'discount_pct' => $item['discount_pct'] ?? 0,
                 'supply_source' => $item['supply_source'] ?? 'internal',
                 'cost_price' => $item['cost_price'] ?? 0,
@@ -331,12 +338,7 @@ class EstimateService
                 'updated_by' => Auth::id(),
             ], $approvalFields));
 
-            $estimate->statusHistory()->create([
-                'from_status' => $from,
-                'to_status' => $newStatus,
-                'user_id' => Auth::id(),
-                'comments' => $reason,
-            ]);
+            $estimate->recordStatusChange($newStatus, $from, $reason, 'internal');
 
             if (in_array($newStatus, ['approved_insurance', 'rejected_insurance', 'approved_client', 'rejected_client'], true)) {
                 $this->logApproval(
@@ -352,12 +354,16 @@ class EstimateService
             if ($newStatus === 'finalized' && $estimate->check_in_id) {
                 $checkIn = CheckIn::find($estimate->check_in_id);
                 if ($checkIn && ! in_array($checkIn->status, ['closed', 'rejected'], true)) {
+                    $from = $checkIn->status;
+
                     $checkIn->update([
                         'status' => 'closed',
                         'closed_by' => Auth::id(),
                         'closed_at' => now(),
                         'updated_by' => Auth::id(),
                     ]);
+
+                    $checkIn->recordStatusChange('closed', $from, 'Cerrado automáticamente al finalizar el presupuesto.', 'system');
                 }
             }
         });
@@ -404,14 +410,15 @@ class EstimateService
 
             $estimate->update(array_merge(['status' => $newStatus], $approvalFields));
 
-            $estimate->statusHistory()->create([
-                'from_status' => $from,
-                'to_status' => $newStatus,
-                'user_id' => null,
-                'comments' => $reason ?: ($newStatus === 'approved_client'
+            $estimate->recordStatusChange(
+                $newStatus,
+                $from,
+                $reason ?: ($newStatus === 'approved_client'
                     ? 'Aprobado por el cliente vía portal'
                     : 'Rechazado por el cliente vía portal'),
-            ]);
+                'client',
+                null
+            );
 
             $this->logApproval(
                 $estimate,

@@ -12,6 +12,8 @@ return new class extends Migration
             $table->string('item_type', 20)->default('service')->after('part_id');
             $table->unsignedBigInteger('service_category_id')->nullable()->after('item_type');
             $table->unsignedBigInteger('part_category_id')->nullable()->after('service_category_id');
+            // Snapshot SUNAT Catálogo 03: unidad de medida de la línea al momento de cotizar.
+            $table->string('uom', 5)->nullable()->after('part_category_id');
 
             $table->foreign('service_category_id')->references('id')->on('service_categories')->nullOnDelete();
             $table->foreign('part_category_id')->references('id')->on('part_categories')->nullOnDelete();

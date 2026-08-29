@@ -40,7 +40,7 @@
 </x-app-layout>
 ```
 - Mensajes flash: mostrar `session('success')` en un bloque verde (`bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm`) dentro del slot por defecto.
-- Enlaces del menú en `layouts/navigation.blade.php` se centralizan en `$navItems` (icono + etiqueta), se protegen con `@can('permiso')` y se resaltan con `request()->routeIs('ruta.*')`.
+- Enlaces del menú en `layouts/navigation.blade.php`: `$navItems` para ítems de primer nivel y `$navGroups` para grupos con submenú colapsable (`label`, `icon`, `items[]` con `route`/`active`/`label`/`can`); se protegen con `@can('permiso')`, se resaltan con `request()->routeIs('ruta.*')` y el grupo de la ruta activa se abre automáticamente.
 
 ## Ejemplos de uso
 - Para una tabla de clientes:
@@ -96,3 +96,18 @@ El CSS global en `layouts/app.blade.php` fuerza una sola linea (altura 2.5rem), 
 ## Responsive
 - Diseno mobile-first. Usar clases de Tailwind para diferentes tamanos (sm:, md:, lg:).
 - Tablas de Tabulator se adaptan automaticamente con `responsiveLayout: 'collapse'`.
+
+## Regla `@json` en Blade (PROHIBIDO expresiones con comas)
+
+El directivo `@json()` compila la expresion con `explode(',', ...)` (ver `Illuminate\View\Compilers\Concerns\CompilesJson`), por lo que **cualquier coma dentro de `@json(...)` trunca la expresion y genera PHP invalido** (error tipico al renderizar la vista: `ParseError: Unclosed '[' on line X does not match ')'`, HTTP 500).
+
+- **PROHIBIDO**: `@json($model->items->map(fn ($i) => ['a' => $i->a, 'b' => $i->b])->values())` (comas dentro de la expresion).
+- **OBLIGATORIO**: precalcular en un bloque `@php` y pasar solo la variable:
+```blade
+@php
+    $itemsData = $model->items->map(fn ($i) => ['a' => $i->a, 'b' => $i->b])->values();
+@endphp
+const items = @json($itemsData);
+```
+- `@json()` recibe **solo variables o expresiones sin comas** (`@json($var)`, `@json($x ?? null)`, `@json($x->field)`). Nunca `map()`/`filter()`/`collect()` inline con comas.
+- **Nota**: `php artisan view:cache` NO detecta este error (compila sin ejecutar); la falla aparece al renderizar. Tras `view:cache`, verificar con `php -l` sobre `storage/framework/views/*.php`.

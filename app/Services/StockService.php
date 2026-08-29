@@ -26,6 +26,11 @@ class StockService
         ?string $documentType = null,
         ?int $documentId = null,
         ?string $reference = null,
+        ?string $movementReasonCode = null,
+        ?int $inventoryGuideId = null,
+        ?int $purchaseOrderId = null,
+        ?int $workOrderId = null,
+        ?string $notes = null,
     ): StockMovement {
         if ($quantity <= 0) {
             throw new InvalidArgumentException('La cantidad debe ser mayor a 0.');
@@ -39,7 +44,8 @@ class StockService
         return DB::transaction(function () use (
             $partId, $warehouseId, $type, $quantity, $unitCost,
             $currency, $exchangeRate, $unitCostPen, $totalCostPen,
-            $documentType, $documentId, $reference
+            $documentType, $documentId, $reference,
+            $movementReasonCode, $inventoryGuideId, $purchaseOrderId, $workOrderId, $notes
         ) {
             // Bloquear la fila de stock para evitar condiciones de carrera
             $stock = WarehouseStock::where('part_id', $partId)
@@ -100,8 +106,88 @@ class StockService
                 'document_type' => $documentType,
                 'document_id' => $documentId,
                 'reference' => $reference,
+                'movement_reason_code' => $movementReasonCode,
+                'inventory_guide_id' => $inventoryGuideId,
+                'purchase_order_id' => $purchaseOrderId,
+                'work_order_id' => $workOrderId,
+                'notes' => $notes,
                 'created_by' => auth()->id(),
             ]);
+        });
+    }
+
+    /**
+     * Transferencia entre almacenes: salida en el origen + entrada en el destino
+     * con el costo promedio vigente del origen, en una sola transacción.
+     *
+     * @return array{exit: StockMovement, entry: StockMovement}
+     */
+    public function transfer(
+        int $partId,
+        int $fromWarehouseId,
+        int $toWarehouseId,
+        float $quantity,
+        ?string $movementReasonCode = null,
+        ?int $inventoryGuideId = null,
+        ?int $workOrderId = null,
+        ?string $notes = null,
+    ): array {
+        if ($quantity <= 0) {
+            throw new InvalidArgumentException('La cantidad debe ser mayor a 0.');
+        }
+
+        return DB::transaction(function () use (
+            $partId, $fromWarehouseId, $toWarehouseId, $quantity,
+            $movementReasonCode, $inventoryGuideId, $workOrderId, $notes
+        ) {
+            // Bloquear el stock de origen y validar disponibilidad.
+            $origin = WarehouseStock::where('part_id', $partId)
+                ->where('warehouse_id', $fromWarehouseId)
+                ->lockForUpdate()
+                ->first();
+
+            $originQty = $origin?->quantity ?? 0;
+            if ($originQty < $quantity) {
+                throw new InvalidArgumentException('Stock insuficiente en el almacén de origen para la transferencia.');
+            }
+
+            $unitCostPen = $origin?->average_cost ?? 0;
+
+            $exit = $this->registerMovement(
+                partId: $partId,
+                warehouseId: $fromWarehouseId,
+                type: 'exit',
+                quantity: $quantity,
+                unitCost: $unitCostPen,
+                currency: 'PEN',
+                exchangeRate: null,
+                documentType: 'inventory_guide',
+                documentId: $inventoryGuideId,
+                reference: 'Transferencia entre almacenes',
+                movementReasonCode: $movementReasonCode,
+                inventoryGuideId: $inventoryGuideId,
+                workOrderId: $workOrderId,
+                notes: $notes,
+            );
+
+            $entry = $this->registerMovement(
+                partId: $partId,
+                warehouseId: $toWarehouseId,
+                type: 'entry',
+                quantity: $quantity,
+                unitCost: $unitCostPen,
+                currency: 'PEN',
+                exchangeRate: null,
+                documentType: 'inventory_guide',
+                documentId: $inventoryGuideId,
+                reference: 'Transferencia entre almacenes',
+                movementReasonCode: $movementReasonCode,
+                inventoryGuideId: $inventoryGuideId,
+                workOrderId: $workOrderId,
+                notes: $notes,
+            );
+
+            return ['exit' => $exit, 'entry' => $entry];
         });
     }
 
@@ -145,9 +231,10 @@ class StockService
         $base = StockMovement::where('part_id', $partId)
             ->where('warehouse_id', $warehouseId);
 
-        // Saldo inicial: suma de movimientos anteriores a fromDate
-        $openingQuery = (clone $base)->when($fromDate, fn ($q) => $q->where('created_at', '<', $fromDate . ' 00:00:00'));
-        $openingMovements = $openingQuery->orderBy('created_at')->orderBy('id')->get();
+        // Saldo inicial: movimientos anteriores a fromDate (si no hay fromDate, no hay saldo inicial).
+        $openingMovements = $fromDate
+            ? (clone $base)->where('created_at', '<', $fromDate.' 00:00:00')->orderBy('created_at')->orderBy('id')->get()
+            : collect();
 
         $quantity = 0.0;
         $avg = 0.0;
@@ -164,6 +251,7 @@ class StockService
         }
 
         $movements = (clone $base)
+            ->with(['part', 'warehouse', 'movementReason', 'inventoryGuide', 'purchaseOrder', 'workOrder'])
             ->when($fromDate, fn ($q) => $q->where('created_at', '>=', $fromDate . ' 00:00:00'))
             ->when($toDate, fn ($q) => $q->where('created_at', '<=', $toDate . ' 23:59:59'))
             ->orderBy('created_at')

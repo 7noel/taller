@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('barcode')->nullable()->unique();
             $table->unsignedBigInteger('part_brand_id')->nullable();
             $table->unsignedBigInteger('part_category_id')->nullable();
-            $table->string('uom')->default('unit');
+            $table->string('uom', 5)->default('NIU'); // Código SUNAT Catálogo 03 (NIU = unidad)
             $table->integer('min_stock')->default(0);
             $table->decimal('cost_price', 12, 2)->default(0);
             $table->string('cost_currency', 3)->default('PEN');

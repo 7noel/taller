@@ -46,7 +46,11 @@
     </div>
     <div>
         <label class="block text-sm font-medium text-gray-700">Unidad de medida</label>
-        <input type="text" name="uom" value="{{ old('uom', $p->uom ?? 'unit') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <select name="uom" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            @foreach ($unitMeasures as $u)
+                <option value="{{ $u->code }}" @selected(old('uom', $p->uom ?? 'NIU') === $u->code)>{{ $u->code }} · {{ $u->name }}</option>
+            @endforeach
+        </select>
     </div>
     <div>
         <label class="block text-sm font-medium text-gray-700">Stock mínimo</label>

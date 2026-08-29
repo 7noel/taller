@@ -50,6 +50,14 @@
         .ts-wrapper .ts-dropdown {
             @apply rounded-md border-gray-300 bg-white text-sm text-gray-900 shadow-sm;
         }
+        /* El dropdown con dropdownParent:'body' queda fuera de .ts-wrapper y Tom Select
+           le aplica z-index:10 por defecto → quedaba detrás de los modales (z-50),
+           invisible dentro del modal de ítems del presupuesto.
+           Selector específico para vencer a tom-select.css (que carga después). */
+        .ts-wrapper .ts-dropdown,
+        body > .ts-dropdown {
+            z-index: 60;
+        }
         .ts-wrapper .ts-dropdown .ts-dropdown-content .option {
             @apply cursor-pointer px-3 py-2 text-gray-700;
             border-left: 3px solid transparent;
@@ -201,6 +209,7 @@
             .app-sidebar-collapsed #sidebar nav { padding-left: 0.75rem; padding-right: 0.75rem; }
             .app-sidebar-collapsed .nav-label { display: none; }
             .app-sidebar-collapsed .nav-item { justify-content: center; gap: 0; padding-left: 0; padding-right: 0; }
+            .app-sidebar-collapsed .nav-submenu { display: none; }
             .app-sidebar-collapsed #sidebarCollapse { margin-left: auto; }
             .app-sidebar-collapsed .user-sidebar-wrap { padding-left: 0.5rem; padding-right: 0.5rem; }
             .app-sidebar-collapsed .user-sidebar-wrap button { justify-content: center; }

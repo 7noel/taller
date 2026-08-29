@@ -92,10 +92,14 @@ class CheckInService
      */
     public function sendToClient(CheckIn $checkIn): CheckIn
     {
+        $from = $checkIn->status;
+
         $checkIn->update([
             'status' => 'pending_approval',
             'updated_by' => Auth::id(),
         ]);
+
+        $checkIn->recordStatusChange('pending_approval', $from);
 
         return $checkIn->fresh();
     }
@@ -107,6 +111,8 @@ class CheckInService
     public function approve(CheckIn $checkIn): CheckIn
     {
         DB::transaction(function () use ($checkIn) {
+            $from = $checkIn->status;
+
             $checkIn->update([
                 'status' => 'approved',
                 'approved_by_user_id' => Auth::id(),
@@ -114,6 +120,7 @@ class CheckInService
                 'updated_by' => Auth::id(),
             ]);
 
+            $checkIn->recordStatusChange('approved', $from);
             $this->logApproval($checkIn, 'approved', 'internal', Auth::id());
         });
 
@@ -126,6 +133,8 @@ class CheckInService
     public function reject(CheckIn $checkIn, ?string $reason = null): CheckIn
     {
         DB::transaction(function () use ($checkIn, $reason) {
+            $from = $checkIn->status;
+
             $checkIn->update([
                 'status' => 'rejected',
                 'rejected_by_user_id' => Auth::id(),
@@ -137,8 +146,34 @@ class CheckInService
                 'updated_by' => Auth::id(),
             ]);
 
+            $checkIn->recordStatusChange('rejected', $from, $reason);
             $this->logApproval($checkIn, 'rejected', 'internal', Auth::id(), $reason);
         });
+
+        return $checkIn->fresh();
+    }
+
+    /**
+     * Cierra el inventario: el vehículo salió del taller (estado terminal).
+     * Se usa como acción manual (escape hatch) o automáticamente cuando el
+     * presupuesto asociado se finaliza.
+     */
+    public function close(CheckIn $checkIn): CheckIn
+    {
+        if (! in_array($checkIn->status, ['approved', 'pending_approval'], true)) {
+            throw new RuntimeException('Solo se puede cerrar un inventario aprobado o pendiente de aprobación.');
+        }
+
+        $from = $checkIn->status;
+
+        $checkIn->update([
+            'status' => 'closed',
+            'closed_by' => Auth::id(),
+            'closed_at' => now(),
+            'updated_by' => Auth::id(),
+        ]);
+
+        $checkIn->recordStatusChange('closed', $from, null, 'internal');
 
         return $checkIn->fresh();
     }
@@ -157,6 +192,7 @@ class CheckInService
         }
 
         DB::transaction(function () use ($checkIn, $ip, $userAgent) {
+            $from = $checkIn->status;
             $recipient = $checkIn->last_sent_to ?: $checkIn->client?->display_name;
             $phone = $checkIn->last_sent_to_phone;
 
@@ -167,6 +203,7 @@ class CheckInService
                 'approved_at' => now(),
             ]);
 
+            $checkIn->recordStatusChange('approved', $from, null, 'client', null);
             $this->logApproval($checkIn, 'approved', 'portal', null, null, $recipient, $phone, $ip, $userAgent);
         });
 
@@ -183,6 +220,7 @@ class CheckInService
         }
 
         DB::transaction(function () use ($checkIn, $reason, $ip, $userAgent) {
+            $from = $checkIn->status;
             $recipient = $checkIn->last_sent_to ?: $checkIn->client?->display_name;
             $phone = $checkIn->last_sent_to_phone;
 
@@ -194,6 +232,7 @@ class CheckInService
                 'rejected_at' => now(),
             ]);
 
+            $checkIn->recordStatusChange('rejected', $from, $reason, 'client', null);
             $this->logApproval($checkIn, 'rejected', 'portal', null, $reason, $recipient, $phone, $ip, $userAgent);
         });
 

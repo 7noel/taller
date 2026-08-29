@@ -12,8 +12,12 @@ class ExampleTest extends TestCase
      */
     public function test_the_application_returns_a_successful_response(): void
     {
+        // El home redirige al login (invitado) o al inventario (autenticado).
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertRedirect();
+
+        // Smoke test real: la página de login responde 200.
+        $this->get('/login')->assertOk();
     }
 }

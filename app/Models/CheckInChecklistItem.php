@@ -23,6 +23,18 @@ class CheckInChecklistItem extends Model
         'order' => 'integer',
     ];
 
+    public const CATEGORIES = [
+        'EXTERIOR' => 'Exterior',
+        'MOTOR' => 'Motor',
+        'INTERIOR' => 'Interior',
+        'HERRAMIENTAS/EMERGENCIA' => 'Herramientas / Emergencia',
+    ];
+
+    public function getCategoryLabelAttribute(): string
+    {
+        return self::CATEGORIES[$this->category] ?? $this->category ?? '';
+    }
+
     public function checklistResults()
     {
         return $this->hasMany(CheckInChecklistResult::class);

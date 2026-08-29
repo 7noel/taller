@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PartRequest;
 use App\Models\Part;
+use App\Models\UnitMeasure;
 use App\Services\PartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,7 +31,9 @@ class PartController extends Controller
     {
         Gate::authorize('create', Part::class);
 
-        return view('parts.create');
+        $unitMeasures = UnitMeasure::where('is_active', true)->orderBy('code')->get();
+
+        return view('parts.create', compact('unitMeasures'));
     }
 
     public function store(PartRequest $request)
@@ -47,7 +50,9 @@ class PartController extends Controller
     {
         Gate::authorize('update', $part);
 
-        return view('parts.edit', compact('part'));
+        $unitMeasures = UnitMeasure::where('is_active', true)->orderBy('code')->get();
+
+        return view('parts.edit', compact('part', 'unitMeasures'));
     }
 
     public function update(PartRequest $request, Part $part)
@@ -92,6 +97,8 @@ class PartController extends Controller
             'id' => $p->id,
             'name' => $p->name,
             'sku' => $p->sku,
+            'uom' => $p->uom,
+            'uom_name' => $p->unitMeasure?->name,
             'brand' => $p->brand?->name,
             'category' => $p->category?->name,
             'part_category_id' => $p->part_category_id,

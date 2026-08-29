@@ -28,6 +28,14 @@
         @error('pricing_type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
     </div>
     <div>
+        <label class="block text-sm font-medium text-gray-700">Unidad de medida</label>
+        <select name="uom" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            @foreach ($unitMeasures as $u)
+                <option value="{{ $u->code }}" @selected(old('uom', $rs->uom ?? 'HUR') === $u->code)>{{ $u->code }} · {{ $u->name }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div>
         <label class="block text-sm font-medium text-gray-700">Moneda de venta <span class="text-red-500">*</span></label>
         <select name="currency" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="PEN" @selected(old('currency', $rs->currency ?? 'PEN') === 'PEN')>Soles (PEN)</option>

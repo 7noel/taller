@@ -73,6 +73,24 @@
                     </div>
                 </div>
 
+                {{-- Unidad de medida (SUNAT Catálogo 03) --}}
+                <div>
+                    <label for="item-uom" class="block text-sm font-medium text-gray-700">Unidad de medida</label>
+                    <select id="item-uom" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">—</option>
+                        <option value="NIU">NIU · Unidad</option>
+                        <option value="PZ">PZ · Pieza</option>
+                        <option value="ZZ">ZZ · Servicio</option>
+                        <option value="KGM">KGM · Kilogramo</option>
+                        <option value="LTR">LTR · Litro</option>
+                        <option value="MTR">MTR · Metro</option>
+                        <option value="HUR">HUR · Hora</option>
+                        <option value="DIA">DIA · Día</option>
+                        <option value="SET">SET · Set</option>
+                        <option value="C62">C62 · Ciento</option>
+                    </select>
+                </div>
+
                 {{-- Origen suministro (repuestos) --}}
                 <div id="item-supply-wrap">
                     <label for="item-supply-source" class="block text-sm font-medium text-gray-700">Origen del suministro</label>

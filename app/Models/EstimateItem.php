@@ -19,6 +19,7 @@ class EstimateItem extends Model
         'description',
         'quantity',
         'unit_price',
+        'uom',
         'discount_pct',
         'subtotal',
         'discount_amount',
@@ -71,6 +72,11 @@ class EstimateItem extends Model
     public function part()
     {
         return $this->belongsTo(Part::class, 'part_id');
+    }
+
+    public function unitMeasure()
+    {
+        return $this->belongsTo(UnitMeasure::class, 'uom', 'code');
     }
 
     public function serviceCategory()

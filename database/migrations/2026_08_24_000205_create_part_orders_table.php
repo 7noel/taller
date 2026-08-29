@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::create('part_orders', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('part_id');
-            $table->unsignedBigInteger('estimate_id')->nullable(); // FK a estimates (pendiente)
+            $table->unsignedBigInteger('estimate_id')->nullable();
+            $table->unsignedBigInteger('provider_id')->nullable();
             $table->decimal('quantity', 12, 2)->default(1);
             $table->enum('status', ['pending', 'ordered', 'in_transit', 'received'])->default('pending');
             $table->date('ordered_at')->nullable();
@@ -25,10 +26,14 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('part_id')->references('id')->on('parts')->cascadeOnDelete();
+            // Nota: la FK de estimate_id se agrega en la migración
+            // 2026_08_28_000300 (estimates se crea después de part_orders).
+            $table->foreign('provider_id')->references('id')->on('parties')->nullOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
 
             $table->index('status');
+            $table->index('provider_id');
         });
     }
 

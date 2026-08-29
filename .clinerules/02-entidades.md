@@ -23,9 +23,12 @@
 - **FranchiseCalculation**: cálculo de franquicia (estimate_id, minimum_amount, percentage, base_amount, total_franchise_without_iva).
 
 ## 5. Órdenes de Trabajo
-- **WorkOrder**: orden de trabajo (estimate_id, vehicle_id, start_date, estimated_end_date, status, notes).
-- **WorkOrderSubstage**: subetapas (nombre, descripción, orden).
-- **WorkOrderAssignment**: asignaciones (work_order_id, user_id (técnico), substage_id, hours, cost).
+- **WorkOrder**: orden de trabajo (vehicle_id, client_id, establishment_id, snapshot de identidad `document_type_code`='OT' / `document_serie` / `document_number` / `document_sn`, status, start_date, estimated_end_date, notes). **Una OT agrupa uno o más presupuestos aprobados** (relación muchos-a-uno vía `estimates.work_order_id` nullable, sin tabla intermedia). Puede agrupar presupuestos de **distintos check-ins** (reingresos por repuestos pendientes o adicionales aprobados).
+- **Estimate.work_order_id** (nullable, FK): presupuesto → su OT. Al generar la OT, los presupuestos pasan a `in_repair` (con historial en `estimate_status_history`).
+- **CheckIn.work_order_id** (nullable, FK): vincula cada visita física a la OT — el check-in original y los **reingresos** (vehículo que retorna para completar trabajos pendientes).
+- **WorkOrderSubstage**: catálogo global de subetapas de reparación (nombre, descripción, orden).
+- **WorkOrderAssignment**: asignaciones (work_order_id, substage_id, user_id técnico, hours, cost, status: pending/in_progress/done).
+- Estados de OT: `open`, `in_progress`, `waiting_parts`, `quality_control`, `ready_for_delivery`, `delivered`, **`delivered_pending`** (entregado con pendientes/backorder: el vehículo salió pero la OT NO se cierra), `closed`.
 
 ## 6. Servicios Tercerizados
 - **ServiceVoucher**: comprobante de servicio (work_order_id, provider_id (cliente), execution_date, description, agreed_amount, discount_applied, final_amount, status, provider_settlement_id nullable).

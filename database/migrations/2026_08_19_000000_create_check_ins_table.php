@@ -46,11 +46,16 @@ return new class extends Migration
             $table->string('last_sent_to_phone')->nullable();
             $table->timestamp('last_sent_at')->nullable();
 
+            // ===== Cierre (el vehículo salió del taller) =====
+            $table->unsignedBigInteger('closed_by')->nullable();
+            $table->timestamp('closed_at')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('approved_by_user_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign('rejected_by_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('closed_by')->references('id')->on('users')->nullOnDelete();
 
             $table->index(['vehicle_id', 'status']);
             $table->index('establishment_id');

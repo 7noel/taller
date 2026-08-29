@@ -11,7 +11,7 @@ class PartOrder extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'part_id', 'estimate_id', 'quantity', 'status',
+        'part_id', 'estimate_id', 'provider_id', 'quantity', 'status',
         'ordered_at', 'expected_delivery', 'delivered_at',
         'tracking_number', 'notes', 'created_by', 'updated_by',
     ];
@@ -23,11 +23,21 @@ class PartOrder extends Model
         'delivered_at' => 'date',
     ];
 
+    public const STATUS_LABELS = [
+        'pending' => 'Pendiente de pedido',
+        'ordered' => 'Pedido realizado',
+        'in_transit' => 'En camino',
+        'received' => 'En almacén',
+    ];
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? $this->status ?? '';
+    }
+
     public function part() { return $this->belongsTo(Part::class); }
-
-    // Relación con Estimate pendiente: cuando exista el modelo, descomentar:
-    // public function estimate() { return $this->belongsTo(Estimate::class); }
-
+    public function estimate() { return $this->belongsTo(Estimate::class); }
+    public function provider() { return $this->belongsTo(Party::class, 'provider_id'); }
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
     public function updater() { return $this->belongsTo(User::class, 'updated_by'); }
 }

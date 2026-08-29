@@ -22,6 +22,20 @@
                 </div>
             @endif
 
+            {{-- Alertas de stock mínimo --}}
+            <div id="stock-alerts" class="hidden mb-4">
+                <div class="card border-red-200 p-4 sm:p-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="inline-flex items-center gap-2 text-sm font-semibold text-red-700">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Repuestos con stock mínimo
+                        </h3>
+                        <span id="alerts-count" class="inline-flex items-center px-2 py-0.5 rounded-full bg-red-50 text-xs font-medium text-red-700">0</span>
+                    </div>
+                    <div id="alerts-list" class="text-sm text-gray-700 space-y-1"></div>
+                </div>
+            </div>
+
             <div class="card overflow-hidden">
                 <div class="p-4 sm:p-5">
                     <div class="mb-3">
@@ -124,6 +138,25 @@
         document.getElementById('stock-search').addEventListener('input', function(e) {
             table.setData("{{ route('api.stock.search') }}?q=" + encodeURIComponent(e.target.value) + "&limit=200");
         });
+
+        // Alertas de stock mínimo
+        fetch("{{ route('api.stock.alerts') }}")
+            .then(r => r.json())
+            .then(data => {
+                const wrap = document.getElementById('stock-alerts');
+                const list = document.getElementById('alerts-list');
+                document.getElementById('alerts-count').textContent = data.length;
+                if (!data.length) { wrap.classList.add('hidden'); return; }
+                wrap.classList.remove('hidden');
+                list.innerHTML = data.map(a =>
+                    `<div class="flex flex-wrap items-center gap-2 py-1">
+                        <span class="font-medium text-gray-800">${a.name}</span>
+                        <span class="text-gray-500">(${a.sku})</span>
+                        <span class="text-red-700">Stock: ${a.stock} ${a.uom || ''}</span>
+                        <span class="text-gray-500">Mínimo: ${a.min_stock}</span>
+                    </div>`
+                ).join('');
+            });
 
         // Modal de movimiento
         const modal = document.getElementById('movement-modal');

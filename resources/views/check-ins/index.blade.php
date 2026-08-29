@@ -190,6 +190,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                         </svg>
                     </a>
+                    @can('crear presupuestos')
+                    ${cell.getData().status === 'approved' ? `<a href="/estimates/create?check_in_id=${id}" title="Crear presupuesto desde el inventario" class="btn-icon btn-icon-blue">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </a>` : ''}
+                    @endcan
                     @can('editar inventarios')
                     <a href="/check-ins/${id}/edit" title="Editar inventario" class="btn-icon btn-icon-amber">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

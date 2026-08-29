@@ -35,6 +35,19 @@ class NotificationService
                 $data['plate'],
                 $data['link']
             ),
+            'work_order_ready' => sprintf(
+                "Hola %s, tu vehículo %s está listo para recoger en nuestro taller. La orden de trabajo %s ya pasó el control de calidad.\nRevisa el detalle de todos los trabajos realizados:\n\n%s",
+                $data['recipient'],
+                $data['plate'],
+                $data['sn'] ?? '',
+                $data['link']
+            ),
+            'work_order_survey' => sprintf(
+                "Hola %s, ya puedes recoger tu vehículo %s de nuestro taller. Para seguir mejorando, te pedimos 2 minutos y respondas nuestra breve encuesta de satisfacción:\n\n%s\n\n¡Gracias por preferirnos!",
+                $data['recipient'],
+                $data['plate'],
+                $data['link']
+            ),
             'survey' => sprintf(
                 "Hola %s, queremos conocer tu experiencia con el servicio de tu vehículo %s.\nDéjanos tu opinión:\n\n%s",
                 $data['recipient'],

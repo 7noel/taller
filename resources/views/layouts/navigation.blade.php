@@ -1,20 +1,70 @@
 @php
     $navItems = [
         ['route' => 'dashboard', 'active' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10'],
-        ['route' => 'parties.index', 'active' => 'parties.*', 'label' => 'Contactos', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
-        ['route' => 'vehicles.index', 'active' => 'vehicles.*', 'label' => 'Vehículos', 'icon' => 'M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM5 15H3v-4h4v4H5zM17 15h-2v-4h4v4h-2zM3 11l3-4h9l3 4'],
-        ['route' => 'check-ins.index', 'active' => 'check-ins.*', 'label' => 'Inventario', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
-        ['route' => 'estimates.index', 'active' => 'estimates.*', 'label' => 'Presupuestos', 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'can' => 'ver presupuestos'],
-        ['route' => 'repair-services.index', 'active' => 'repair-services.*', 'label' => 'Servicios', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z', 'can' => 'ver servicios'],
-        ['route' => 'parts.index', 'active' => 'parts.*', 'label' => 'Repuestos', 'icon' => 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9z', 'can' => 'ver repuestos'],
-        ['route' => 'warehouses.index', 'active' => 'warehouses.*', 'label' => 'Almacenes', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'can' => 'ver almacenes'],
-        ['route' => 'stock.index', 'active' => 'stock.*', 'label' => 'Stock', 'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', 'can' => 'ver stock'],
-        ['route' => 'part-brands.index', 'active' => 'part-brands.*', 'label' => 'Marcas de Repuesto', 'icon' => 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z', 'can' => 'ver marcas de repuesto'],
-        ['route' => 'part-categories.index', 'active' => 'part-categories.*', 'label' => 'Categorías de Repuesto', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', 'can' => 'ver categorías de repuesto'],
-        ['route' => 'service-categories.index', 'active' => 'service-categories.*', 'label' => 'Categorías de Servicio', 'icon' => 'M4 6h16M4 10h16M4 14h16M4 18h16', 'can' => 'ver categorías de servicio'],
-        ['route' => 'users.index', 'active' => 'users.*', 'label' => 'Usuarios', 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'can' => 'ver usuarios'],
-        ['route' => 'establishments.index', 'active' => 'establishments.*', 'label' => 'Establecimientos', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'can' => 'ver establecimientos'],
-        ['route' => 'company-settings.edit', 'active' => 'company-settings.*', 'label' => 'Configuración', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z', 'can' => 'ver configuración'],
+        ['route' => 'kanban.index', 'active' => 'kanban.*', 'label' => 'Tablero Kanban', 'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2zm10 0h-2a2 2 0 00-2 2v8a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2z', 'can' => 'ver tablero'],
+    ];
+
+    // Grupos con submenús colapsables (el grupo de la ruta activa se abre automáticamente)
+    $navGroups = [
+        'clients' => [
+            'label' => 'Clientes',
+            'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+            'items' => [
+                ['route' => 'parties.index', 'active' => 'parties.*', 'label' => 'Contactos'],
+                ['route' => 'vehicles.index', 'active' => 'vehicles.*', 'label' => 'Vehículos'],
+            ],
+        ],
+        'workshop' => [
+            'label' => 'Taller',
+            'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+            'items' => [
+                ['route' => 'check-ins.index', 'active' => 'check-ins.*', 'label' => 'Inventario'],
+                ['route' => 'estimates.index', 'active' => 'estimates.*', 'label' => 'Presupuestos', 'can' => 'ver presupuestos'],
+                ['route' => 'work-orders.index', 'active' => 'work-orders.*', 'label' => 'Órdenes de Trabajo', 'can' => 'ver órdenes de trabajo'],
+            ],
+        ],
+        'outsourced' => [
+            'label' => 'Tercerizados',
+            'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+            'items' => [
+                ['route' => 'service-vouchers.index', 'active' => 'service-vouchers.*', 'label' => 'Vales de Servicio', 'can' => 'ver vales de servicio'],
+                ['route' => 'provider-settlements.index', 'active' => 'provider-settlements.*', 'label' => 'Liquidaciones', 'can' => 'ver liquidaciones de servicios'],
+            ],
+        ],
+        'warehouse' => [
+            'label' => 'Almacén',
+            'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+            'items' => [
+                ['route' => 'parts.index', 'active' => 'parts.*', 'label' => 'Repuestos', 'can' => 'ver repuestos'],
+                ['route' => 'warehouses.index', 'active' => 'warehouses.*', 'label' => 'Almacenes', 'can' => 'ver almacenes'],
+                ['route' => 'stock.index', 'active' => 'stock.index', 'label' => 'Stock', 'can' => 'ver stock'],
+                ['route' => 'stock.movements', 'active' => 'stock.movements', 'label' => 'Kardex', 'can' => 'ver stock'],
+                ['route' => 'inventory-guides.index', 'active' => 'inventory-guides.*', 'label' => 'Guías de Inventario', 'can' => 'ver guías de inventario'],
+                ['route' => 'purchase-orders.index', 'active' => 'purchase-orders.*', 'label' => 'Compras', 'can' => 'ver órdenes de compra'],
+                ['route' => 'part-orders.index', 'active' => 'part-orders.*', 'label' => 'Pedidos de Repuestos', 'can' => 'ver pedidos de repuestos'],
+            ],
+        ],
+        'catalogs' => [
+            'label' => 'Catálogos',
+            'icon' => 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
+            'items' => [
+                ['route' => 'repair-services.index', 'active' => 'repair-services.*', 'label' => 'Servicios', 'can' => 'ver servicios'],
+                ['route' => 'part-brands.index', 'active' => 'part-brands.*', 'label' => 'Marcas de Repuesto', 'can' => 'ver marcas de repuesto'],
+                ['route' => 'part-categories.index', 'active' => 'part-categories.*', 'label' => 'Categorías de Repuesto', 'can' => 'ver categorías de repuesto'],
+                ['route' => 'service-categories.index', 'active' => 'service-categories.*', 'label' => 'Categorías de Servicio', 'can' => 'ver categorías de servicio'],
+                ['route' => 'form-templates.index', 'active' => 'form-templates.*', 'label' => 'Plantillas', 'can' => 'ver plantillas de formulario'],
+                ['route' => 'checklist-items.index', 'active' => 'checklist-items.*', 'label' => 'Checklist', 'can' => 'ver checklist'],
+            ],
+        ],
+        'admin' => [
+            'label' => 'Administración',
+            'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z',
+            'items' => [
+                ['route' => 'users.index', 'active' => 'users.*', 'label' => 'Usuarios', 'can' => 'ver usuarios'],
+                ['route' => 'establishments.index', 'active' => 'establishments.*', 'label' => 'Establecimientos', 'can' => 'ver establecimientos'],
+                ['route' => 'company-settings.edit', 'active' => 'company-settings.*', 'label' => 'Configuración', 'can' => 'ver configuración'],
+            ],
+        ],
     ];
 @endphp
 
@@ -48,28 +98,43 @@
         </button>
     </div>
 
-    {{-- Navegación --}}
+    {{-- Navegación: ítems de primer nivel + grupos con submenú --}}
     <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         @foreach ($navItems as $item)
             @if (isset($item['can']) && !auth()->user()->can($item['can']))
                 @continue
             @endif
+            @include('partials.nav-link', ['item' => $item, 'icon' => $item['icon']])
+        @endforeach
+
+        @foreach ($navGroups as $key => $group)
             @php
-                $active = request()->routeIs($item['active']);
-                $linkClasses = $active
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900';
+                $visibleItems = array_values(array_filter($group['items'], fn ($i) => empty($i['can']) || auth()->user()->can($i['can'])));
+                if (count($visibleItems) === 0) { continue; }
+                $groupActive = collect($visibleItems)->contains(fn ($i) => request()->routeIs($i['active']));
+                $groupId = 'nav-group-' . $key;
             @endphp
-            <a href="{{ route($item['route']) }}" title="{{ $item['label'] }}"
-               class="nav-item relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 ease-out {{ $linkClasses }}">
-                @if ($active)
-                    <span class="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-blue-600"></span>
-                @endif
-                <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
-                </svg>
-                <span class="nav-label">{{ $item['label'] }}</span>
-            </a>
+            <div class="pt-3">
+                <button type="button" id="btn-{{ $groupId }}" data-nav-group="{{ $groupId }}"
+                        aria-expanded="{{ $groupActive ? 'true' : 'false' }}" aria-controls="{{ $groupId }}"
+                        title="{{ $group['label'] }}"
+                        class="nav-item group-toggle flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 ease-out hover:bg-gray-50 hover:text-gray-900 {{ $groupActive ? 'text-gray-800' : 'text-gray-600' }}">
+                    <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $group['icon'] }}"/>
+                    </svg>
+                    <span class="nav-label min-w-0 flex-1 truncate text-left">{{ $group['label'] }}</span>
+                    <svg class="group-chevron nav-label h-4 w-4 shrink-0 text-gray-400 transition-transform duration-150 ease-out" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div id="{{ $groupId }}" class="nav-submenu {{ $groupActive ? '' : 'hidden' }}">
+                    <div class="mt-1 space-y-1 pb-1">
+                        @foreach ($visibleItems as $item)
+                            @include('partials.nav-link', ['item' => $item, 'submenu' => true, 'icon' => null])
+                        @endforeach
+                    </div>
+                </div>
+            </div>
         @endforeach
     </nav>
 
@@ -179,6 +244,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ===== Submenús agrupados (acordeón) =====
+    document.querySelectorAll('.group-toggle').forEach(function (toggle) {
+        const target = document.getElementById(toggle.getAttribute('data-nav-group'));
+        if (!target) return;
+        const chevron = toggle.querySelector('.group-chevron');
+        function setGroupOpen(open) {
+            target.classList.toggle('hidden', !open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            if (chevron) chevron.classList.toggle('rotate-180', open);
+        }
+        setGroupOpen(!target.classList.contains('hidden'));
+        toggle.addEventListener('click', function () {
+            if (document.documentElement.classList.contains('app-sidebar-collapsed')) {
+                // Con el sidebar colapsado, abrir un grupo expande la barra lateral
+                document.documentElement.classList.remove('app-sidebar-collapsed');
+                try { localStorage.setItem('sidebar-collapsed', '0'); } catch (e) {}
+                updateCollapseIcons(false);
+                setGroupOpen(true);
+                return;
+            }
+            setGroupOpen(target.classList.contains('hidden'));
+        });
+    });
     // ===== Dropdown de usuario en la sidebar =====
     const userButton = document.getElementById('userMenuSidebar');
     const userDropdown = document.getElementById('userDropdownSidebar');

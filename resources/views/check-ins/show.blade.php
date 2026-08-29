@@ -29,6 +29,31 @@
                         Copiar enlace
                     </button>
                 @endif
+                @can('crear presupuestos')
+                    @if ($checkIn->status === 'approved')
+                        <a href="{{ route('estimates.create', ['check_in_id' => $checkIn->id]) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-blue-700">
+                            <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            Crear presupuesto
+                        </a>
+                    @endif
+                @endcan
+                @can('crear órdenes de trabajo')
+                    @php
+                        $approvedEstimates = $checkIn->estimates
+                            ->whereIn('status', ['approved_insurance', 'approved_client'])
+                            ->whereNull('work_order_id');
+                    @endphp
+                    @if ($approvedEstimates->isNotEmpty())
+                        <form method="POST" action="{{ route('work-orders.store') }}">
+                            @csrf
+                            <input type="hidden" name="check_in_id" value="{{ $checkIn->id }}">
+                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-blue-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-blue-700">
+                                <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                Generar OT
+                            </button>
+                        </form>
+                    @endif
+                @endcan
                 @can('editar inventarios')
                     <a href="{{ route('check-ins.edit', $checkIn) }}" class="inline-flex items-center px-3 py-1.5 bg-yellow-500 rounded-md font-semibold text-xs text-white uppercase hover:bg-yellow-600">Editar</a>
                 @endcan
@@ -42,17 +67,26 @@
                 @endcan
                 @can('approve', \App\Models\CheckIn::class)
                     @if (in_array($checkIn->status, ['draft', 'pending_approval', 'rejected']))
-                        <form method="POST" action="{{ route('check-ins.approve', $checkIn) }}">
+                        <form id="form-approve" method="POST" action="{{ route('check-ins.approve', $checkIn) }}">
                             @csrf
-                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-green-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-green-700">Aprobar</button>
+                            <button type="button" data-checkin-approve class="inline-flex items-center px-3 py-1.5 bg-green-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-green-700">Aprobar</button>
                         </form>
                     @endif
                 @endcan
                 @can('reject', \App\Models\CheckIn::class)
                     @if (in_array($checkIn->status, ['draft', 'pending_approval']))
-                        <form method="POST" action="{{ route('check-ins.reject', $checkIn) }}" onsubmit="const r = prompt('Motivo de rechazo (opcional):'); if (r !== null) { const i = document.createElement('input'); i.type='hidden'; i.name='reason'; i.value=r; this.appendChild(i); return true; } return false;">
+                        <form id="form-reject" method="POST" action="{{ route('check-ins.reject', $checkIn) }}">
                             @csrf
-                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-red-700">Rechazar</button>
+                            <input type="hidden" name="reason">
+                            <button type="button" data-checkin-reject class="inline-flex items-center px-3 py-1.5 bg-red-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-red-700">Rechazar</button>
+                        </form>
+                    @endif
+                @endcan
+                @can('editar inventarios')
+                    @if ($checkIn->status === 'approved')
+                        <form method="POST" action="{{ route('check-ins.close', $checkIn) }}" data-confirm="¿Cerrar este inventario? Confirmarás que el vehículo salió del taller.">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-gray-600 rounded-md font-semibold text-xs text-white uppercase hover:bg-gray-700">Cerrar inventario</button>
                         </form>
                     @endif
                 @endcan
@@ -73,7 +107,7 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             @if (session('success'))
-                <div class="mb-4 px-4 py-3 bg-green-100 border border-green-400 text-green-700 rounded">{{ session('success') }}</div>
+                <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{ session('success') }}</div>
             @endif
             @if (session('error'))
                 <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{{ session('error') }}</div>
@@ -85,6 +119,19 @@
                 </span>
                 <span class="ml-2 text-sm text-gray-500">{{ $checkIn->service_type_label }}</span>
             </div>
+
+            @if ($checkIn->status === 'rejected' && $checkIn->rejection_reason)
+                <div class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="h-5 w-5 shrink-0 text-red-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                        <div>
+                            <p class="text-sm font-semibold text-red-700">Inventario rechazado</p>
+                            <p class="mt-1 text-sm text-red-700">{{ $checkIn->rejection_reason }}</p>
+                            <p class="mt-2 text-xs text-red-600/80">{{ $checkIn->rejected_by_label }}@if ($checkIn->rejected_at) · {{ $checkIn->rejected_at->format('d/m/Y H:i') }}@endif</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- Tabs --}}
             <div class="mb-4 border-b border-gray-200">
@@ -335,6 +382,9 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Historial de estados --}}
+            <x-status-history :subject="$checkIn" />
         </div>
     </div>
 
@@ -348,6 +398,8 @@
             ])
             ->values();
     @endphp
+
+    @include('partials.checkin-approval-modal')
 
     @include('partials.whatsapp-modal')
 

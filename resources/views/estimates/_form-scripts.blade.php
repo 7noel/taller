@@ -6,6 +6,9 @@
     $initialInsuranceId = old('insurance_company_id', $estimate->insurance_company_id ?? '');
     $igvRate = $establishment->igv_rate ?? 0.18;
 
+    $serviceCategoriesData = $serviceCategories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values();
+    $partCategoriesData = $partCategories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values();
+
     $initialItems = $isEdit
         ? $estimate->items->map(fn ($i) => [
             'id' => $i->id,
@@ -17,6 +20,7 @@
             'description' => $i->description,
             'quantity' => (float) $i->quantity,
             'unit_price' => (float) $i->unit_price,
+            'uom' => $i->uom,
             'discount_pct' => (float) $i->discount_pct,
             'supply_source' => $i->supply_source ?? 'internal',
             'cost_price' => (float) $i->cost_price,
@@ -47,8 +51,8 @@
     const initialItems = @json($initialItems);
     const initialThirdPartyOrders = @json($initialThirdPartyOrders);
 
-    const serviceCategories = @json($serviceCategories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values());
-    const partCategories = @json($partCategories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values());
+    const serviceCategories = @json($serviceCategoriesData);
+    const partCategories = @json($partCategoriesData);
     const supplyLabels = { internal: 'Interno', external: 'Externo', insurance: 'Seguro' };
 
     // =====================================================
@@ -728,6 +732,7 @@
         document.getElementById('item-supply-source').value = s.is_outsourced ? 'external' : 'internal';
         if (s.service_category_id) serviceCatSelect.value = s.service_category_id;
         if (s.pricing_type === 'time_based' && s.estimated_hours) document.getElementById('item-quantity').value = s.estimated_hours;
+        if (s.uom) document.getElementById('item-uom').value = s.uom;
     });
 
     const modalPartSelect = singleSelect(document.getElementById('item-part-select'), {
@@ -757,6 +762,7 @@
         document.getElementById('item-unit-price').value = p.sell_price || 0;
         document.getElementById('item-cost-price').value = p.cost_price || 0;
         if (p.part_category_id) partCatSelect.value = p.part_category_id;
+        if (p.uom) document.getElementById('item-uom').value = p.uom;
     });
 
     function applyTypeVisibility() {
@@ -781,6 +787,7 @@
         document.getElementById('item-discount-pct').value = 0;
         document.getElementById('item-supply-source').value = 'internal';
         document.getElementById('item-cost-price').value = 0;
+        document.getElementById('item-uom').value = '';
         document.getElementById('item-id').value = '';
         serviceCatSelect.value = serviceCatSelect.options[0]?.value || '';
         partCatSelect.value = partCatSelect.options[0]?.value || '';
@@ -808,6 +815,7 @@
             document.getElementById('item-discount-pct').value = item.discount_pct || 0;
             document.getElementById('item-supply-source').value = item.supply_source || 'internal';
             document.getElementById('item-cost-price').value = item.cost_price || 0;
+            document.getElementById('item-uom').value = item.uom || '';
             if (item.service_category_id) serviceCatSelect.value = item.service_category_id;
             if (item.part_category_id) partCatSelect.value = item.part_category_id;
             applyTypeVisibility();
@@ -838,6 +846,7 @@
                     sell_price: s.sell_price, cost_price: s.cost_price,
                     pricing_type: s.pricing_type, estimated_hours: s.estimated_hours,
                     is_outsourced: s.is_outsourced, service_category_id: s.service_category_id,
+                    uom: s.uom,
                 };
                 modalServiceSelect.addOption(opt);
                 modalServiceSelect.setValue(s.id, true);
@@ -854,6 +863,7 @@
                     id: p.id, label: p.name, sub: [p.sku, p.brand].filter(Boolean).join(' '),
                     sell_price: p.sell_price, cost_price: p.cost_price,
                     part_category_id: p.part_category_id,
+                    uom: p.uom,
                 };
                 modalPartSelect.addOption(opt);
                 modalPartSelect.setValue(p.id, true);
@@ -906,6 +916,7 @@
             discount_pct: discountPct,
             supply_source: (type === 'service' || type === 'free_service') ? 'internal' : supplySource,
             cost_price: costPrice,
+            uom: document.getElementById('item-uom').value || null,
         };
 
         if (editingIndex === null) {

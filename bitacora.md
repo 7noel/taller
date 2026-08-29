@@ -344,3 +344,61 @@
 A partir de ahora, esta bitácora se actualizará automáticamente por el asistente (DeepSeek) en cada hito importante del desarrollo. Los registros incluirán fecha, tarea realizada, decisiones tomadas y próximos pasos.
 
 ---
+
+### 📌 Módulo de Órdenes de Trabajo (OT) — agrupación de presupuestos aprobados
+- **Fecha**: 27 de agosto de 2026
+- **Tarea**: Implementar el módulo de Órdenes de Trabajo con el diseño acordado: **una OT agrupa todos los presupuestos aprobados de una visita** (y puede recibir presupuestos de reingresos), mediante FK nullable `estimates.work_order_id` (muchos-a-uno, **sin tabla intermedia**).
+- **Modelo de datos**:
+  - **3 migraciones nuevas**: `work_orders` (con snapshot de identidad `document_type_code`='OT', `document_serie`, `document_number`, `document_sn` + series `OT01` vía `DocumentSeriesService`), `work_order_substages` (catálogo global) + `work_order_assignments` (técnico, horas, costo, status), y `add_work_order_id_to_estimates_and_check_ins` (FK nullable en `estimates` y `check_ins`).
+  - `CheckIn.work_order_id` vincula el ingreso original y los **reingresos** (retorno por repuesto pendiente: misma OT, sin nuevo presupuesto).
+- **Lógica de negocio** (`app/Services/WorkOrderService.php`):
+  - `createFromEstimates()`: valida presupuestos aprobados sin OT y del mismo vehículo → crea OT con numeración OT01 (lock pesimista), marca presupuestos `in_repair` + `EstimateStatusHistory`, vincula check-ins.
+  - `attachEstimate()`: anexa un adicional aprobado a la OT existente (daño nuevo en reingreso).
+  - `detachEstimate()` / `delete()`: revierten el presupuesto a estado aprobado previo (usa el historial) y desvinculan check-ins.
+  - `changeStatus()` con transiciones validadas; nuevo estado **`delivered_pending`** (Entregado con pendientes — backorder: el vehículo sale pero la OT no se cierra).
+  - Asignaciones: `addAssignment` / `updateAssignmentStatus` / `deleteAssignment`.
+- **Controlador/rutas**: `WorkOrderController` (index/show/store/destroy + attach/detach/transition/assignments + `search` JSON con `withCount`/`withSum` de presupuestos). 11 rutas nuevas `work-orders.*` + `api.work-orders.search`.
+- **Permisos**: `ver/crear/editar/eliminar órdenes de trabajo` (Admin todas, Asesor ver/crear/editar, Técnico ver) + `WorkOrderPolicy` registrada.
+- **Vistas**: `work-orders/index` (Tabulator estilo Vehículos, badge de estado, acciones `.btn-icon`, sin timestamps) y `work-orders/show` (info + presupuestos vinculados + anexar presupuesto + subetapas/técnicos + visitas). Botón **"Generar OT"** agregado en `check-ins/show` (agrupa presupuestos aprobados del ingreso) y en `estimates/show` (reemplaza "Iniciar reparación" cuando hay OT pendiente de generar; muestra "Ver OT" si ya existe).
+- **Subetapas**: `WorkOrderSubstageSeeder` con 6 subetapas por defecto (Recepción/diagnóstico, Desabolladura/pintura, Mecánica, Electricidad, Instalación de repuestos, Control de calidad).
+- **Pruebas**: prueba funcional round-trip ejecutada sobre la BD real: creación `OT01-000001`, presupuesto → `in_repair`, check-in vinculado, transición `open→in_progress`, asignación + cambio de estado, y eliminación que revierte el presupuesto a `approved_client`. `php artisan view:cache` OK. `php artisan migrate` OK (3 migraciones aplicadas).
+
+### 📌 Tests automatizados del módulo OT + suite completa en verde
+- **Fecha**: 28 de agosto de 2026
+- **Tarea**: Cerrar lo pendiente del módulo OT: tests automatizados profesionales y suite PHPUnit completa en verde.
+- **Cambios**:
+  - **Nuevo `tests/Feature/WorkOrderFlowTest.php`** (patrón `EstimateFlowTest`, `RefreshDatabase` + series PRE01/OT01 en setUp): **20 tests / 62 assertions** que cubren servicio y rutas:
+    - Creación de OT desde presupuesto aprobado (sn `OT01-000001`, presupuesto → `in_repair`, historial).
+    - **Agrupación de múltiples presupuestos aprobados del mismo check-in en una sola OT** + check-in vinculado.
+    - Rechazos: presupuesto no aprobado, ya vinculado, de otro vehículo, lista vacía.
+    - `attachEstimate` / `detachEstimate` (adicional aprobado → misma OT; revert a aprobado).
+    - Transiciones válidas `open→...→closed`, transición inválida lanza, y **`delivered_pending` no es final** (backorder: se retoma la misma OT).
+    - Eliminar OT revierte presupuestos y desvincula check-ins (`assertSoftDeleted`).
+    - Flujo de asignaciones `pending→in_progress→done`.
+    - Rutas HTTP: `store` desde check-in y desde estimate, `attach-estimate`, `transition`, `destroy` (con permisos) y **403 sin permiso**.
+  - **Tests preexistentes corregidos** (no relacionados con el módulo, dejaban la suite en rojo): `tests/Feature/ExampleTest.php` (el `/` redirige → `assertRedirect` + smoke test de `/login`), `tests/Feature/ProfileTest.php` (el taller no invalida `email_verified_at` al cambiar correo → `assertNotNull`; eliminación de cuenta usa SoftDeletes → `assertSoftDeleted`).
+- **Verificación**: la BD de pruebas `taller_testing` ya existía (MySQL 8.4 Laragon). PHPUnit se ejecutó en proceso separado (`Start-Process -WindowStyle Hidden`) porque el shell corta procesos largos. **Suite completa: OK (135 tests, 380 assertions)**. `php artisan view:cache` OK.
+- **Próximos pasos**: fase futura — Kanban del flujo con la OT como tarjeta (`.clinerules/01`); módulos siguientes (servicios tercerizados, almacén/kardex, citas, facturación).
+
+### 📌 Módulo de Servicios Tercerizados (CST01 + LST01) — con detracción 12%
+- **Fecha**: 28 de agosto de 2026
+- **Tarea**: Implementar comprobantes de servicio tercerizado (CST01) y liquidaciones (LST01). El usuario registra montos **SIN IGV**; el sistema calcula base, IGV, total con IGV, detracción y total a pagar.
+- **Detracción**: confirmada vía Anexo 2 del SPOT (R.S. 183-2004/SUNAT): **"Mantenimiento y reparación de bienes muebles" (código 020) = 12%** (también "Demás servicios gravados" 037 = 12%). Configurable en Empresa (`company_settings.detraccion_rate`, default 0.1200).
+- **Migraciones**: `company_settings` consolidada en **una sola migración** (create + igv_rate + detraccion_rate + qc_require_assignments_completed; se eliminaron las 2 migraciones ALTER). Nuevas: `provider_settlements` y `service_vouchers` (identidad CST/LST con `document_sn`, montos sin IGV, `detraction_rate` snapshot, estados).
+- **Servicios**: `ServiceVoucherService` (emitir CST01 con numeración atómica, completar, editar/eliminar solo si no liquidado) y `ProviderSettlementService` (LST01, syncVouchers diff/upsert, aprobar → pagar marca vales `liquidated`).
+- **Controladores/Policies**: `ServiceVoucherController`, `ProviderSettlementController`, policies + permisos (`ver/crear/editar/eliminar vales de servicio` y `liquidaciones de servicios`; Admin todas, Asesor ver/crear/editar).
+- **Vistas**: listados Tabulator estilo Vehículos (documento enlazable, badges de estado, acciones `.btn-icon`), formularios con Tom Select estricto (proveedores `is_supplier` + OT) y **preview en vivo** del desglose IGV/detracción, `show` imprimible con cuenta BN de detracción.
+- **Correcciones colaterales**: tests `PortalTest` y `WorkOrderFlowTest` actualizados de `estimate_status_history` → `status_histories` (polimórfica); `detraccion_rate` nullable en validación de configuración.
+- **Pruebas**: **15 tests nuevos (50 assertions)** en `ServiceVoucherFlowTest` + `ProviderSettlementFlowTest`. **Suite completa: OK (150 tests, 430 assertions)**. `php artisan view:cache` OK; `migrate:fresh --seed` OK.
+- **Próximos pasos**: completar almacén/compras/kardex (módulo 7), citas y seguimiento (8), facturación y pagos (9).
+
+### 📌 Corrección: ParseError por `@json()` con comas en vistas de formularios
+- **Fecha**: 28 de agosto de 2026
+- **Tarea**: Corregir `ParseError: Unclosed '[' on line X does not match ')'` en `purchase-orders/_form.blade.php:72` (GET /purchase-orders/create, HTTP 500).
+- **Causa raíz**: el directivo `@json()` de Blade compila con `explode(',', $this->stripParentheses($expression))` (`Illuminate\View\Compilers\Concerns\CompilesJson`). Cualquier coma dentro de la expresión trunca el PHP generado → ParseError. `view:cache` NO lo detecta (no ejecuta el PHP compilado); solo explota al renderizar la vista.
+- **Cambios** (4 instancias con el mismo patrón, corregidas con el patrón `@php` + variable):
+  - `resources/views/purchase-orders/_form.blade.php`: `$poItemsData` en el `@php` existente y `const poItems = @json($poItemsData);`.
+  - `resources/views/estimates/_form-scripts.blade.php`: `$serviceCategoriesData` / `$partCategoriesData` en el `@php` y `@json($variable)`.
+  - `resources/views/form-templates/edit.blade.php`: `$sectionsData` en un `@php` y `@json($sectionsData)`.
+- **Regla permanente**: nueva sección en `.clinerules/03-frontend.md` — "Regla `@json` en Blade (PROHIBIDO expresiones con comas)".
+- **Verificación**: `php artisan view:clear` + `view:cache` OK; `php -l` en todos los compilados de `storage/framework/views/` sin errores de sintaxis.

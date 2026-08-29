@@ -23,7 +23,7 @@
             <h3 id="approval-modal-title" class="text-lg font-semibold text-gray-800">{{ $approveTitle }}</h3>
             <p id="approval-modal-text" class="mt-2 text-sm text-gray-500">{{ $approveText }}</p>
         </div>
-        <div class="px-6 pb-6 flex flex-col-reverse sm:flex-row gap-3">
+        <div class="px-6 pb-6 flex flex-col-reverse sm:flex-row gap-3 justify-center">
             <button type="button" data-approval-close class="btn btn-secondary w-full sm:w-auto justify-center">Cancelar</button>
             <button type="button" id="approval-modal-confirm" class="btn btn-primary w-full sm:w-auto justify-center">{{ $approveLabel }}</button>
         </div>

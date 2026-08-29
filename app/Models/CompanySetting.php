@@ -20,6 +20,7 @@ class CompanySetting extends Model
         'logo_path',
         'favicon_path',
         'detraccion_account',
+        'detraccion_rate',
         'igv_rate',
         'default_number_source',
         'facturador_provider',
@@ -30,12 +31,14 @@ class CompanySetting extends Model
         'whatsapp_api_token',
         'whatsapp_instance_name',
         'whatsapp_enabled',
+        'qc_require_assignments_completed',
     ];
 
     protected $casts = [
         'default_number_source' => 'string',
         'facturador_provider' => 'string',
         'whatsapp_enabled' => 'boolean',
+        'qc_require_assignments_completed' => 'boolean',
     ];
 
     /**

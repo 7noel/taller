@@ -36,15 +36,7 @@
 
             <!-- Password -->
             <div>
-                <div class="flex items-center justify-between">
-                    <x-input-label for="password" :value="__('Contraseña')" />
-                    @if (Route::has('password.request'))
-                        <a class="text-sm font-medium text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md" href="{{ route('password.request') }}">
-                            {{ __('¿Olvidaste tu contraseña?') }}
-                        </a>
-                    @endif
-                </div>
-
+                <x-input-label for="password" :value="__('Contraseña')" />
                 <div class="relative mt-1">
                     <x-text-input id="password" class="block w-full pr-10"
                                     type="password"
@@ -74,6 +66,14 @@
                     <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" name="remember">
                     <span class="ms-2 text-sm text-gray-700">{{ __('Recordarme') }}</span>
                 </label>
+                <div class="flex items-center justify-between">
+                    @if (Route::has('password.request'))
+                        <a class="text-sm font-medium text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md" href="{{ route('password.request') }}">
+                            {{ __('¿Olvidaste tu contraseña?') }}
+                        </a>
+                    @endif
+                </div>
+
             </div>
 
             <x-primary-button class="w-full justify-center py-3 transition-all duration-150 ease-out">

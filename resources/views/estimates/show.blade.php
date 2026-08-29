@@ -83,12 +83,15 @@
                     @endif
                 @endcan
 
-                @can('startRepair', $estimate)
-                    @if (in_array($estimate->status, ['approved_insurance', 'approved_client']))
-                        <form method="POST" action="{{ route('estimates.start-repair', $estimate) }}">
+                @can('create', \App\Models\WorkOrder::class)
+                    @if (in_array($estimate->status, ['approved_insurance', 'approved_client']) && !$estimate->work_order_id)
+                        <form method="POST" action="{{ route('work-orders.store') }}">
                             @csrf
-                            <button type="submit" class="btn btn-primary">Iniciar reparación</button>
+                            <input type="hidden" name="estimate_id" value="{{ $estimate->id }}">
+                            <button type="submit" class="btn btn-primary">Generar OT</button>
                         </form>
+                    @elseif ($estimate->work_order_id && $estimate->workOrder)
+                        <a href="{{ route('work-orders.show', $estimate->workOrder) }}" class="btn btn-secondary">Ver OT {{ $estimate->workOrder->document_sn }}</a>
                     @endif
                 @endcan
                 @can('finalize', $estimate)
@@ -317,28 +320,8 @@
                 </div>
             @endif
 
-            {{-- Historial --}}
-            @if ($estimate->statusHistory->isNotEmpty())
-                <div class="card">
-                    <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Historial de estados</h3>
-                        <ul class="space-y-2 text-sm">
-                            @foreach ($estimate->statusHistory as $history)
-                                <li class="flex flex-wrap items-center gap-2">
-                                    <span class="text-gray-500">{{ $history->created_at?->format('d/m/Y H:i') }}</span>
-                                    <span class="font-medium">{{ \App\Models\Estimate::STATUS_LABELS[$history->from_status] ?? $history->from_status }} → {{ \App\Models\Estimate::STATUS_LABELS[$history->to_status] ?? $history->to_status }}</span>
-                                    @if ($history->user)
-                                        <span class="text-gray-400">por {{ $history->user->name }}</span>
-                                    @endif
-                                    @if ($history->comments)
-                                        <span class="text-gray-600">— {{ $history->comments }}</span>
-                                    @endif
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            @endif
+            {{-- Historial de estados --}}
+            <x-status-history :subject="$estimate" />
         </div>
     </div>
 

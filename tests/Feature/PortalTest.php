@@ -201,8 +201,9 @@ class PortalTest extends TestCase
             'approved_by_recipient' => 'Juan Pérez',
         ]);
 
-        $this->assertDatabaseHas('estimate_status_history', [
-            'estimate_id' => $estimate->id,
+        $this->assertDatabaseHas('status_histories', [
+            'subject_type' => \App\Models\Estimate::class,
+            'subject_id' => $estimate->id,
             'to_status' => 'approved_client',
         ]);
     }

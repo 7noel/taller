@@ -31,6 +31,9 @@ class CompanySettingSeeder extends Seeder
                 'facturador_secret' => 'demo-facturador-secret',
                 'whatsapp_api_url' => 'https://waba.example.com/api',
                 'whatsapp_api_token' => 'demo-whatsapp-token',
+                // Guard de control de calidad: true = obligatorio completar asignaciones
+                // antes de aprobar el QC; false = solo advertir.
+                'qc_require_assignments_completed' => true,
             ]
         );
     }

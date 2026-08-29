@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasStatusHistory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,6 +14,7 @@ class Estimate extends Model
     use HasFactory;
     use SoftDeletes;
     use LogsActivity;
+    use HasStatusHistory;
 
     protected $fillable = [
         'check_in_id',
@@ -52,6 +54,7 @@ class Estimate extends Model
         'franchise_percentage_applied',
         'franchise_amount',
         'status',
+        'work_order_id',
         'created_by',
         'updated_by',
         'approved_by_user_id',
@@ -111,6 +114,22 @@ class Estimate extends Model
         'finalized' => 'Finalizado',
     ];
 
+    /**
+     * Acción que debe realizar el usuario según el estado actual.
+     * Se muestra en el tablero Kanban para guiar el flujo.
+     */
+    public const NEXT_ACTIONS = [
+        'draft' => 'Completar los ítems y enviar al seguro o al cliente.',
+        'sent_insurance' => 'Esperando la aprobación del seguro.',
+        'approved_insurance' => 'Enviar el presupuesto al cliente para su aprobación.',
+        'rejected_insurance' => 'Revisar las observaciones del seguro, corregir y reenviar.',
+        'sent_client' => 'Esperando la aprobación del cliente.',
+        'approved_client' => 'Generar la orden de trabajo.',
+        'rejected_client' => 'Revisar las observaciones del cliente, corregir y reenviar.',
+        'in_repair' => 'En reparación: ver la orden de trabajo.',
+        'finalized' => 'Presupuesto finalizado: sin acciones pendientes.',
+    ];
+
     public const SUPPLY_SOURCES = [
         'internal' => 'Interno',
         'external' => 'Externo',
@@ -135,7 +154,7 @@ class Estimate extends Model
                 'taxable_base', 'iva', 'total',
                 'franchise_minimum_amount', 'franchise_percentage', 'franchise_minimum_includes_tax',
                 'franchise_minimum_without_tax', 'franchise_base', 'franchise_percentage_applied',
-                'franchise_amount', 'status', 'insurance_approved_at', 'insurance_rejected_at',
+                'franchise_amount', 'status', 'work_order_id', 'insurance_approved_at', 'insurance_rejected_at',
                 'insurance_rejection_reason',
             ])
             ->logOnlyDirty()
@@ -166,6 +185,15 @@ class Estimate extends Model
     public function checkIn()
     {
         return $this->belongsTo(CheckIn::class)->withTrashed();
+    }
+
+    /**
+     * Orden de trabajo a la que pertenece el presupuesto (una sola OT).
+     * La OT puede agrupar presupuestos de distintos check-ins (reingresos).
+     */
+    public function workOrder()
+    {
+        return $this->belongsTo(WorkOrder::class);
     }
 
     public function vehicle()
@@ -211,11 +239,6 @@ class Estimate extends Model
     public function items()
     {
         return $this->hasMany(EstimateItem::class)->orderBy('sort_order');
-    }
-
-    public function statusHistory()
-    {
-        return $this->hasMany(EstimateStatusHistory::class)->orderBy('created_at');
     }
 
     public function discounts()

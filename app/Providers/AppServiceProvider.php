@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Models\Brand;
 use App\Models\CheckIn;
+use App\Models\CheckInChecklistItem;
 use App\Models\Estimate;
+use App\Models\FormTemplate;
 use App\Models\Part;
 use App\Models\PartBrand;
 use App\Models\PartCategory;
@@ -15,10 +17,18 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleModel;
 use App\Models\Warehouse;
+use App\Models\ProviderSettlement;
+use App\Models\ServiceVoucher;
 use App\Models\WarehouseStock;
+use App\Models\WorkOrder;
+use App\Models\InventoryGuide;
+use App\Models\PartOrder;
+use App\Models\PurchaseOrder;
 use App\Policies\BrandPolicy;
+use App\Policies\CheckInChecklistItemPolicy;
 use App\Policies\CheckInPolicy;
 use App\Policies\EstimatePolicy;
+use App\Policies\FormTemplatePolicy;
 use App\Policies\PartBrandPolicy;
 use App\Policies\PartCategoryPolicy;
 use App\Policies\PartPolicy;
@@ -30,6 +40,12 @@ use App\Policies\UserPolicy;
 use App\Policies\VehicleModelPolicy;
 use App\Policies\VehiclePolicy;
 use App\Policies\WarehousePolicy;
+use App\Policies\ProviderSettlementPolicy;
+use App\Policies\ServiceVoucherPolicy;
+use App\Policies\WorkOrderPolicy;
+use App\Policies\InventoryGuidePolicy;
+use App\Policies\PartOrderPolicy;
+use App\Policies\PurchaseOrderPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -62,5 +78,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ServiceCategory::class, ServiceCategoryPolicy::class);
         Gate::policy(PartCategory::class, PartCategoryPolicy::class);
         Gate::policy(PartBrand::class, PartBrandPolicy::class);
+        Gate::policy(WorkOrder::class, WorkOrderPolicy::class);
+        Gate::policy(ServiceVoucher::class, ServiceVoucherPolicy::class);
+        Gate::policy(ProviderSettlement::class, ProviderSettlementPolicy::class);
+        Gate::policy(FormTemplate::class, FormTemplatePolicy::class);
+        Gate::policy(CheckInChecklistItem::class, CheckInChecklistItemPolicy::class);
+        Gate::policy(PurchaseOrder::class, PurchaseOrderPolicy::class);
+        Gate::policy(InventoryGuide::class, InventoryGuidePolicy::class);
+        Gate::policy(PartOrder::class, PartOrderPolicy::class);
     }
 }

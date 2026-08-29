@@ -19,6 +19,7 @@ class RepairServiceRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'service_category_id' => ['nullable', 'exists:service_categories,id'],
             'pricing_type' => ['required', Rule::in(['fixed', 'time_based'])],
+            'uom' => ['nullable', 'exists:unit_measures,code'],
             'estimated_hours' => ['nullable', 'numeric', 'min:0'],
             'min_hours' => ['nullable', 'numeric', 'min:0'],
             'sell_price' => ['required', 'numeric', 'min:0'],

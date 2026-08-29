@@ -246,6 +246,39 @@ class CheckInServiceTest extends TestCase
         $this->assertEquals('approved', $checkIn->fresh()->status);
     }
 
+    public function test_service_closes_approved_check_in(): void
+    {
+        $checkIn = $this->service->create([
+            'vehicle_id' => $this->vehicle->id,
+            'service_type' => 'preventivo',
+            'checklist' => [],
+            'damages' => [],
+        ]);
+
+        $this->service->sendToClient($checkIn);
+        $this->service->approve($checkIn->fresh());
+
+        $this->service->close($checkIn->fresh());
+
+        $fresh = $checkIn->fresh();
+        $this->assertEquals('closed', $fresh->status);
+        $this->assertEquals($this->user->id, $fresh->closed_by);
+        $this->assertNotNull($fresh->closed_at);
+    }
+
+    public function test_service_close_rejects_non_approved_status(): void
+    {
+        $checkIn = $this->service->create([
+            'vehicle_id' => $this->vehicle->id,
+            'service_type' => 'preventivo',
+            'checklist' => [],
+            'damages' => [],
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->service->close($checkIn); // Borrador: no se puede cerrar
+    }
+
     public function test_service_reject_adds_reason_to_observations(): void
     {
         $checkIn = $this->service->create([

@@ -70,17 +70,19 @@
         @else
             <div class="card mb-6">
                 <div class="p-5">
-                    @if ($activeCheckIn)
-                        <p class="text-sm text-gray-600">
-                            @if ($activeCheckIn->status === 'approved')
-                                Tu inventario fue aprobado. Cuando el presupuesto esté listo, te lo enviaremos por este mismo enlace.
-                            @elseif ($activeCheckIn->status === 'rejected')
-                                Tu inventario está en revisión por el taller. Te avisaremos cuando esté corregido.
-                            @endif
-                        </p>
-                    @else
-                        <p class="text-sm text-gray-600">No hay servicios en curso para este vehículo.</p>
-                    @endif
+                    <p class="text-sm text-gray-600">
+                        @if ($activeEstimate && in_array($activeEstimate->status, ['rejected_client', 'rejected_insurance']))
+                            Tu presupuesto está en revisión por el taller. Te avisaremos cuando esté corregido.
+                        @elseif ($activeEstimate && in_array($activeEstimate->status, ['approved_client', 'approved_insurance', 'in_repair']))
+                            Tu presupuesto fue aprobado. Tu vehículo está en reparación.
+                        @elseif ($activeCheckIn && $activeCheckIn->status === 'approved')
+                            Tu inventario fue aprobado. Cuando el presupuesto esté listo, te lo enviaremos por este mismo enlace.
+                        @elseif ($activeCheckIn && $activeCheckIn->status === 'rejected')
+                            Tu inventario está en revisión por el taller. Te avisaremos cuando esté corregido.
+                        @else
+                            No hay servicios en curso para este vehículo.
+                        @endif
+                    </p>
                 </div>
             </div>
         @endif

@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use RuntimeException;
 
 class CheckInController extends Controller
 {
@@ -72,6 +73,8 @@ class CheckInController extends Controller
             'checklistResults.checklistItem',
             'damages',
             'photos',
+            'estimates',
+            'statusHistory.user',
         ]);
 
         // Datos para el botón "Enviar por WhatsApp" / "Copiar enlace" del portal.
@@ -175,6 +178,19 @@ class CheckInController extends Controller
         return back()->with('success', 'Inventario rechazado.');
     }
 
+    public function close(CheckIn $checkIn)
+    {
+        Gate::authorize('update', $checkIn);
+
+        try {
+            $this->checkInService->close($checkIn);
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Inventario cerrado. El vehículo salió del taller.');
+    }
+
     /**
      * Envía el enlace del portal por WhatsApp (wa.me manual o Evolution API en cola).
      *
@@ -214,14 +230,30 @@ class CheckInController extends Controller
                 return back()->with('error', 'WhatsApp no está configurado en este establecimiento. Configura API URL, Token, Instancia y habilita el envío (o usa "Abrir WhatsApp").');
             }
 
+            // Solo si el envío sí va a proceder, se envía el inventario a aprobación
+            // del cliente automáticamente (draft/rejected → pending_approval).
+            $wasSentToClient = in_array($checkIn->status, ['draft', 'rejected'], true);
+            if ($wasSentToClient) {
+                $this->checkInService->sendToClient($checkIn);
+            }
+
             SendWhatsAppMessage::dispatch($establishment, $validated['phone'], $validated['message']);
 
-            return back()->with('success', 'Mensaje encolado para envío por WhatsApp.');
+            return back()->with('success', $wasSentToClient
+                ? 'Inventario enviado para aprobación del cliente. Mensaje encolado para envío por WhatsApp.'
+                : 'Mensaje encolado para envío por WhatsApp.');
+        }
+
+        $wasSentToClient = in_array($checkIn->status, ['draft', 'rejected'], true);
+        if ($wasSentToClient) {
+            $this->checkInService->sendToClient($checkIn);
         }
 
         $waLink = app(WhatsAppService::class)->buildWaLink($validated['phone'], $validated['message']);
 
-        return redirect()->away($waLink);
+        return redirect()->away($waLink)->with('success', $wasSentToClient
+            ? 'Inventario enviado para aprobación del cliente y enlace enviado por WhatsApp.'
+            : 'Enlace de WhatsApp abierto para su envío.');
     }
 
     public function search(Request $request): JsonResponse

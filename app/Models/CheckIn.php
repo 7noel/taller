@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasStatusHistory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,6 +14,7 @@ class CheckIn extends Model
     use HasFactory;
     use SoftDeletes;
     use LogsActivity;
+    use HasStatusHistory;
 
     protected $fillable = [
         'vehicle_id',
@@ -38,6 +40,7 @@ class CheckIn extends Model
         'client_request',
         'observations',
         'status',
+        'work_order_id',
         'approved_by_user_id',
         'approved_by_recipient',
         'approved_by_phone',
@@ -50,6 +53,8 @@ class CheckIn extends Model
         'last_sent_to',
         'last_sent_to_phone',
         'last_sent_at',
+        'closed_by',
+        'closed_at',
     ];
 
     protected $casts = [
@@ -62,6 +67,7 @@ class CheckIn extends Model
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'last_sent_at' => 'datetime',
+        'closed_at' => 'datetime',
     ];
 
     public const STATUS_LABELS = [
@@ -70,6 +76,18 @@ class CheckIn extends Model
         'approved' => 'Aprobado',
         'rejected' => 'Rechazado',
         'closed' => 'Cerrado',
+    ];
+
+    /**
+     * Acción que debe realizar el usuario según el estado actual.
+     * Se muestra en el tablero Kanban para guiar el flujo.
+     */
+    public const NEXT_ACTIONS = [
+        'draft' => 'Completar el checklist y enviar el inventario al cliente para su aprobación.',
+        'pending_approval' => 'Esperando la aprobación del cliente.',
+        'approved' => 'Crear el presupuesto del vehículo.',
+        'rejected' => 'Revisar las observaciones, corregir y reenviar al cliente.',
+        'closed' => 'Inventario cerrado: sin acciones pendientes.',
     ];
 
     public const SERVICE_TYPES = [
@@ -101,7 +119,7 @@ class CheckIn extends Model
                 'document_series_id', 'document_type_code', 'document_serie', 'document_number', 'document_sn',
                 'service_type', 'claim_number', 'mileage', 'fuel_level', 'property_card',
                 'soat_expiration', 'technical_review_expiration', 'keys_count',
-                'has_remote_control', 'client_request', 'observations', 'status',
+                'has_remote_control', 'client_request', 'observations', 'status', 'work_order_id',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -192,6 +210,15 @@ class CheckIn extends Model
         return $this->hasMany(Estimate::class, 'check_in_id');
     }
 
+    /**
+     * OT vinculada a esta visita física: el ingreso original (cuando se genera la OT)
+     * o un reingreso para completar trabajos pendientes (ej. repuesto que llegó).
+     */
+    public function workOrder()
+    {
+        return $this->belongsTo(WorkOrder::class);
+    }
+
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
@@ -200,6 +227,11 @@ class CheckIn extends Model
     public function rejectedBy()
     {
         return $this->belongsTo(User::class, 'rejected_by_user_id');
+    }
+
+    public function closedBy()
+    {
+        return $this->belongsTo(User::class, 'closed_by');
     }
 
     /**

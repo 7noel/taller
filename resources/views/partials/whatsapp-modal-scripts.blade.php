@@ -4,22 +4,48 @@
 (function () {
     'use strict';
 
-    // Botón "Copiar enlace" (cualquier elemento con data-copy-link)
-    document.querySelectorAll('[data-copy-link]').forEach(function (btn) {
+    // Botón "Copiar enlace" (cualquier elemento con data-copy-link).
+    // Usa navigator.clipboard cuando está disponible y cae a un textarea temporal +
+    // document.execCommand('copy') en contextos no seguros (HTTP/LAN), donde la
+    // Clipboard API no existe. Solo muestra "¡Copiado!" si la copia tuvo éxito.
+    function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return fallbackCopy(text); });
+        }
+        return Promise.resolve(fallbackCopy(text));
+    }
+
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(ta);
+        return ok;
+    }
+
+    document.querySelectorAll('[data-copy-link], [data-copy-message], [data-copy-message-target]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            const link = this.dataset.copyLink;
-            if (!link) return;
-            const done = function () {
-                const original = btn.innerHTML;
-                btn.innerHTML = '¡Copiado!';
-                btn.disabled = true;
-                setTimeout(function () { btn.innerHTML = original; btn.disabled = false; }, 1600);
-            };
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(link).then(done).catch(done);
-            } else {
-                done();
+            let text = btn.getAttribute('data-copy-link') || btn.getAttribute('data-copy-message');
+            if (!text) {
+                const target = btn.getAttribute('data-copy-message-target');
+                const el = target ? document.querySelector(target) : null;
+                if (el) text = el.value;
             }
+            if (!text) return;
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            copyToClipboard(text).then(function (ok) {
+                btn.innerHTML = ok ? '¡Copiado!' : 'No se pudo copiar';
+                setTimeout(function () { btn.innerHTML = original; btn.disabled = false; }, 1600);
+            });
         });
     });
 
@@ -84,7 +110,8 @@
         btn.addEventListener('click', function () {
             form.action = actionUrl;
             form.target = '_self';
-            if (messageField) messageField.value = initialMessage;
+            const override = btn.getAttribute('data-whatsapp-message');
+            if (messageField) messageField.value = (override !== null && override !== '') ? override : initialMessage;
             syncName();
             openModal();
             loadRecipients();
@@ -113,5 +140,15 @@
             form.target = '_self';
         });
     });
+
+    // Auto-apertura tras transiciones que requieren notificar al cliente
+    // (ej. ?whatsapp=ready al aprobar QC, o ?whatsapp=survey al entregar el vehículo).
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        const intent = params.get('whatsapp');
+        if (!intent) return;
+        const btn = document.querySelector('[data-whatsapp-open="' + intent + '"]');
+        if (btn) btn.click();
+    })();
 })();
 </script>

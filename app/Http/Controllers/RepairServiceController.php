@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RepairServiceRequest;
 use App\Models\RepairService;
+use App\Models\UnitMeasure;
 use App\Services\RepairServiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,7 +31,9 @@ class RepairServiceController extends Controller
     {
         Gate::authorize('create', RepairService::class);
 
-        return view('repair-services.create');
+        $unitMeasures = UnitMeasure::where('is_active', true)->orderBy('code')->get();
+
+        return view('repair-services.create', compact('unitMeasures'));
     }
 
     public function store(RepairServiceRequest $request)
@@ -47,7 +50,9 @@ class RepairServiceController extends Controller
     {
         Gate::authorize('update', $repairService);
 
-        return view('repair-services.edit', compact('repairService'));
+        $unitMeasures = UnitMeasure::where('is_active', true)->orderBy('code')->get();
+
+        return view('repair-services.edit', compact('repairService', 'unitMeasures'));
     }
 
     public function update(RepairServiceRequest $request, RepairService $repairService)
@@ -90,6 +95,8 @@ class RepairServiceController extends Controller
             'category' => $s->category?->name,
             'service_category_id' => $s->service_category_id,
             'pricing_type' => $s->pricing_type,
+            'uom' => $s->uom,
+            'uom_name' => $s->unitMeasure?->name,
             'estimated_hours' => $s->estimated_hours,
             'min_hours' => $s->min_hours,
             'sell_price' => $s->sell_price,

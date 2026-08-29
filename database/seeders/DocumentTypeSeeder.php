@@ -27,6 +27,7 @@ class DocumentTypeSeeder extends Seeder
             ['code' => 'IV', 'name' => 'Inventario Vehicular', 'is_electronic' => false],
             ['code' => 'CST', 'name' => 'Comprobante de Servicio Tercerizado', 'is_electronic' => false],
             ['code' => 'LST', 'name' => 'Liquidación de Servicios Tercerizados', 'is_electronic' => false],
+            ['code' => 'OC', 'name' => 'Orden de Compra', 'is_electronic' => false],
         ];
 
         foreach ($documents as $document) {

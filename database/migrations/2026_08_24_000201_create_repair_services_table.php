@@ -14,6 +14,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->unsignedBigInteger('service_category_id')->nullable();
             $table->enum('pricing_type', ['fixed', 'time_based'])->default('fixed');
+            $table->string('uom', 5)->default('HUR'); // Código SUNAT Catálogo 03 (HUR = hora)
             $table->decimal('estimated_hours', 8, 2)->nullable();
             $table->decimal('min_hours', 8, 2)->nullable();
             $table->decimal('sell_price', 12, 2)->default(0);

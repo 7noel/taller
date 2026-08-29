@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\SurveyRequest;
 use App\Models\CheckIn;
 use App\Models\Estimate;
+use App\Models\FormTemplate;
 use App\Models\Vehicle;
+use App\Models\WorkOrder;
 use App\Services\CheckInService;
 use App\Services\EstimateService;
+use App\Services\FormAnswerService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use RuntimeException;
@@ -60,13 +65,20 @@ class PortalController extends Controller
             ->latest('created_at')
             ->first();
 
+        // Presupuesto activo más reciente (para el banner de estado del presupuesto).
+        $activeEstimate = Estimate::query()
+            ->where('vehicle_id', $vehicle->id)
+            ->whereIn('status', ['sent_client', 'approved_insurance', 'approved_client', 'rejected_insurance', 'rejected_client', 'in_repair', 'finalized'])
+            ->latest('created_at')
+            ->first();
+
         $history = CheckIn::query()
             ->where('vehicle_id', $vehicle->id)
             ->with(['client', 'establishment', 'estimates'])
             ->orderByDesc('created_at')
             ->get();
 
-        return view('public.portal', compact('vehicle', 'pendingCheckIns', 'pendingEstimates', 'activeCheckIn', 'history'));
+        return view('public.portal', compact('vehicle', 'pendingCheckIns', 'pendingEstimates', 'activeCheckIn', 'activeEstimate', 'history'));
     }
 
     public function showCheckIn(string $token, CheckIn $checkIn): View
@@ -184,7 +196,85 @@ class PortalController extends Controller
         }
 
         return redirect()->route('public.portal', $token)
-            ->with('success', 'Registramos tu observación. El taller revisará tu caso.');
+            ->with('success', 'Registramos tu observación. El taller revisará el presupuesto.');
+    }
+
+    /**
+     * Detalle público de una orden de trabajo: vehículo, trabajos (presupuestos)
+     * y el control de calidad realizado.
+     */
+    public function showWorkOrder(string $token, WorkOrder $workOrder): View
+    {
+        $vehicle = $this->resolveVehicle($token);
+        $this->assertOwnership($vehicle, $workOrder);
+
+        $workOrder->load([
+            'vehicle.vehicleModel.brand',
+            'client',
+            'establishment',
+            'estimates.items.service.category',
+            'estimates.items.part.category',
+            'qualityControls.reviewer',
+            'satisfactionSurvey',
+        ]);
+
+        $latestQc = $workOrder->qualityControls->first();
+        $qcTemplate = $latestQc?->template
+            ?: FormTemplate::resolveFor($workOrder->establishment_id, FormTemplate::TYPE_QUALITY_CONTROL);
+
+        return view('public.work-order', compact('vehicle', 'workOrder', 'latestQc', 'qcTemplate'));
+    }
+
+    /**
+     * Formulario público de la encuesta de satisfacción de la OT.
+     */
+    public function showSurvey(string $token, WorkOrder $workOrder): View
+    {
+        $vehicle = $this->resolveVehicle($token);
+        $this->assertOwnership($vehicle, $workOrder);
+
+        $template = FormTemplate::resolveFor($workOrder->establishment_id, FormTemplate::TYPE_SATISFACTION_SURVEY);
+
+        if (! $template) {
+            abort(404, 'No hay una encuesta configurada para este taller.');
+        }
+
+        $survey = $workOrder->satisfactionSurvey;
+
+        return view('public.survey', compact('vehicle', 'workOrder', 'template', 'survey'));
+    }
+
+    /**
+     * Guarda las respuestas de la encuesta de satisfacción (una sola vez).
+     */
+    public function submitSurvey(SurveyRequest $request, string $token, WorkOrder $workOrder)
+    {
+        $vehicle = $this->resolveVehicle($token);
+        $this->assertOwnership($vehicle, $workOrder);
+
+        $template = FormTemplate::resolveFor($workOrder->establishment_id, FormTemplate::TYPE_SATISFACTION_SURVEY);
+
+        if (! $template) {
+            return back()->withErrors(['survey' => 'No hay una encuesta configurada para este taller.']);
+        }
+
+        if ($workOrder->satisfactionSurvey()->exists()) {
+            return back()->with('success', 'Ya respondiste la encuesta. ¡Gracias por tu opinión!');
+        }
+
+        $answerService = app(FormAnswerService::class);
+        $validated = $request->validate($answerService->rulesFor($template), $answerService->messagesFor($template));
+        $answers = $answerService->normalize($validated['answers'] ?? [], $template);
+
+        $workOrder->satisfactionSurvey()->create([
+            'form_template_id' => $template->id,
+            'answers' => $answers,
+            'ip_address' => $request->ip(),
+            'responded_at' => now(),
+        ]);
+
+        return redirect()->route('public.work-order.survey', [$token, $workOrder])
+            ->with('success', '¡Gracias por tu respuesta! Tu opinión nos ayuda a mejorar.');
     }
 
     /**

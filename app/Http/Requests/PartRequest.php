@@ -24,7 +24,7 @@ class PartRequest extends FormRequest
             'barcode' => ['nullable', 'string', 'max:100', Rule::unique('parts', 'barcode')->ignore($id)],
             'part_brand_id' => ['nullable', 'exists:part_brands,id'],
             'part_category_id' => ['nullable', 'exists:part_categories,id'],
-            'uom' => ['nullable', 'string', 'max:20'],
+            'uom' => ['nullable', 'exists:unit_measures,code'],
             'min_stock' => ['nullable', 'integer', 'min:0'],
             'cost_price' => ['required', 'numeric', 'min:0'],
             'cost_currency' => ['required', Rule::in(['PEN', 'USD'])],
