@@ -8,144 +8,74 @@ use Illuminate\Database\Seeder;
 class ChecklistItemsSeeder extends Seeder
 {
     /**
-     * Lee y limpia una línea CSV (maneja comillas dobles y saltos internos).
-     */
-    private function parseCsvLine(string $line): array
-    {
-        // Quitar BOM y saltos de línea
-        $line = preg_replace('/^\xEF\xBB\xBF/', '', $line);
-        $line = trim($line);
-        if ($line === '') {
-            return [];
-        }
-
-        // Si no tiene comillas, dividir simple
-        if (!str_contains($line, '"')) {
-            $parts = explode(',', $line);
-            return array_map('trim', $parts);
-        }
-
-        // Parser manual: soporta comillas dobles y comas dentro de comillas
-        $fields = [];
-        $current = '';
-        $inQuotes = false;
-        $length = strlen($line);
-
-        for ($i = 0; $i < $length; $i++) {
-            $char = $line[$i];
-
-            if ($inQuotes) {
-                if ($char === '"' && $i + 1 < $length && $line[$i + 1] === '"') {
-                    $current .= '"';
-                    $i++;
-                } elseif ($char === '"') {
-                    $inQuotes = false;
-                } else {
-                    $current .= $char;
-                }
-            } else {
-                if ($char === '"') {
-                    $inQuotes = true;
-                } elseif ($char === ',') {
-                    $fields[] = $current;
-                    $current = '';
-                } else {
-                    $current .= $char;
-                }
-            }
-        }
-        $fields[] = $current;
-
-        return array_map('trim', $fields);
-    }
-
-    /**
-     * Lista manual de respaldo si el CSV no está disponible.
+     * Lista manual de ítems del checklist vehicular (única fuente de datos).
      */
     private function manualItems(): array
     {
         return [
             // EXTERIOR
-            ['PLUMILLAS', 'EXTERIOR'], ['PARABRISA DELANTERO', 'EXTERIOR'],
-            ['FARO POSTERIOR', 'EXTERIOR'], ['SEGURO DE AROS', 'EXTERIOR'],
-            ['TAPA DE COMBUSTIBLE', 'EXTERIOR'], ['BRAZO DE PLUMILLAS', 'EXTERIOR'],
-            ['PARABRISA POSTERIOR', 'EXTERIOR'], ['MANIJA EXTERIOR', 'EXTERIOR'],
-            ['MOL. PUERTA', 'EXTERIOR'], ['LLANTAS', 'EXTERIOR'],
-            ['ESPEJOS EXTERIORES', 'EXTERIOR'], ['FARO DELANTERO', 'EXTERIOR'],
-            ['NEBLINEROS', 'EXTERIOR'], ['SEGURO DE VASOS', 'EXTERIOR'],
-            ['ANTENA', 'EXTERIOR'], ['VASO/COPA', 'EXTERIOR'],
+            ['name' => 'PLUMILLAS', 'category' => 'EXTERIOR'],
+            ['name' => 'PARABRISA DELANTERO', 'category' => 'EXTERIOR'],
+            ['name' => 'FARO POSTERIOR', 'category' => 'EXTERIOR'],
+            ['name' => 'SEGURO DE AROS', 'category' => 'EXTERIOR'],
+            ['name' => 'TAPA DE COMBUSTIBLE', 'category' => 'EXTERIOR'],
+            ['name' => 'BRAZO DE PLUMILLAS', 'category' => 'EXTERIOR'],
+            ['name' => 'PARABRISA POSTERIOR', 'category' => 'EXTERIOR'],
+            ['name' => 'MANIJA EXTERIOR', 'category' => 'EXTERIOR'],
+            ['name' => 'MOL. PUERTA', 'category' => 'EXTERIOR'],
+            ['name' => 'LLANTAS', 'category' => 'EXTERIOR'],
+            ['name' => 'ESPEJOS EXTERIORES', 'category' => 'EXTERIOR'],
+            ['name' => 'FARO DELANTERO', 'category' => 'EXTERIOR'],
+            ['name' => 'NEBLINEROS', 'category' => 'EXTERIOR'],
+            ['name' => 'SEGURO DE VASOS', 'category' => 'EXTERIOR'],
+            ['name' => 'ANTENA', 'category' => 'EXTERIOR'],
+            ['name' => 'VASO/COPA', 'category' => 'EXTERIOR'],
             // MOTOR
-            ['BATERIA', 'MOTOR'], ['PURIFICADOR', 'MOTOR'],
-            ['TAPA LIQUI. EMBRAGUE', 'MOTOR'], ['TAPA DE RADIADOR', 'MOTOR'],
-            ['SOPORTE DE BATERIA', 'MOTOR'], ['TAPA LIQUI. FRENO', 'MOTOR'],
-            ['TAPA LIQUI. DIRECCION', 'MOTOR'], ['TAPA DE ACEITE', 'MOTOR'],
-            ['GNV-GLP', 'MOTOR'], ['VARILLA ATM', 'MOTOR'],
-            ['VARILLA DE ACEITE', 'MOTOR'], ['GATA', 'MOTOR'],
+            ['name' => 'BATERIA', 'category' => 'MOTOR'],
+            ['name' => 'PURIFICADOR', 'category' => 'MOTOR'],
+            ['name' => 'TAPA LIQUI. EMBRAGUE', 'category' => 'MOTOR'],
+            ['name' => 'TAPA DE RADIADOR', 'category' => 'MOTOR'],
+            ['name' => 'SOPORTE DE BATERIA', 'category' => 'MOTOR'],
+            ['name' => 'TAPA LIQUI. FRENO', 'category' => 'MOTOR'],
+            ['name' => 'TAPA LIQUI. DIRECCION', 'category' => 'MOTOR'],
+            ['name' => 'TAPA DE ACEITE', 'category' => 'MOTOR'],
+            ['name' => 'GNV-GLP', 'category' => 'MOTOR'],
+            ['name' => 'VARILLA ATM', 'category' => 'MOTOR'],
+            ['name' => 'VARILLA DE ACEITE', 'category' => 'MOTOR'],
+            ['name' => 'GATA', 'category' => 'MOTOR'],
             // INTERIOR
-            ['TABLERO', 'INTERIOR'], ['CENICERO', 'INTERIOR'],
-            ['CABEZAL DE ASIENTO', 'INTERIOR'], ['ABRE PUERTAS', 'INTERIOR'],
-            ['PISOS SOBRE ALFOMBRAS', 'INTERIOR'], ['TAPIZ DE ASIENTOS', 'INTERIOR'],
-            ['ENCENDEDOR', 'INTERIOR'], ['RADIO', 'INTERIOR'],
-            ['ALZA LUNAS', 'INTERIOR'], ['TAPASOL', 'INTERIOR'],
-            ['TAPIZ DE PUERTA', 'INTERIOR'], ['ESPEJOS INTERIORES', 'INTERIOR'],
-            ['RELOJ', 'INTERIOR'], ['CLAXON', 'INTERIOR'],
-            ['CODERAS', 'INTERIOR'], ['ALARMA', 'INTERIOR'],
+            ['name' => 'TABLERO', 'category' => 'INTERIOR'],
+            ['name' => 'CENICERO', 'category' => 'INTERIOR'],
+            ['name' => 'CABEZAL DE ASIENTO', 'category' => 'INTERIOR'],
+            ['name' => 'ABRE PUERTAS', 'category' => 'INTERIOR'],
+            ['name' => 'PISOS SOBRE ALFOMBRAS', 'category' => 'INTERIOR'],
+            ['name' => 'TAPIZ DE ASIENTOS', 'category' => 'INTERIOR'],
+            ['name' => 'ENCENDEDOR', 'category' => 'INTERIOR'],
+            ['name' => 'RADIO', 'category' => 'INTERIOR'],
+            ['name' => 'ALZA LUNAS', 'category' => 'INTERIOR'],
+            ['name' => 'TAPASOL', 'category' => 'INTERIOR'],
+            ['name' => 'TAPIZ DE PUERTA', 'category' => 'INTERIOR'],
+            ['name' => 'ESPEJOS INTERIORES', 'category' => 'INTERIOR'],
+            ['name' => 'RELOJ', 'category' => 'INTERIOR'],
+            ['name' => 'CLAXON', 'category' => 'INTERIOR'],
+            ['name' => 'CODERAS', 'category' => 'INTERIOR'],
+            ['name' => 'ALARMA', 'category' => 'INTERIOR'],
             // HERRAMIENTAS/EMERGENCIA
-            ['ALFOMBRA EN MALETERA', 'HERRAMIENTAS/EMERGENCIA'],
-            ['PALANCA DE GATA', 'HERRAMIENTAS/EMERGENCIA'],
-            ['HERRAMIENTAS', 'HERRAMIENTAS/EMERGENCIA'],
-            ['LLAVE DE RUEDAS', 'HERRAMIENTAS/EMERGENCIA'],
-            ['EXTINGUIDOR', 'HERRAMIENTAS/EMERGENCIA'],
-            ['TRIANGULO', 'HERRAMIENTAS/EMERGENCIA'],
-            ['COCODRILOS', 'HERRAMIENTAS/EMERGENCIA'],
-            ['LLANTA DE REPUESTO', 'HERRAMIENTAS/EMERGENCIA'],
+            ['name' => 'ALFOMBRA EN MALETERA', 'category' => 'HERRAMIENTAS/EMERGENCIA'],
+            ['name' => 'PALANCA DE GATA', 'category' => 'HERRAMIENTAS/EMERGENCIA'],
+            ['name' => 'HERRAMIENTAS', 'category' => 'HERRAMIENTAS/EMERGENCIA'],
+            ['name' => 'LLAVE DE RUEDAS', 'category' => 'HERRAMIENTAS/EMERGENCIA'],
+            ['name' => 'EXTINGUIDOR', 'category' => 'HERRAMIENTAS/EMERGENCIA'],
+            ['name' => 'TRIANGULO', 'category' => 'HERRAMIENTAS/EMERGENCIA'],
+            ['name' => 'COCODRILOS', 'category' => 'HERRAMIENTAS/EMERGENCIA'],
+            ['name' => 'LLANTA DE REPUESTO', 'category' => 'HERRAMIENTAS/EMERGENCIA'],
         ];
     }
 
     public function run(): void
     {
-        $csvPath = 'C:\Users\Noel\Downloads\checklist_details.csv';
-
-        $items = [];
-        if (file_exists($csvPath)) {
-            $handle = fopen($csvPath, 'r');
-            if ($handle !== false) {
-                $first = true;
-                $buffer = '';
-                while (($line = fgets($handle)) !== false) {
-                    if ($first) {
-                        $first = false;
-                        continue; // saltar encabezado
-                    }
-
-                    // Concatenar líneas partidas cuando hay comillas sin cerrar
-                    $buffer .= $line;
-                    if (substr_count($buffer, '"') % 2 !== 0) {
-                        continue; // comilla sin cerrar: seguir leyendo
-                    }
-
-                    $fields = $this->parseCsvLine($buffer);
-                    $buffer = ''; // reset del buffer
-
-                    // Sanear: solo líneas con name y category válidos
-                    if (count($fields) >= 2 && trim($fields[0]) !== '' && trim($fields[1]) !== '') {
-                        $items[] = [
-                            'name' => mb_strtoupper(trim($fields[0])),
-                            'category' => mb_strtoupper(trim($fields[1])),
-                        ];
-                    }
-                }
-                fclose($handle);
-            }
-        }
-
-        // Fallback a lista manual si el CSV no se pudo leer o está vacío
-        if (empty($items)) {
-            $items = $this->manualItems();
-        }
-
         // Insertar de forma idempotente
-        foreach ($items as $index => $item) {
+        foreach ($this->manualItems() as $index => $item) {
             CheckInChecklistItem::updateOrCreate(
                 ['name' => $item['name']],
                 [
