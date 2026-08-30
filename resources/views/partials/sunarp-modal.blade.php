@@ -165,8 +165,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const items = await navigator.clipboard.read();
             let imageFound = false;
             for (const item of items) {
-                if (item.type.startsWith('image/')) {
-                    const blob = await item.getType(item.type);
+                const imageType = (item.types || []).find(t => t.startsWith('image/'));
+                if (imageType) {
+                    const blob = await item.getType(imageType);
                     const file = new File([blob], 'clipboard-image.png', { type: blob.type });
                     loadImage(file);
                     imageFound = true;
