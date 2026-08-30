@@ -84,18 +84,27 @@
             <span class="nav-label truncate">Taller Mecánico</span>
         </a>
 
-        {{-- Botón colapsar (solo desktop) --}}
-        <button id="sidebarCollapse" type="button" aria-label="Colapsar menú" title="Colapsar menú"
-                class="ml-auto hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 lg:inline-flex">
-            {{-- "<" visible expandido; ">" visible colapsado --}}
-            <svg class="icon-collapse h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            <svg class="icon-expand hidden h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </button>
+        <div class="ml-auto flex items-center gap-1">
+            {{-- Toggle modo oscuro/claro --}}
+            <button type="button" data-theme-toggle aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro"
+                    class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors duration-150 ease-out hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500">
+                <svg class="icon-sun h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.36-6.36l-1.42 1.42M7.06 16.94l-1.42 1.42m12.72 0l-1.42-1.42M7.06 7.06L5.64 5.64M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+                <svg class="icon-moon hidden h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            </button>
 
-        {{-- Botón cerrar drawer (solo móvil) --}}
-        <button id="sidebarClose" type="button" aria-label="Cerrar menú" class="ml-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+            {{-- Botón colapsar (solo desktop) --}}
+            <button id="sidebarCollapse" type="button" aria-label="Colapsar menú" title="Colapsar menú"
+                    class="hidden h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500 lg:inline-flex">
+                {{-- "<" visible expandido; ">" visible colapsado --}}
+                <svg class="icon-collapse h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                <svg class="icon-expand hidden h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+
+            {{-- Botón cerrar drawer (solo móvil) --}}
+            <button id="sidebarClose" type="button" aria-label="Cerrar menú" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
     </div>
 
     {{-- Navegación: ítems de primer nivel + grupos con submenú --}}
@@ -180,6 +189,12 @@
             </svg>
         </button>
         <span class="truncate text-sm font-semibold text-gray-800">{{ $title ?? config('app.name', 'Taller Mecánico') }}</span>
+        {{-- Toggle modo oscuro/claro (móvil/tablet) --}}
+        <button type="button" data-theme-toggle aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro"
+                class="ml-auto inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-500 transition-colors duration-150 ease-out hover:bg-gray-100 hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-blue-500">
+            <svg class="icon-sun h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.36-6.36l-1.42 1.42M7.06 16.94l-1.42 1.42m12.72 0l-1.42-1.42M7.06 7.06L5.64 5.64M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+            <svg class="icon-moon hidden h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
     </header>
 
     @isset($header)

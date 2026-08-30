@@ -402,3 +402,15 @@ A partir de ahora, esta bitácora se actualizará automáticamente por el asiste
   - `resources/views/form-templates/edit.blade.php`: `$sectionsData` en un `@php` y `@json($sectionsData)`.
 - **Regla permanente**: nueva sección en `.clinerules/03-frontend.md` — "Regla `@json` en Blade (PROHIBIDO expresiones con comas)".
 - **Verificación**: `php artisan view:clear` + `view:cache` OK; `php -l` en todos los compilados de `storage/framework/views/` sin errores de sintaxis.
+
+### 🌙 Modo oscuro global (capa de overrides CSS + toggle sol/luna)
+- **Fecha**: 30 de agosto de 2026
+- **Tarea**: Poner todo el proyecto en modo oscuro sin editar las 140 vistas (retrofit por capa global).
+- **Estrategia**: clase `dark` en `<html>` (persistida en `localStorage('theme')` + `prefers-color-scheme` como default) + hoja de overrides CSS scoped a `html.dark` con `!important`, envuelta en `@media screen` para que **la impresión de documentos SIEMPRE salga en claro** (incluye `check-ins/pdf.blade.php`).
+- **Archivos**:
+  - **Nuevo** `resources/views/partials/theme-dark.blade.php`: script before-paint (mismo patrón que `sidebar-collapsed`), mapa de overrides (superficies slate-900/800/700, texto slate-100..500, bordes, estados semánticos `*-50/100` → tintados oscuros + texto `*-300/400`, `.card`, `.btn-secondary`, `.btn-icon-*`, inputs base, checkbox/radio con `accent-color`, `.search-input`, `.user-dropdown`, Tom Select completo, Tabulator completo, ring-offset oscuro) y wiring del toggle `[data-theme-toggle]` con `.icon-sun`/`.icon-moon`.
+  - `layouts/app.blade.php` y `layouts/guest.blade.php`: `@include('partials.theme-dark')` tras `design-base` (script antes del paint, sin FOUC).
+  - `layouts/navigation.blade.php`: botón toggle en la cabecera de la sidebar (desktop) y en la topbar móvil; oculto con sidebar colapsada (regla CSS).
+- **Decisiones**: el login split ya era oscuro (panel izquierdo slate-900) — solo se oscureció la columna derecha; se respeta el sistema de diseño Restrained (acentos `#2563eb` intactos, badges tintados en vez de invertidos); el login detecta el tema por sistema/localStorage (sin toggle propio).
+- **Verificación**: `php artisan view:cache` OK (201 vistas), `php -l` sin errores en el compilado del theme-dark; inventario previo de clases de color en `resources/views` para dimensionar el mapa (grises + indigo/orange/purple/teal/yellow 50/100 + `*-500/600` sólidos que se mantienen).
+- **Pendiente (fase futura)**: al integrar ApexCharts, configurar `theme: { mode: 'dark' }` condicional; revisar visualmente en navegador (listados, formularios con Tom Select, kanban, modales, móvil, impresión) si algún componente exótico escapa al mapa.

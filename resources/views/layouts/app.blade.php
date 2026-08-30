@@ -21,6 +21,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     @include('partials.design-base')
+    @include('partials.theme-dark')
     <style type="text/tailwindcss">
         /* ===== Tom Select: estilos consistentes con Tailwind ===== */
         .ts-wrapper .ts-control,
