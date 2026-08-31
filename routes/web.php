@@ -24,6 +24,8 @@ use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\ProviderSettlementController;
 use App\Http\Controllers\ServiceVoucherController;
 use App\Http\Controllers\WorkOrderController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\FollowUpController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -157,6 +159,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('api/check-ins/contacts', [CheckInController::class, 'removeContact'])->name('api.check-ins.contacts.remove');
     Route::post('api/check-ins/{checkIn}/photos', [CheckInController::class, 'uploadPhoto'])->name('api.check-ins.photos.store');
     Route::delete('api/check-ins/{checkIn}/photos/{photo}', [CheckInController::class, 'destroyPhoto'])->name('api.check-ins.photos.destroy');
+
+    Route::resource('appointments', AppointmentController::class);
+    Route::post('appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])->name('appointments.confirm');
+    Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+    Route::post('appointments/{appointment}/unlink', [AppointmentController::class, 'unlink'])->name('appointments.unlink');
+    Route::get('api/appointments/search', [AppointmentController::class, 'search'])->name('api.appointments.search');
+    Route::get('api/appointments/vehicle-info/{vehicle}', [AppointmentController::class, 'vehicleInfo'])->name('api.appointments.vehicle-info');
+
+    Route::resource('follow-ups', FollowUpController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('follow-ups/{followUp}/done', [FollowUpController::class, 'markDone'])->name('follow-ups.done');
+    Route::get('api/follow-ups/search', [FollowUpController::class, 'search'])->name('api.follow-ups.search');
 
     Route::post('estimates/{estimate}/send-to-insurance', [EstimateController::class, 'sendToInsurance'])->name('estimates.send-to-insurance');
     Route::post('estimates/{estimate}/approve-insurance', [EstimateController::class, 'approveInsurance'])->name('estimates.approve-insurance');

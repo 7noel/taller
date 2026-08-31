@@ -46,6 +46,8 @@ class RolePermissionSeeder extends Seeder
             'ver órdenes de compra', 'crear órdenes de compra', 'editar órdenes de compra', 'eliminar órdenes de compra', 'recibir órdenes de compra',
             'ver guías de inventario', 'crear guías de inventario', 'eliminar guías de inventario',
             'ver pedidos de repuestos', 'crear pedidos de repuestos', 'editar pedidos de repuestos', 'eliminar pedidos de repuestos',
+            'ver citas', 'crear citas', 'editar citas', 'eliminar citas',
+            'ver seguimientos', 'crear seguimientos', 'editar seguimientos', 'eliminar seguimientos',
         ];
 
         foreach ($permissions as $perm) {
@@ -79,6 +81,8 @@ class RolePermissionSeeder extends Seeder
             'ver plantillas de formulario',
             'ver checklist',
             'ver tablero',
+            'ver citas', 'crear citas', 'editar citas',
+            'ver seguimientos', 'crear seguimientos', 'editar seguimientos',
         ]);
 
         // Almacenero gestiona repuestos/stock
