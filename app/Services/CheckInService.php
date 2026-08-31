@@ -15,6 +15,13 @@ use RuntimeException;
 
 class CheckInService
 {
+    protected AppointmentService $appointmentService;
+
+    public function __construct(AppointmentService $appointmentService)
+    {
+        $this->appointmentService = $appointmentService;
+    }
+
     /**
      * Crea un inventario con checklist, daños y contactos (transaccional).
      */
@@ -38,6 +45,11 @@ class CheckInService
 
             return $checkIn;
         });
+
+        // Regla de negocio: si el vehículo tiene una cita para HOY (agendada o
+        // confirmada, sin ingreso asociado), se asocia automáticamente a este ingreso.
+        $appointment = $this->appointmentService->associateForCheckIn($checkIn);
+        $checkIn->setAttribute('appointment_associated', $appointment);
 
         return $checkIn->load(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany', 'documentSeries.documentType', 'checklistResults.checklistItem', 'damages', 'photos']);
     }

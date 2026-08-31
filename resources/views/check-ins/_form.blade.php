@@ -51,6 +51,9 @@
             <input type="date" id="vehicle_technical_review_date" readonly class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm">
         </div>
     </div>
+
+    {{-- Indicador de cita del vehículo (hoy → se asociará; otro día → no) --}}
+    <div id="appointment-banner" class="hidden mt-3"></div>
 </div>
 
 {{-- ============ SECCIÓN 2: CONTACTOS DEL VEHÍCULO ============ --}}

@@ -52,10 +52,16 @@ class CheckInController extends Controller
     {
         Gate::authorize('create', CheckIn::class);
 
-        $this->checkInService->create($request->validated());
+        $checkIn = $this->checkInService->create($request->validated());
+
+        $message = 'Inventario creado correctamente.';
+        if ($checkIn->appointment_associated) {
+            $time = $checkIn->appointment_associated->scheduled_at?->format('H:i');
+            $message = "Inventario creado. Se asoció la cita de hoy" . ($time ? " ($time)" : '') . '.';
+        }
 
         return redirect()->route('check-ins.index')
-            ->with('success', 'Inventario creado correctamente.');
+            ->with('success', $message);
     }
 
     public function show(CheckIn $checkIn): View

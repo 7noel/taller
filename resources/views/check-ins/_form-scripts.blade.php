@@ -127,6 +127,57 @@
         loadVehicleData(this.getValue());
     });
 
+    // =====================================================
+    // Indicador de citas del vehículo (regla: misma fecha)
+    // =====================================================
+    function renderAppointmentBanner(info) {
+        const banner = document.getElementById('appointment-banner');
+        if (!banner) return;
+        if (!info || (!info.today && (!info.others || info.others.length === 0))) {
+            banner.className = 'hidden';
+            banner.innerHTML = '';
+            return;
+        }
+        if (info.today) {
+            const t = info.today;
+            banner.className = 'mt-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800';
+            banner.innerHTML = `<div class="flex items-start gap-2">
+                <svg class="h-4 w-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <div><span class="font-semibold">Cita agendada para hoy ${t.time}</span>${t.contact_name ? ` · ${t.contact_name}${t.contact_phone ? ` (${t.contact_phone})` : ''}` : ''}. Se asociará automáticamente al guardar el ingreso.</div>
+            </div>`;
+            return;
+        }
+        if (info.others && info.others.length > 0) {
+            const o = info.others[0];
+            banner.className = 'mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800';
+            banner.innerHTML = `<div class="flex items-start gap-2">
+                <svg class="h-4 w-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div>Este vehículo tiene una cita agendada para el <span class="font-semibold">${o.scheduled_date} a las ${o.time}</span>. Como el ingreso se registra hoy, <span class="font-semibold">no se asociará</span> a la cita.</div>
+            </div>`;
+            return;
+        }
+        banner.className = 'hidden';
+        banner.innerHTML = '';
+    }
+
+    async function loadAppointmentBanner(vehicleId) {
+        const banner = document.getElementById('appointment-banner');
+        if (!banner) return;
+        if (!vehicleId) {
+            banner.className = 'hidden';
+            banner.innerHTML = '';
+            return;
+        }
+        try {
+            const res = await fetch(`/api/appointments/vehicle-info/${encodeURIComponent(vehicleId)}`);
+            const info = await res.json();
+            renderAppointmentBanner(info);
+        } catch (e) {
+            banner.className = 'hidden';
+            banner.innerHTML = '';
+        }
+    }
+
     async function loadVehicleData(vehicleId) {
         if (!vehicleId) {
             ['vehicle_brand', 'vehicle_model', 'vehicle_year', 'vehicle_color', 'vehicle_vin', 'vehicle_body_type'].forEach(id => {
@@ -139,6 +190,7 @@
             if (ownerInput) ownerInput.value = '';
             currentVehicle = null;
             refreshNewVehicleButton();
+            loadAppointmentBanner(null);
             return;
         }
 
@@ -154,6 +206,8 @@
             document.getElementById('vehicle_color').value = v.color || '--';
             document.getElementById('vehicle_vin').value = v.vin || '--';
             currentVehicle = v;
+
+            loadAppointmentBanner(vehicleId);
 
             document.getElementById('vehicle_body_type').value = v.body_type || '--';
             const reviewEl = document.getElementById('vehicle_technical_review_date');
