@@ -56,6 +56,24 @@
     <div id="appointment-banner" class="hidden mt-3"></div>
 </div>
 
+{{-- ============ SECCIÓN 1.5: REINGRESO (opcional) ============ --}}
+@if (!$isEdit)
+<div class="border-b border-gray-200 pb-6 mb-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-1">Reingreso por trabajo pendiente <span class="text-xs font-normal text-gray-500">(opcional)</span></h3>
+    <p class="text-sm text-gray-500 mb-4">Úsalo cuando el vehículo vuelve al taller para completar una orden de trabajo entregada con pendientes (ej. repuesto). Al guardar, la OT se retoma automáticamente y no se crea un nuevo presupuesto.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="work_order_id" class="block text-sm font-medium text-gray-700">Orden de trabajo (entregada con pendientes)</label>
+            <select id="work_order_id" name="work_order_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></select>
+            @error('work_order_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+        </div>
+        <div class="flex items-end pb-1">
+            <div id="reentry-badge" class="hidden inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700"></div>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- ============ SECCIÓN 2: CONTACTOS DEL VEHÍCULO ============ --}}
 <div class="border-b border-gray-200 pb-6 mb-6">
     @php

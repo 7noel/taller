@@ -260,10 +260,130 @@
             }
 
             loadMockup(v.body_type);
+
+            // Cargar OTs elegibles para reingreso (entregadas con pendientes)
+            loadReentryOptions(vehicleId);
         } catch (e) {
             console.error('Error cargando vehículo:', e);
         }
     }
+
+    // =====================================================
+    // 1.5. Reingreso por trabajo pendiente (opcional)
+    // =====================================================
+    let reentrySelect = null;
+
+    function initReentrySelect() {
+        const el = document.getElementById('work_order_id');
+        if (!el) return;
+
+        reentrySelect = new TomSelect('#work_order_id', {
+            valueField: 'id',
+            labelField: 'text',
+            searchField: ['document_sn', 'plate', 'client_name'],
+            copyClassesToDropdown: false,
+            placeholder: 'Seleccionar OT entregada con pendientes...',
+            create: false,
+            maxOptions: 20,
+            closeAfterSelect: true,
+            maxItems: 1,
+            allowEmptyOption: true,
+            shouldLoad: function () { return true; },
+            render: {
+                option: function (item, escape) {
+                    return `<div class="py-1">
+                        <div class="font-medium text-gray-900">${escape(item.document_sn)}</div>
+                        <div class="text-xs text-gray-500">${escape(item.plate || '')} · ${escape(item.client_name || '')}</div>
+                    </div>`;
+                },
+                item: function (item, escape) {
+                    return `<div class="font-medium">REINGRESO · ${escape(item.document_sn)}</div>`;
+                },
+            },
+        });
+
+        // Single estricto: blur + cerrar dropdown al seleccionar
+        reentrySelect.on('item_add', function () {
+            reentrySelect.blur();
+            reentrySelect.close();
+            updateReentryBadge();
+        });
+        reentrySelect.on('dropdown_open', function () {
+            if (reentrySelect.items.length > 0) {
+                reentrySelect.setTextValue('');
+                reentrySelect.input && reentrySelect.input.setSelectionRange(0, 0);
+            }
+        });
+        reentrySelect.on('change', function () {
+            updateReentryBadge();
+        });
+    }
+
+    function updateReentryBadge() {
+        const badge = document.getElementById('reentry-badge');
+        if (!badge) return;
+        if (reentrySelect && reentrySelect.items.length) {
+            const opt = reentrySelect.options[reentrySelect.items[0]];
+            if (opt) {
+                badge.classList.remove('hidden');
+                badge.innerHTML = 'Reingreso · ' + (opt.document_sn || opt.text || '') + ' · ' + (opt.plate || '');
+            }
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    async function loadReentryOptions(vehicleId) {
+        if (!reentrySelect) return;
+        if (!vehicleId) {
+            reentrySelect.clear();
+            reentrySelect.clearOptions();
+            updateReentryBadge();
+            return;
+        }
+
+        const keep = reentrySelect.items[0] || null;
+        const qp = new URLSearchParams(window.location.search).get('work_order_id');
+        const want = keep || (qp ? String(qp) : null);
+
+        try {
+            const res = await fetch(`/api/work-orders/reentry-options?vehicle_id=${encodeURIComponent(vehicleId)}`);
+            const data = await res.json();
+            reentrySelect.clearOptions();
+            data.forEach(o => reentrySelect.addOption(o));
+            if (want) {
+                const match = data.find(o => String(o.id) === want);
+                if (match) reentrySelect.setValue(match.id, true);
+            }
+            updateReentryBadge();
+        } catch (e) {
+            console.error('Error cargando reingresos:', e);
+        }
+    }
+
+    // Precarga desde ?work_order_id= (botón "Registrar reingreso" en la OT)
+    function initReentryFromQuery() {
+        const qp = new URLSearchParams(window.location.search).get('work_order_id');
+        if (!qp || !reentrySelect) return;
+
+        fetch(`/api/work-orders/reentry-options?work_order_id=${encodeURIComponent(qp)}`)
+            .then(r => r.json())
+            .then(data => {
+                const ot = data[0];
+                if (!ot) return;
+                reentrySelect.addOption(ot);
+                reentrySelect.setValue(String(ot.id), true);
+                updateReentryBadge();
+                // Seleccionar el vehículo de la OT para precargar el resto del formulario
+                const plate = ot.plate || '';
+                vehicleSelect.addOption({ id: ot.vehicle_id, plate: plate, brand: '', model: '', year: '' });
+                vehicleSelect.setValue(String(ot.vehicle_id), true);
+            })
+            .catch(() => {});
+    }
+
+    initReentrySelect();
+    initReentryFromQuery();
 
     // =====================================================
     // 2. Tom Select aseguradora

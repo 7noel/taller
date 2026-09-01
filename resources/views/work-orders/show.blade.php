@@ -46,6 +46,12 @@
                             <button type="submit" class="btn btn-primary">{{ $label }}</button>
                         </form>
                     @endforeach
+                    @if ($workOrder->status === 'delivered_pending')
+                        <a href="{{ route('check-ins.create', ['work_order_id' => $workOrder->id]) }}" class="btn btn-secondary" title="Registrar la visita del vehículo y retomar la OT automáticamente">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+                            Registrar reingreso
+                        </a>
+                    @endif
                     @if ($workOrder->status === 'quality_control')
                         <a href="{{ route('work-orders.quality-control', $workOrder) }}" class="btn btn-primary">Realizar control de calidad</a>
                     @endif

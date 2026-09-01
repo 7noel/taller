@@ -515,4 +515,41 @@ class WorkOrderController extends Controller
 
         return response()->json($data);
     }
+
+    /**
+     * OTs elegibles para reingreso (status 'delivered_pending') de un vehículo.
+     * También permite resolver una OT puntual por work_order_id para precargar
+     * el formulario desde el botón "Registrar reingreso" de la vista de la OT.
+     */
+    public function reentryOptions(Request $request): JsonResponse
+    {
+        Gate::authorize('viewAny', WorkOrder::class);
+
+        $query = WorkOrder::with(['vehicle.vehicleModel.brand', 'client'])
+            ->where('status', 'delivered_pending');
+
+        if ($request->filled('vehicle_id')) {
+            $query->where('vehicle_id', (int) $request->query('vehicle_id'));
+        } elseif ($request->filled('work_order_id')) {
+            $query->where('id', (int) $request->query('work_order_id'));
+        } else {
+            return response()->json([]);
+        }
+
+        return response()->json($query->orderByDesc('id')->limit(20)->get()->map(fn (WorkOrder $workOrder) => [
+            'id' => $workOrder->id,
+            'document_sn' => $workOrder->document_sn,
+            'plate' => $workOrder->vehicle?->plate,
+            'vehicle_id' => $workOrder->vehicle_id,
+            'client_name' => $workOrder->client?->display_name,
+            'status' => $workOrder->status,
+            'status_label' => $workOrder->status_label,
+            'text' => sprintf(
+                '%s · %s · %s',
+                $workOrder->document_sn,
+                $workOrder->vehicle?->plate ?? 'sin placa',
+                $workOrder->client?->display_name ?? '—'
+            ),
+        ]));
+    }
 }

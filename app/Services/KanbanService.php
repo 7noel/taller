@@ -75,9 +75,15 @@ class KanbanService
     protected function checkInCards(User $user): Collection
     {
         return CheckIn::with(['vehicle.vehicleModel.brand', 'client', 'statusHistory.user'])
+            ->withCount('estimates')
+            ->whereNull('work_order_id')
             ->whereIn('status', ['draft', 'pending_approval', 'approved', 'rejected'])
             ->get()
-            ->map(fn (CheckIn $checkIn) => $this->baseCard($checkIn, 'check_in', 'inventario', $user) + [
+            // El check-in aprobado pasa a representarse por su(s) presupuesto(s):
+            // si ya existe al menos uno, la tarjeta del inventario se oculta para
+            // no duplicar el vehículo en la columna de Presupuesto.
+            ->filter(fn (CheckIn $checkIn) => !($checkIn->status === 'approved' && $checkIn->estimates_count > 0))
+            ->map(fn (CheckIn $checkIn) => $this->baseCard($checkIn, 'check_in', $this->checkInColumn($checkIn->status), $user) + [
                 'actions' => $this->checkInActions($checkIn, $user),
             ]);
     }
@@ -86,8 +92,9 @@ class KanbanService
     {
         return Estimate::with(['vehicle.vehicleModel.brand', 'client', 'statusHistory.user'])
             ->whereIn('status', [
+                // 'approved_client' NO figura: ya fue aprobado y va a la OT.
                 'draft', 'sent_insurance', 'approved_insurance', 'rejected_insurance',
-                'sent_client', 'approved_client', 'rejected_client',
+                'sent_client', 'rejected_client',
             ])
             ->whereNull('work_order_id')
             ->get()
@@ -100,8 +107,9 @@ class KanbanService
     {
         return WorkOrder::with(['vehicle.vehicleModel.brand', 'client', 'statusHistory.user'])
             ->whereIn('status', [
+                // 'delivered' NO figura: el vehículo salió con el trabajo terminado.
                 'open', 'in_progress', 'waiting_parts', 'quality_control',
-                'ready_for_delivery', 'delivered', 'delivered_pending',
+                'ready_for_delivery', 'delivered_pending',
             ])
             ->get()
             ->map(fn (WorkOrder $workOrder) => $this->baseCard($workOrder, 'work_order', $this->workOrderColumn($workOrder->status), $user) + [
@@ -109,9 +117,18 @@ class KanbanService
             ]);
     }
 
+    /**
+     * Columna del check-in: aprobado → Presupuesto (esperando su presupuesto);
+     * borrador/en aprobación/rechazado → Inventario.
+     */
+    protected function checkInColumn(string $status): string
+    {
+        return $status === 'approved' ? 'presupuesto' : 'inventario';
+    }
+
     protected function estimateColumn(string $status): string
     {
-        return in_array($status, ['sent_insurance', 'approved_insurance', 'sent_client', 'approved_client'], true)
+        return in_array($status, ['sent_insurance', 'approved_insurance', 'sent_client'], true)
             ? 'aprobacion'
             : 'presupuesto';
     }
@@ -120,7 +137,9 @@ class KanbanService
     {
         return match ($status) {
             'quality_control' => 'control_calidad',
-            'ready_for_delivery', 'delivered', 'delivered_pending' => 'entrega',
+            'ready_for_delivery' => 'entrega',
+            // delivered_pending (entregado con pendientes) queda en Reparación:
+            // el trabajo no terminó y el vehículo volverá (reingreso).
             default => 'reparacion',
         };
     }

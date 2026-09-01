@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderSubstage;
+use App\Services\CheckInService;
 use App\Services\EstimateService;
 use App\Services\WorkOrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -408,5 +409,75 @@ class WorkOrderFlowTest extends TestCase
         $response->assertSessionHas('success');
         $this->assertSoftDeleted('work_orders', ['id' => $workOrder->id]);
         $this->assertSame('approved_client', $estimate->fresh()->status);
+    }
+
+    public function test_reentry_check_in_links_to_work_order_and_resumes_it(): void
+    {
+        $this->createDocumentSeries('IV', 'Inventario', 'IV01');
+
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+        $checkIn = $this->makeCheckIn($vehicle, $client);
+        $estimate = $this->makeApprovedEstimate($checkIn, $vehicle, $client);
+
+        $workOrder = $this->service->createFromEstimates(collect([$estimate]));
+        $workOrder = $this->service->changeStatus($workOrder, 'in_progress');
+        $workOrder = $this->service->changeStatus($workOrder, 'delivered_pending');
+
+        // El vehículo regresa: se registra un nuevo inventario vinculado a la OT.
+        $reentry = app(CheckInService::class)->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'preventivo',
+            'establishment_id' => $this->establishment->id,
+            'work_order_id' => $workOrder->id,
+        ]);
+
+        $this->assertSame($workOrder->id, $reentry->fresh()->work_order_id);
+        $this->assertSame('in_progress', $workOrder->fresh()->status);
+        $this->assertDatabaseHas('status_histories', [
+            'subject_type' => WorkOrder::class,
+            'subject_id' => $workOrder->id,
+            'from_status' => 'delivered_pending',
+            'to_status' => 'in_progress',
+        ]);
+    }
+
+    public function test_reentry_rejects_work_order_of_another_vehicle(): void
+    {
+        $this->createDocumentSeries('IV', 'Inventario', 'IV01');
+
+        $estimate = $this->makeApprovedEstimate();
+        $workOrder = $this->service->createFromEstimates(collect([$estimate]));
+        $workOrder = $this->service->changeStatus($workOrder, 'in_progress');
+        $workOrder = $this->service->changeStatus($workOrder, 'delivered_pending');
+
+        $otherVehicle = Vehicle::factory()->create();
+
+        $this->expectException(RuntimeException::class);
+        app(CheckInService::class)->create([
+            'vehicle_id' => $otherVehicle->id,
+            'client_id' => Party::factory()->create()->id,
+            'service_type' => 'preventivo',
+            'establishment_id' => $this->establishment->id,
+            'work_order_id' => $workOrder->id,
+        ]);
+    }
+
+    public function test_reentry_options_route_filters_by_vehicle(): void
+    {
+        $user = $this->createUserWithPermissions(['ver órdenes de trabajo']);
+        $this->actingAs($user);
+
+        $estimate = $this->makeApprovedEstimate();
+        $workOrder = $this->service->createFromEstimates(collect([$estimate]));
+        $workOrder = $this->service->changeStatus($workOrder, 'in_progress');
+        $workOrder = $this->service->changeStatus($workOrder, 'delivered_pending');
+
+        $response = $this->getJson(route('api.work-orders.reentry-options', ['vehicle_id' => $workOrder->vehicle_id]));
+
+        $response->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['id' => $workOrder->id]);
     }
 }

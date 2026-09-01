@@ -24,10 +24,15 @@ class CheckInRequest extends FormRequest
                 'exists:vehicles,id',
                 Rule::unique('check_ins', 'vehicle_id')
                     ->whereNull('deleted_at')
+                    // Un inventario vinculado a una OT (ingreso original o reingreso)
+                    // no bloquea el registro de una nueva visita física del vehículo.
+                    ->whereNull('work_order_id')
                     ->whereIn('status', ['draft', 'pending_approval', 'approved'])
                     ->ignore($checkInId),
             ],
             'client_id' => ['nullable', 'integer', 'exists:parties,id'],
+            // Reingreso: OT entregada con pendientes a la que se vincula esta visita.
+            'work_order_id' => ['nullable', 'integer', 'exists:work_orders,id'],
             'insurance_company_id' => [
                 'nullable',
                 'integer',

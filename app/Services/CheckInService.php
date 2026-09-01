@@ -8,6 +8,7 @@ use App\Models\CheckInDamage;
 use App\Models\Party;
 use App\Models\PublicApprovalLog;
 use App\Models\VehicleRelationship;
+use App\Models\WorkOrder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -45,6 +46,11 @@ class CheckInService
             $this->syncDamages($checkIn, $data['damages'] ?? []);
             $this->syncContacts($checkIn, $data);
 
+            // Reingreso: vincula la visita a la OT y retoma el trabajo pendiente.
+            if (! empty($data['work_order_id'])) {
+                $this->handleReentry($checkIn, (int) $data['work_order_id']);
+            }
+
             // Sincroniza fechas de revisión técnica y mantenimiento preventivo al vehículo.
             $this->maintenanceService->syncFromCheckIn($checkIn);
 
@@ -76,6 +82,41 @@ class CheckInService
         $data['document_serie'] = $result['series']->prefix_serie;
         $data['document_number'] = $result['number'];
         $data['document_sn'] = $result['sn'];
+    }
+
+    /**
+     * Vincula un check-in a una OT existente (reingreso por trabajo pendiente)
+     * y retoma automáticamente la OT si estaba en 'delivered_pending'.
+     * La visita se registra como 'draft' (solo registro físico): el alcance ya
+     * está aprobado, no requiere nuevo presupuesto.
+     */
+    protected function handleReentry(CheckIn $checkIn, int $workOrderId): void
+    {
+        $workOrder = WorkOrder::find($workOrderId);
+
+        if (! $workOrder) {
+            throw new RuntimeException('La orden de trabajo seleccionada no existe.');
+        }
+
+        if ((int) $workOrder->vehicle_id !== (int) $checkIn->vehicle_id) {
+            throw new RuntimeException('La orden de trabajo seleccionada pertenece a otro vehículo.');
+        }
+
+        if ($workOrder->status !== 'delivered_pending') {
+            throw new RuntimeException('La orden de trabajo no está en "Entregado con pendientes": no requiere reingreso.');
+        }
+
+        $workOrder->update([
+            'status' => 'in_progress',
+            'updated_by' => Auth::id(),
+        ]);
+
+        $workOrder->recordStatusChange(
+            'in_progress',
+            'delivered_pending',
+            'Reingreso registrado (check-in ' . $checkIn->document_sn . ').',
+            'system'
+        );
     }
 
     /**

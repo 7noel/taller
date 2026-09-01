@@ -91,6 +91,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('work-orders/{workOrder}/assignments/{assignment}/status', [WorkOrderController::class, 'updateAssignmentStatus'])->name('work-orders.assignments.status');
     Route::delete('work-orders/{workOrder}/assignments/{assignment}', [WorkOrderController::class, 'deleteAssignment'])->name('work-orders.assignments.destroy');
     Route::get('api/work-orders/search', [WorkOrderController::class, 'search'])->name('api.work-orders.search');
+    Route::get('api/work-orders/reentry-options', [WorkOrderController::class, 'reentryOptions'])->name('api.work-orders.reentry-options');
 
     Route::resource('service-vouchers', ServiceVoucherController::class);
     Route::post('service-vouchers/{service_voucher}/complete', [ServiceVoucherController::class, 'complete'])->name('service-vouchers.complete');
