@@ -94,6 +94,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('work-orders/{workOrder}/assignments/{assignment}', [WorkOrderController::class, 'deleteAssignment'])->name('work-orders.assignments.destroy');
     Route::get('api/work-orders/search', [WorkOrderController::class, 'search'])->name('api.work-orders.search');
     Route::get('api/work-orders/reentry-options', [WorkOrderController::class, 'reentryOptions'])->name('api.work-orders.reentry-options');
+    Route::post('work-orders/{workOrder}/reopen', [WorkOrderController::class, 'reopen'])->name('work-orders.reopen');
+    Route::post('work-orders/{workOrder}/internal-expenses', [WorkOrderController::class, 'addInternalExpense'])->name('work-orders.internal-expenses.store');
+    Route::delete('work-orders/{workOrder}/internal-expenses/{expense}', [WorkOrderController::class, 'deleteInternalExpense'])->name('work-orders.internal-expenses.destroy');
 
     Route::resource('service-vouchers', ServiceVoucherController::class);
     Route::post('service-vouchers/{service_voucher}/complete', [ServiceVoucherController::class, 'complete'])->name('service-vouchers.complete');

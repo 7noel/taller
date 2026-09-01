@@ -67,19 +67,46 @@ class EstimateController extends Controller
             );
         }
 
+        // Creación de una GARANTÍA desde el presupuesto original o la OT.
+        $warrantyOf = null;
+        if ($request->filled('warranty_of')) {
+            $warrantyOf = Estimate::with([
+                'vehicle.vehicleModel.brand',
+                'client',
+                'insuranceCompany',
+                'establishment',
+                'workOrder',
+            ])->find($request->integer('warranty_of'));
+
+            abort_unless(
+                $warrantyOf && !$warrantyOf->is_garantia,
+                422,
+                'No se puede registrar una garantía de una garantía: el presupuesto original debe ser el principal.'
+            );
+        }
+
+        $workOrderId = $request->filled('work_order_id') ? $request->integer('work_order_id') : null;
+
         $advisors = User::role('Asesor')->orderBy('name')->get();
+        $technicians = User::role('Técnico')->orderBy('name')->get();
         $establishment = auth()->user()?->establishment;
         $serviceCategories = ServiceCategory::query()->where('is_active', true)->orderBy('name')->get();
         $partCategories = PartCategory::query()->where('is_active', true)->orderBy('name')->get();
 
-        return view('estimates.create', compact('checkIn', 'parentEstimate', 'advisors', 'establishment', 'serviceCategories', 'partCategories'));
+        return view('estimates.create', compact('checkIn', 'parentEstimate', 'warrantyOf', 'workOrderId', 'advisors', 'technicians', 'establishment', 'serviceCategories', 'partCategories'));
     }
 
     public function store(EstimateRequest $request)
     {
         Gate::authorize('create', Estimate::class);
 
-        $this->service->create($request->validated());
+        $estimate = $this->service->create($request->validated());
+
+        // Si la garantía se registró desde una OT, se devuelve a su detalle.
+        if ($request->filled('work_order_id')) {
+            return redirect()->route('work-orders.show', $request->integer('work_order_id'))
+                ->with('success', 'Garantía registrada correctamente (no facturable).');
+        }
 
         return redirect()->route('estimates.index')
             ->with('success', 'Presupuesto creado correctamente.');
@@ -103,9 +130,14 @@ class EstimateController extends Controller
             'workOrder',
             'parent',
             'ampliaciones',
+            'warrantyOf',
+            'liabilityUser',
+            'warrantyClaims',
             'payments.invoice',
             'payments.paymentMethod',
         ]);
+
+        $estimate->loadCount('warrantyClaims');
 
         $grouped = $this->service->getClientGroupedItems($estimate);
 
@@ -154,11 +186,12 @@ class EstimateController extends Controller
         ]);
 
         $advisors = User::role('Asesor')->orderBy('name')->get();
+        $technicians = User::role('Técnico')->orderBy('name')->get();
         $establishment = $estimate->establishment ?? auth()->user()?->establishment;
         $serviceCategories = ServiceCategory::query()->where('is_active', true)->orderBy('name')->get();
         $partCategories = PartCategory::query()->where('is_active', true)->orderBy('name')->get();
 
-        return view('estimates.edit', compact('estimate', 'advisors', 'establishment', 'serviceCategories', 'partCategories'));
+        return view('estimates.edit', compact('estimate', 'advisors', 'technicians', 'establishment', 'serviceCategories', 'partCategories'));
     }
 
     public function update(EstimateRequest $request, Estimate $estimate)

@@ -8,6 +8,7 @@ use App\Models\Estimate;
 use App\Models\FormTemplate;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderAssignment;
+use App\Models\WorkOrderInternalExpense;
 use App\Models\WorkOrderQualityControl;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +31,9 @@ class WorkOrderService
         'ready_for_delivery' => ['delivered', 'delivered_pending', 'in_progress'],
         'delivered' => ['closed'],
         'delivered_pending' => ['in_progress', 'waiting_parts', 'delivered'],
-        'closed' => [],
+        // Reapertura: el vehículo regresa por garantía o un siniestro por
+        // responsabilidad del taller obliga a retomar la misma OT.
+        'closed' => ['open'],
     ];
 
     /**
@@ -171,6 +174,64 @@ class WorkOrderService
     }
 
     /**
+     * Reabre una OT cerrada (garantía o siniestro por responsabilidad del taller).
+     * Se registra el motivo en el historial de estados.
+     */
+    public function reopen(WorkOrder $workOrder, string $reason = 'Reapertura por garantía o siniestro'): WorkOrder
+    {
+        if ($workOrder->status !== 'closed') {
+            throw new RuntimeException('Solo se puede reabrir una orden de trabajo cerrada.');
+        }
+
+        DB::transaction(function () use ($workOrder, $reason) {
+            $from = $workOrder->status;
+
+            $workOrder->update([
+                'status' => 'open',
+                'updated_by' => Auth::id(),
+            ]);
+
+            $workOrder->recordStatusChange('open', $from, $reason, 'internal');
+        });
+
+        return $workOrder->fresh($this->defaultRelations());
+    }
+
+    /**
+     * Registra un gasto interno asumido por el taller dentro de la OT
+     * (arañazo, repuesto malogrado u otro error durante el trabajo).
+     * No genera presupuesto ni factura: solo evento, responsable y monto.
+     */
+    public function addInternalExpense(WorkOrder $workOrder, array $data): WorkOrderInternalExpense
+    {
+        return WorkOrderInternalExpense::create([
+            'work_order_id' => $workOrder->id,
+            'type' => $data['type'],
+            'description' => $data['description'] ?? null,
+            'amount' => (float) ($data['amount'] ?? 0),
+            'currency' => strtoupper((string) ($data['currency'] ?? 'PEN')),
+            'exchange_rate' => (float) ($data['exchange_rate'] ?? 1),
+            'responsible_user_id' => $data['responsible_user_id'] ?? null,
+            'occurred_at' => $data['occurred_at'] ?? now()->toDateString(),
+            'notes' => $data['notes'] ?? null,
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+        ]);
+    }
+
+    /**
+     * Elimina un gasto interno de la OT (validando pertenencia).
+     */
+    public function removeInternalExpense(WorkOrder $workOrder, WorkOrderInternalExpense $expense): bool
+    {
+        if ((int) $expense->work_order_id !== (int) $workOrder->id) {
+            throw new RuntimeException('El gasto interno no pertenece a esta orden de trabajo.');
+        }
+
+        return (bool) $expense->delete();
+    }
+
+    /**
      * Registra una revisión de control de calidad y aplica la transición:
      * aprobado => ready_for_delivery (listo para entrega); rechazado => in_progress
      * (vuelve a reparación para reenviarla luego a control de calidad).
@@ -279,6 +340,7 @@ class WorkOrderService
                 ->update(['work_order_id' => null, 'updated_by' => Auth::id()]);
 
             $workOrder->assignments()->delete();
+            $workOrder->internalExpenses()->delete();
 
             return (bool) $workOrder->delete();
         });

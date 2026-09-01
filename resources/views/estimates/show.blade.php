@@ -12,6 +12,25 @@
                         Ampliación de {{ $estimate->parent->document_sn }}
                     </a>
                 @endif
+                @if ($estimate->is_garantia && $estimate->warrantyOf)
+                    <a href="{{ route('estimates.show', $estimate->warrantyOf) }}" title="Ver el presupuesto original"
+                       class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">
+                        Garantía de {{ $estimate->warrantyOf->document_sn }}
+                    </a>
+                @endif
+                @if ($estimate->is_chargeable === false)
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-gray-100 text-gray-600" title="No genera factura ni cobro al cliente">No facturable</span>
+                @endif
+                @if ($estimate->liability === 'workshop')
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-red-100 text-red-700" title="El gasto lo asume el taller">
+                        Resp. taller{{ $estimate->liabilityUser ? ' · ' . $estimate->liabilityUser->name : '' }}
+                    </span>
+                @endif
+                @if (!$estimate->is_garantia && $estimate->warranty_claims_count > 0)
+                    <a href="#garantias" class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-800 hover:bg-blue-200">
+                        {{ $estimate->warranty_claims_count }} garantía(s)
+                    </a>
+                @endif
                 @if ($estimate->vehicle?->plate)
                     <span class="text-sm text-gray-500">{{ $estimate->vehicle->plate }}</span>
                 @endif
@@ -49,6 +68,9 @@
                 @can('create', \App\Models\Estimate::class)
                     @if (!$estimate->is_ampliacion)
                         <a href="{{ route('estimates.create', ['parent_estimate_id' => $estimate->id]) }}" class="btn btn-secondary" title="Crear una ampliación de este presupuesto (misma moneda, misma aseguradora)">Ampliar</a>
+                    @endif
+                    @if ($estimate->is_chargeable !== false && !$estimate->is_garantia)
+                        <a href="{{ route('estimates.create', ['warranty_of' => $estimate->id, 'work_order_id' => $estimate->work_order_id]) }}" class="btn btn-secondary" title="El vehículo regresó por una falla cubierta por garantía: se crea un presupuesto no facturable">Registrar garantía</a>
                     @endif
                 @endcan
                 @can('returnToDraft', $estimate)
@@ -383,6 +405,40 @@
                                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700">{{ $amp->status_label }}</span>
                                             </td>
                                             <td class="px-3 py-2 text-right">{{ number_format((float) $amp->total, 2) }} {{ $amp->currency }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Garantías registradas contra este presupuesto (reparaciones no facturables) --}}
+            @if ($estimate->warrantyClaims->isNotEmpty())
+                <div class="card mb-4" id="garantias">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Garantías ({{ $estimate->warrantyClaims->count() }})</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Documento</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Estado</th>
+                                        <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Total (costo taller)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @foreach ($estimate->warrantyClaims as $claim)
+                                        <tr>
+                                            <td class="px-3 py-2 font-medium">
+                                                <a href="{{ route('estimates.show', $claim) }}" class="text-blue-600 hover:text-blue-800">{{ $claim->document_sn }}</a>
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700">{{ $claim->status_label }}</span>
+                                                <span class="ml-1 inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800">No facturable</span>
+                                            </td>
+                                            <td class="px-3 py-2 text-right">{{ number_format((float) $claim->total, 2) }} {{ $claim->currency }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

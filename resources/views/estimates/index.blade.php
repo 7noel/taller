@@ -66,7 +66,16 @@
                         const amp = data.is_ampliacion
                             ? `<span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-100 text-amber-800" title="Ampliación de ${data.parent_sn || ''}">Ampl.</span>`
                             : '';
-                        return `<a href="/estimates/${data.id}" class="text-blue-600 hover:text-blue-800 font-medium">${data.document_sn || '-'}</a>${amp}`;
+                        const gar = data.is_garantia
+                            ? `<span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-100 text-amber-800" title="Garantía de ${data.warranty_sn || ''}">Garantía</span>`
+                            : '';
+                        const nf = data.is_chargeable === false
+                            ? `<span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-gray-100 text-gray-600" title="No genera factura ni cobro al cliente">No facturable</span>`
+                            : '';
+                        const resp = data.liability === 'workshop' && !data.is_garantia
+                            ? `<span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-red-100 text-red-700" title="El gasto lo asume el taller">Resp. taller</span>`
+                            : '';
+                        return `<a href="/estimates/${data.id}" class="text-blue-600 hover:text-blue-800 font-medium">${data.document_sn || '-'}</a>${amp}${gar}${nf}${resp}`;
                     }
                 },
                 { title: 'Placa', field: 'plate', width: 80, hozAlign: 'center' },

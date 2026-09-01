@@ -178,6 +178,15 @@ class WorkOrder extends Model
         return $this->hasMany(ServiceVoucher::class)->orderBy('execution_date')->orderBy('id');
     }
 
+    /**
+     * Gastos internos asumidos por el taller (responsabilidad propia) dentro
+     * de la OT: arañazos, repuestos malogrados u otros errores durante el trabajo.
+     */
+    public function internalExpenses()
+    {
+        return $this->hasMany(WorkOrderInternalExpense::class)->orderByDesc('occurred_at')->orderByDesc('id');
+    }
+
     public function qualityControls()
     {
         return $this->hasMany(WorkOrderQualityControl::class)->orderByDesc('id');

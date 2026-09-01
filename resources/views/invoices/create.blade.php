@@ -202,7 +202,8 @@
             .then(r => r.json()).catch(() => []);
 
         // Auto-sugerencia: al elegir el primer presupuesto se preseleccionan los del mismo vehículo/OT.
-        const estimateSelect = ts('#estimate_ids', "{{ route('api.estimates.search') }}", true, (value) => {
+        // chargeable=1 excluye garantías y ajustes internos (no facturables).
+        const estimateSelect = ts('#estimate_ids', "{{ route('api.estimates.search') }}?chargeable=1", true, (value) => {
             if (autoSuggesting || estimateSelect.items.length > 1) return;
             autoSuggesting = true;
             fetchRelated(value).then(rows => {

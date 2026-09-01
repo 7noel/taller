@@ -53,6 +53,7 @@ class EstimateService
         $data['establishment_id'] = $establishmentId;
 
         $data = $this->applyParentInheritance($data);
+        $this->applyWarrantyInheritance($data);
         $this->fillDefaults($data);
 
         if (empty($data['document_number'])) {
@@ -66,6 +67,20 @@ class EstimateService
             $this->syncThirdPartyOrders($estimate, $data['third_party_orders'] ?? []);
 
             $this->calculation->calculate($estimate);
+
+            // Una garantía nace en 'in_repair' sin pasar por aprobación:
+            // se deja constancia en el historial de estados.
+            if ($estimate->status === 'in_repair' && $estimate->is_chargeable === false) {
+                $estimate->recordStatusChange('in_repair', null, 'Garantía registrada: nace en reparación sin aprobación (no facturable).', 'system');
+            }
+
+            // Si la garantía se crea desde una OT, se vincula también el
+            // check-in (reingreso) correspondiente a la misma OT.
+            if ($estimate->work_order_id && $estimate->check_in_id) {
+                CheckIn::whereKey($estimate->check_in_id)
+                    ->whereNull('work_order_id')
+                    ->update(['work_order_id' => $estimate->work_order_id, 'updated_by' => Auth::id()]);
+            }
 
             return $estimate;
         });
@@ -84,6 +99,17 @@ class EstimateService
         if ($estimate->parent_estimate_id && $estimate->parent) {
             $data['currency'] = $estimate->parent->currency ?: $estimate->currency ?: 'PEN';
             $data['exchange_rate'] = $estimate->parent->exchange_rate ?: $estimate->exchange_rate ?: 1;
+        }
+
+        // Una GARANTÍA SIEMPRE es no facturable, la asume el taller y conserva
+        // la moneda/tipo de cambio del presupuesto original. No se puede cambiar
+        // el presupuesto al que garantiza ni volverla facturable.
+        if ($estimate->warranty_of_estimate_id && $estimate->warrantyOf) {
+            $data['is_chargeable'] = false;
+            $data['liability'] = 'workshop';
+            $data['warranty_of_estimate_id'] = $estimate->warranty_of_estimate_id;
+            $data['currency'] = $estimate->warrantyOf->currency ?: $estimate->currency ?: 'PEN';
+            $data['exchange_rate'] = $estimate->warrantyOf->exchange_rate ?: $estimate->exchange_rate ?: 1;
         }
 
         // La moneda de un presupuesto con ítems/OC cargados NO se puede cambiar
@@ -498,6 +524,13 @@ class EstimateService
             throw new RuntimeException("Transición de estado inválida: {$from} → {$newStatus}.");
         }
 
+        // Las garantías/ajustes internos (no facturables) no pasan por los gates
+        // de aprobación: solo pueden avanzar dentro del flujo de reparación.
+        if ($estimate->is_chargeable === false
+            && in_array($newStatus, ['sent_insurance', 'sent_client', 'approved_insurance', 'rejected_insurance', 'approved_client', 'rejected_client'], true)) {
+            throw new RuntimeException('Una garantía o ajuste interno (no facturable) no pasa por aprobación de cliente o seguro.');
+        }
+
         $date = $date ?: now()->format('Y-m-d');
 
         DB::transaction(function () use ($estimate, $from, $newStatus, $reason, $date) {
@@ -585,6 +618,10 @@ class EstimateService
 
         if (!in_array($newStatus, $allowed, true)) {
             throw new RuntimeException("Transición de estado inválida: {$from} → {$newStatus}.");
+        }
+
+        if ($estimate->is_chargeable === false) {
+            throw new RuntimeException('Una garantía o ajuste interno (no facturable) no pasa por aprobación del cliente.');
         }
 
         if ($estimate->service_type === 'siniestro' && ! $estimate->insurance_approved_at) {
@@ -754,8 +791,15 @@ class EstimateService
     public function getSearchResults(array $filters): array
     {
         $query = Estimate::query()
-            ->with(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany', 'parent'])
+            ->with(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany', 'parent', 'warrantyOf'])
             ->with(['invoices' => fn ($q) => $q->where('invoices.status', '!=', 'voided')]);
+
+        // El listado general muestra TODOS los presupuestos (incluye garantías y
+        // ajustes internos no facturables). El selector de facturación pasa
+        // chargeable=1 para excluirlos.
+        if (!empty($filters['chargeable'])) {
+            $query->where('is_chargeable', true);
+        }
 
         if (!empty($filters['q'])) {
             $term = $filters['q'];
@@ -801,9 +845,10 @@ class EstimateService
             'id' => $estimate->id,
             'document_sn' => $estimate->document_sn,
             'text' => sprintf(
-                '%s%s · %s · %s · %s %s',
+                '%s%s%s · %s · %s · %s %s',
                 $estimate->document_sn,
                 $estimate->is_ampliacion ? ' (Ampl.)' : '',
+                $estimate->is_garantia ? ' (Garantía)' : '',
                 $estimate->vehicle?->plate ?? 'sin placa',
                 $estimate->client?->display_name ?? '—',
                 $estimate->currency === 'USD' ? 'US$' : 'S/',
@@ -818,6 +863,11 @@ class EstimateService
             'currency' => $estimate->currency,
             'is_ampliacion' => $estimate->is_ampliacion,
             'parent_sn' => $estimate->parent?->document_sn,
+            'is_garantia' => $estimate->is_garantia,
+            'warranty_sn' => $estimate->warrantyOf?->document_sn,
+            'is_chargeable' => $estimate->is_chargeable,
+            'liability' => $estimate->liability,
+            'liability_label' => $estimate->liability_label,
             'status' => $estimate->status,
             'status_label' => $estimate->status_label,
             'subtotal' => $estimate->subtotal,
@@ -837,7 +887,8 @@ class EstimateService
     {
         $query = Estimate::query()
             ->with(['vehicle.vehicleModel.brand', 'client', 'parent'])
-            ->whereIn('status', Estimate::BILLABLE_STATUSES);
+            ->whereIn('status', Estimate::BILLABLE_STATUSES)
+            ->where('is_chargeable', true);
 
         if ($vehicleId) {
             $query->where('vehicle_id', $vehicleId);
@@ -966,6 +1017,63 @@ class EstimateService
         }
 
         return $data;
+    }
+
+    /**
+     * Cuando el presupuesto se crea como GARANTÍA de otro
+     * (warranty_of_estimate_id), se fuerzan los flags de responsabilidad del
+     * taller (is_chargeable=false, liability=workshop, service_type='garantia'),
+     * se hereda moneda/tipo de cambio del original y se omite el ciclo de
+     * aprobación: el documento nace en 'in_repair'.
+     */
+    protected function applyWarrantyInheritance(array &$data): void
+    {
+        $originalId = $data['warranty_of_estimate_id'] ?? null;
+
+        if (! $originalId) {
+            return;
+        }
+
+        $original = Estimate::withTrashed()->find($originalId);
+
+        if (! $original) {
+            throw new RuntimeException('El presupuesto original de la garantía no existe.');
+        }
+
+        if ($original->warranty_of_estimate_id) {
+            throw new RuntimeException('No se puede registrar una garantía de una garantía: el presupuesto original debe ser el principal.');
+        }
+
+        if (! empty($data['vehicle_id']) && (int) $data['vehicle_id'] !== (int) $original->vehicle_id) {
+            throw new RuntimeException('La garantía debe pertenecer al mismo vehículo que el presupuesto original.');
+        }
+
+        // Flags de responsabilidad del taller: no se pueden sobreescribir.
+        $data['service_type'] = 'garantia';
+        $data['is_chargeable'] = false;
+        $data['liability'] = 'workshop';
+
+        // Moneda y tipo de cambio SIEMPRE del presupuesto original.
+        $data['currency'] = $original->currency ?: 'PEN';
+        $data['exchange_rate'] = $original->exchange_rate ?: 1;
+
+        // Contexto por defecto desde el original (rellena solo lo vacío).
+        foreach (['vehicle_id', 'client_id', 'insurance_company_id', 'claim_number', 'establishment_id'] as $field) {
+            if (empty($data[$field]) && ! empty($original->{$field})) {
+                $data[$field] = $original->{$field};
+            }
+        }
+
+        if (empty($data['hourly_rate']) && (float) $original->hourly_rate > 0) {
+            $data['hourly_rate'] = (float) $original->hourly_rate;
+        }
+
+        if (empty($data['panel_rate']) && (float) $original->panel_rate > 0) {
+            $data['panel_rate'] = (float) $original->panel_rate;
+        }
+
+        // Sin ciclo de aprobación: nace directamente en reparación.
+        $data['status'] = 'in_repair';
     }
 
     /**

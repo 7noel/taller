@@ -1401,11 +1401,13 @@
     }
 
     // =====================================================
-    // Servicio: mostrar/ocultar Nº Siniestro según el tipo
-    // =====================================================
+    // Servicio: mostrar/ocultar Nº Siniestro e incidente según el tipo
+    // =============================================================
     function setClaimNumberVisibility(serviceType) {
         const claimWrap = document.getElementById('claim-number-wrap');
         if (claimWrap) claimWrap.classList.toggle('hidden', serviceType !== 'siniestro');
+        const incidentWrap = document.getElementById('incident-wrap');
+        if (incidentWrap) incidentWrap.classList.toggle('hidden', serviceType !== 'siniestro');
     }
     const serviceTypeSelect = document.getElementById('service_type');
     if (serviceTypeSelect) {

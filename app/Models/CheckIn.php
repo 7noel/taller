@@ -110,6 +110,7 @@ class CheckIn extends Model
         'siniestro' => 'Siniestro',
         'preventivo' => 'Preventivo',
         'correctivo' => 'Correctivo',
+        'garantia' => 'Garantía',
         'otro' => 'Otro',
     ];
 

@@ -16,7 +16,7 @@
             <form method="POST" action="{{ route('estimates.update', $estimate) }}">
                 @csrf
                 @method('PUT')
-                @include('estimates._form', ['estimate' => $estimate, 'checkIn' => null, 'parentEstimate' => null, 'advisors' => $advisors, 'establishment' => $establishment])
+                @include('estimates._form', ['estimate' => $estimate, 'checkIn' => null, 'parentEstimate' => null, 'advisors' => $advisors, 'technicians' => $technicians, 'establishment' => $establishment])
 
                 <div class="mt-6 flex gap-2">
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -28,5 +28,5 @@
 
     @include('partials.contact-modal')
     @include('estimates._currency-modal')
-    @include('estimates._form-scripts', ['estimate' => $estimate, 'checkIn' => null, 'parentEstimate' => null, 'establishment' => $establishment])
+    @include('estimates._form-scripts', ['estimate' => $estimate, 'checkIn' => null, 'parentEstimate' => null, 'technicians' => $technicians, 'establishment' => $establishment])
 </x-app-layout>

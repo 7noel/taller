@@ -56,6 +56,13 @@ class Estimate extends Model
         'status',
         'work_order_id',
         'parent_estimate_id',
+        // Responsabilidad del taller (garantía, daño interno, siniestro por maniobra)
+        'is_chargeable',
+        'liability',
+        'liability_user_id',
+        'warranty_of_estimate_id',
+        'incident_type',
+        'incident_reported_at',
         'created_by',
         'updated_by',
         'approved_by_user_id',
@@ -96,6 +103,8 @@ class Estimate extends Model
         'franchise_base' => 'float',
         'franchise_percentage_applied' => 'float',
         'franchise_amount' => 'float',
+        'is_chargeable' => 'boolean',
+        'incident_reported_at' => 'datetime',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'insurance_approved_at' => 'datetime',
@@ -150,6 +159,27 @@ class Estimate extends Model
         'finalized',
     ];
 
+    /**
+     * Quién responde por el gasto del presupuesto.
+     *  - client   → lo paga el cliente (flujo normal).
+     *  - insurance→ lo cubre la aseguradora (siniestro estándar).
+     *  - workshop → lo asume el taller (garantía, daño interno, siniestro por maniobra).
+     */
+    public const LIABILITY_LABELS = [
+        'client' => 'Cliente',
+        'insurance' => 'Seguro',
+        'workshop' => 'Taller',
+    ];
+
+    /**
+     * Tipos de incidente por responsabilidad del taller (siniestro por maniobra).
+     */
+    public const INCIDENT_TYPES = [
+        'road_test' => 'Prueba de ruta',
+        'maneuver' => 'Maniobra (ingreso/salida del taller)',
+        'other' => 'Otro',
+    ];
+
     // Tipos de servicio: misma fuente que el inventario (CheckIn::SERVICE_TYPES).
     // Agrega nuevos tipos en CheckIn::SERVICE_TYPES y aparecerán en ambos módulos.
     public const SERVICE_TYPES = CheckIn::SERVICE_TYPES;
@@ -168,6 +198,7 @@ class Estimate extends Model
                 'franchise_minimum_without_tax', 'franchise_base', 'franchise_percentage_applied',
                 'franchise_amount', 'status', 'work_order_id', 'parent_estimate_id', 'insurance_approved_at', 'insurance_rejected_at',
                 'insurance_rejection_reason',
+                'is_chargeable', 'liability', 'liability_user_id', 'warranty_of_estimate_id', 'incident_type', 'incident_reported_at',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -338,6 +369,63 @@ class Estimate extends Model
     public function insuranceRejectedBy()
     {
         return $this->belongsTo(User::class, 'insurance_rejected_by_user_id');
+    }
+
+    /**
+     * Presupuesto original del cual este presupuesto es una GARANTÍA
+     * (reparación en garantía, no facturable al cliente).
+     */
+    public function warrantyOf()
+    {
+        return $this->belongsTo(Estimate::class, 'warranty_of_estimate_id')->withTrashed();
+    }
+
+    /**
+     * Garantías registradas contra este presupuesto.
+     */
+    public function warrantyClaims()
+    {
+        return $this->hasMany(Estimate::class, 'warranty_of_estimate_id')->orderBy('document_sn');
+    }
+
+    /**
+     * Usuario responsable del evento (técnico/chofer) cuando liability = workshop.
+     */
+    public function liabilityUser()
+    {
+        return $this->belongsTo(User::class, 'liability_user_id');
+    }
+
+    /**
+     * True si este presupuesto es una garantía de otro presupuesto.
+     */
+    public function getIsGarantiaAttribute(): bool
+    {
+        return $this->warranty_of_estimate_id !== null;
+    }
+
+    /**
+     * Etiqueta legible de la responsabilidad del gasto.
+     */
+    public function getLiabilityLabelAttribute(): string
+    {
+        return self::LIABILITY_LABELS[$this->liability] ?? ($this->liability ?: 'Cliente');
+    }
+
+    /**
+     * Etiqueta legible de si el presupuesto es facturable o no.
+     */
+    public function getIsChargeableLabelAttribute(): string
+    {
+        return $this->is_chargeable === false ? 'No facturable' : 'Facturable';
+    }
+
+    /**
+     * Solo presupuestos facturables (excluye garantías y ajustes internos).
+     */
+    public function scopeChargeable($query)
+    {
+        return $query->where('is_chargeable', true);
     }
 
     /**

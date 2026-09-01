@@ -77,6 +77,16 @@
                         <button type="button" data-copy-message="{{ $surveyMessage }}" title="Copiar todo el mensaje para el cliente" class="btn btn-secondary">Copiar mensaje</button>
                     @endif
                 @endif
+                @if ($workOrder->status === 'closed' && auth()->user()->can('changeStatus', $workOrder))
+                    <form method="POST" action="{{ route('work-orders.reopen', $workOrder) }}" data-confirm="¿Reabrir esta OT? Se usará para registrar una garantía o un siniestro del vehículo.">
+                        @csrf
+                        <input type="hidden" name="reason" value="Reapertura por garantía o siniestro">
+                        <button type="submit" class="btn btn-secondary" title="El vehículo regresó por garantía o siniestro">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Reabrir OT
+                        </button>
+                    </form>
+                @endif
                 @can('delete', $workOrder)
                     <form method="POST" action="{{ route('work-orders.destroy', $workOrder) }}" data-confirm="¿Eliminar esta orden de trabajo? Los presupuestos volverán a estado aprobado.">
                         @csrf @method('DELETE')
@@ -191,7 +201,20 @@
                                             <td class="px-3 py-2 font-medium text-blue-600">
                                                 <a href="{{ route('estimates.show', $estimate) }}">{{ $estimate->document_sn }}</a>
                                             </td>
-                                            <td class="px-3 py-2 text-gray-600">{{ $estimate->service_type_label }}</td>
+                                            <td class="px-3 py-2">
+                                                <span class="text-gray-600">{{ $estimate->service_type_label }}</span>
+                                                @if ($estimate->is_garantia)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 ml-1" title="Garantía del presupuesto {{ $estimate->warrantyOf?->document_sn }}">
+                                                        Garantía de {{ $estimate->warrantyOf?->document_sn ?? '—' }}
+                                                    </span>
+                                                @endif
+                                                @if ($estimate->is_chargeable === false)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 ml-1">No facturable</span>
+                                                @endif
+                                                @if ($estimate->liability === 'workshop' && !$estimate->is_garantia)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 ml-1">Resp. taller</span>
+                                                @endif
+                                            </td>
                                             <td class="px-3 py-2 text-right text-gray-800">S/ {{ number_format((float) $estimate->total, 2) }}</td>
                                             <td class="px-3 py-2 text-center">
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">En reparación</span>
@@ -202,6 +225,11 @@
                                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                     </a>
                                                     @can('attachEstimate', $workOrder)
+                                                        @if ($estimate->is_chargeable !== false)
+                                                            <a href="{{ route('estimates.create', ['warranty_of' => $estimate->id, 'work_order_id' => $workOrder->id]) }}" title="Registrar garantía de este presupuesto" class="btn-icon btn-icon-amber">
+                                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                                            </a>
+                                                        @endif
                                                         <form method="POST" action="{{ route('work-orders.detach-estimate', [$workOrder, $estimate]) }}" data-confirm="¿Desvincular el presupuesto {{ $estimate->document_sn }}? Volverá a estado aprobado.">
                                                             @csrf @method('DELETE')
                                                             <button type="submit" title="Desvincular presupuesto" class="btn-icon btn-icon-amber">
@@ -293,6 +321,97 @@
                         Moneda de visualización: {{ $costSummary['display_currency'] }} (T.C. snapshot {{ number_format($costSummary['display_rate'], 4) }} · soles por 1 dólar).
                         Cada costo se registra en su moneda original y se normaliza a soles (PEN) para el cálculo de utilidad.
                     </p>
+                </div>
+            </div>
+
+            {{-- Gastos internos (responsabilidad del taller) --}}
+            <div class="card mb-4">
+                <div class="p-4 sm:p-5">
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-3">
+                        <h3 class="font-semibold text-sm text-gray-800 uppercase tracking-wider">Gastos internos ({{ $workOrder->internalExpenses->count() }})</h3>
+                        <span class="text-xs text-gray-500">Errores asumidos por el taller: arañazos, repuestos malogrados, etc.</span>
+                    </div>
+
+                    @if ($workOrder->internalExpenses->isNotEmpty())
+                        <div class="overflow-x-auto mb-4">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Tipo</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Detalle</th>
+                                        <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Monto</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Responsable</th>
+                                        <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Fecha</th>
+                                        <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-500"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($workOrder->internalExpenses as $expense)
+                                        <tr class="hover:bg-blue-50/50">
+                                            <td class="px-3 py-2"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">{{ $expense->type_label }}</span></td>
+                                            <td class="px-3 py-2 text-gray-700">{{ $expense->description ?: '—' }}</td>
+                                            <td class="px-3 py-2 text-right font-medium text-gray-800">{{ $expense->currency === 'USD' ? 'US$' : 'S/' }} {{ number_format((float) $expense->amount, 2) }}</td>
+                                            <td class="px-3 py-2 text-gray-600">{{ $expense->responsible?->name ?? '—' }}</td>
+                                            <td class="px-3 py-2 text-center text-gray-600">{{ $expense->occurred_at?->format('d/m/Y') }}</td>
+                                            <td class="px-3 py-2 text-center">
+                                                @can('update', $workOrder)
+                                                    <form method="POST" action="{{ route('work-orders.internal-expenses.destroy', [$workOrder, $expense]) }}" data-confirm="¿Eliminar este gasto interno?">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" title="Eliminar gasto interno" class="btn-icon btn-icon-red">
+                                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </form>
+                                                @endcan
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-sm text-gray-500 mb-4">No hay gastos internos registrados.</p>
+                    @endif
+
+                    @can('update', $workOrder)
+                        <form method="POST" action="{{ route('work-orders.internal-expenses.store', $workOrder) }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 items-end border-t border-gray-100 pt-4">
+                            @csrf
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Tipo <span class="text-red-500">*</span></label>
+                                <select name="type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    @foreach (\App\Models\WorkOrderInternalExpense::TYPES as $key => $label)
+                                        <option value="{{ $key }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Detalle</label>
+                                <input type="text" name="description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Monto <span class="text-red-500">*</span></label>
+                                <input type="number" step="0.01" min="0" name="amount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm text-right">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Responsable (técnico)</label>
+                                <select name="responsible_user_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    <option value="">—</option>
+                                    @foreach ($technicians as $tech)
+                                        <option value="{{ $tech->id }}">{{ $tech->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700">Fecha</label>
+                                <input type="date" name="occurred_at" value="{{ now()->toDateString() }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            </div>
+                            <div class="lg:col-span-5 flex justify-end">
+                                <button type="submit" class="btn btn-secondary">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    Registrar gasto interno
+                                </button>
+                            </div>
+                        </form>
+                    @endcan
                 </div>
             </div>
 

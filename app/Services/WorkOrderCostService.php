@@ -35,6 +35,7 @@ class WorkOrderCostService
             'estimates.thirdPartyOrders',
             'serviceVouchers',
             'assignments',
+            'internalExpenses',
         ]);
 
         $firstEstimate = $workOrder->estimates->first();
@@ -46,6 +47,12 @@ class WorkOrderCostService
         $estimatesIncome = [];
 
         foreach ($workOrder->estimates as $estimate) {
+            // Las garantías/ajustes internos (is_chargeable=false) NO generan
+            // ingreso: su total queda solo como costo para la utilidad de la OT.
+            if ($estimate->is_chargeable === false) {
+                continue;
+            }
+
             $currency = strtoupper((string) ($estimate->currency ?: 'PEN'));
             $rate = (float) ($estimate->exchange_rate ?: 1);
             $total = (float) $estimate->total;
@@ -67,6 +74,7 @@ class WorkOrderCostService
             'vouchers' => $this->vouchersCost($workOrder, $displayCurrency, $displayRate),
             'assignments' => $this->assignmentsCost($workOrder, $displayCurrency, $displayRate),
             'third_party' => $this->thirdPartyOrdersCost($workOrder, $displayCurrency, $displayRate),
+            'internal_expenses' => $this->internalExpensesCost($workOrder, $displayCurrency, $displayRate),
         ];
 
         $totalCostPen = 0.0;
@@ -126,6 +134,19 @@ class WorkOrderCostService
             'currency' => strtoupper((string) ($voucher->currency ?: 'PEN')),
             'rate' => (float) ($voucher->exchange_rate ?: 1),
         ]), $displayCurrency, $displayRate, 'vouchers', 'Servicios tercerizados (vales)');
+    }
+
+    /**
+     * Costo de gastos internos asumidos por el taller (responsabilidad propia):
+     * arañazos, repuestos malogrados u otros errores durante el trabajo.
+     */
+    protected function internalExpensesCost(WorkOrder $workOrder, string $displayCurrency, float $displayRate): array
+    {
+        return $this->aggregate($workOrder->internalExpenses->map(fn ($expense) => [
+            'amount' => (float) $expense->amount,
+            'currency' => strtoupper((string) ($expense->currency ?: 'PEN')),
+            'rate' => (float) ($expense->exchange_rate ?: 1),
+        ]), $displayCurrency, $displayRate, 'internal_expenses', 'Gastos internos (responsabilidad del taller)');
     }
 
     /**

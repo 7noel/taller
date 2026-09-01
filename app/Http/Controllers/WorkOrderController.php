@@ -12,6 +12,7 @@ use App\Models\FormTemplate;
 use App\Models\User;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderAssignment;
+use App\Models\WorkOrderInternalExpense;
 use App\Models\WorkOrderQualityControl;
 use App\Models\WorkOrderSubstage;
 use App\Services\EstimateService;
@@ -67,6 +68,67 @@ class WorkOrderController extends Controller
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['quantity' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Reabre una OT cerrada (garantía o siniestro por responsabilidad del taller).
+     */
+    public function reopen(Request $request, WorkOrder $workOrder)
+    {
+        Gate::authorize('changeStatus', $workOrder);
+
+        $reason = $request->input('reason') ?: 'Reapertura por garantía o siniestro';
+
+        try {
+            $this->service->reopen($workOrder, $reason);
+
+            return redirect()->route('work-orders.show', $workOrder)
+                ->with('success', "OT {$workOrder->document_sn} reabierta correctamente.");
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['reason' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Registra un gasto interno asumido por el taller dentro de la OT
+     * (arañazo, repuesto malogrado u otro error durante el trabajo).
+     */
+    public function addInternalExpense(Request $request, WorkOrder $workOrder)
+    {
+        Gate::authorize('update', $workOrder);
+
+        $data = $request->validate([
+            'type' => ['required', 'string', 'in:scratch,damaged_part,other'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'currency' => ['nullable', 'string', 'max:3'],
+            'exchange_rate' => ['nullable', 'numeric', 'min:0'],
+            'responsible_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'occurred_at' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $this->service->addInternalExpense($workOrder, $data);
+
+        return redirect()->route('work-orders.show', $workOrder)
+            ->with('success', 'Gasto interno registrado correctamente (responsabilidad del taller).');
+    }
+
+    /**
+     * Elimina un gasto interno de la OT.
+     */
+    public function deleteInternalExpense(WorkOrder $workOrder, WorkOrderInternalExpense $expense)
+    {
+        Gate::authorize('update', $workOrder);
+
+        try {
+            $this->service->removeInternalExpense($workOrder, $expense);
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['expense' => $e->getMessage()]);
+        }
+
+        return redirect()->route('work-orders.show', $workOrder)
+            ->with('success', 'Gasto interno eliminado.');
     }
 
     public function index(): View
@@ -134,6 +196,9 @@ class WorkOrderController extends Controller
             'estimates.items.part.category',
             'estimates.vehicle.vehicleModel.brand',
             'estimates.thirdPartyOrders',
+            'estimates.warrantyOf',
+            'estimates.liabilityUser',
+            'internalExpenses.responsible',
             'assignments.substage',
             'assignments.user',
             'serviceVouchers.provider',

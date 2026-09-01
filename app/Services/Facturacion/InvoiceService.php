@@ -63,6 +63,16 @@ class InvoiceService
                 );
             }
 
+            // Las garantías/ajustes internos (is_chargeable=false) son gasto del
+            // taller: su total no se cobra ni se factura al cliente ni al seguro.
+            $nonChargeable = $estimates->first(fn ($e) => $e->is_chargeable === false);
+
+            if ($nonChargeable) {
+                throw new \InvalidArgumentException(
+                    "El presupuesto {$nonChargeable->document_sn} es una garantía o ajuste interno (no facturable) y no puede facturarse."
+                );
+            }
+
             // Moneda uniforme: todos los presupuestos de la factura deben estar
             // en la misma moneda (las ampliaciones heredan la del siniestro).
             $currencies = $estimates->pluck('currency')->unique()->values();

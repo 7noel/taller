@@ -53,6 +53,38 @@ class EstimateRequest extends FormRequest
                     }
                 },
             ],
+            // GARANTÍA: el presupuesto original que se está cubriendo. El servicio
+            // fuerza service_type='garantia', is_chargeable=false y liability='workshop'.
+            'warranty_of_estimate_id' => [
+                'nullable',
+                'integer',
+                'exists:estimates,id',
+                function ($attribute, $value, $fail) {
+                    if (!$value) {
+                        return;
+                    }
+
+                    $original = \App\Models\Estimate::withTrashed()->find($value);
+
+                    if (!$original) {
+                        return; // lo cubre la regla exists
+                    }
+
+                    if ($original->warranty_of_estimate_id) {
+                        $fail('No se puede registrar una garantía de una garantía: el presupuesto original debe ser el principal.');
+                    }
+
+                    if ((int) $original->vehicle_id !== (int) $this->input('vehicle_id')) {
+                        $fail('La garantía debe pertenecer al mismo vehículo que el presupuesto original.');
+                    }
+                },
+            ],
+            'work_order_id' => ['nullable', 'integer', 'exists:work_orders,id'],
+            'is_chargeable' => ['nullable', 'boolean'],
+            'liability' => ['nullable', Rule::in(array_keys(\App\Models\Estimate::LIABILITY_LABELS))],
+            'liability_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'incident_type' => ['nullable', Rule::in(array_keys(\App\Models\Estimate::INCIDENT_TYPES))],
+            'incident_reported_at' => ['nullable', 'date'],
             'service_type' => ['required', 'string', Rule::in(array_keys(\App\Models\CheckIn::SERVICE_TYPES))],
             'advisor_id' => ['nullable', 'integer', 'exists:users,id'],
             'work_days' => ['nullable', 'integer', 'min:0', 'max:999'],
