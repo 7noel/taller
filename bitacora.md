@@ -1,4 +1,14 @@
 
+### 📌 Sesión: Tipo de cambio automático (SUNAT) — login + bajo demanda
+- **Fecha**: 01 de septiembre de 2026
+- **Tarea**: Garantizar el T.C. del día (venta SUNAT) con estrategia **BD → API → último registrado**, activada al iniciar sesión y bajo demanda al crear/editar presupuestos.
+- **`ExchangeRateService::ensureRateForDate($date, $currency='USD')`** (nuevo, constructor inyecta `SunatExchangeService`): 1) busca en `exchange_rates` (date+currency); 2) si no existe, consulta `getTipoCambio()` y persiste con `updateOrCreate` (`source='SUNAT'`, `sell_rate`=venta); 3) si la API falla o no trae dato, usa el último registrado (`latestFor` ≤ fecha). `suggestRate()` sigue siendo lectura pura (el endpoint `latest` no depende de HTTP cuando ya hay dato).
+- **Job `FetchExchangeRateJob`** (ShouldQueue, tries 2/backoff 15, `$date` opcional → hoy): despachado desde el evento `Login` (registrado en `AppServiceProvider::boot` con `Event::listen`) para precargar el T.C. del día.
+- **Bajo demanda**: `ExchangeRateController::latest()` (`api/exchange-rates/latest`) llama `ensureRateForDate(now)` para USD antes de sugerir el T.C. — cubre el flujo de presupuestos (cambio de moneda) y el modal de cambio de moneda sin depender del worker.
+- **`.env` / `.env.example`**: nueva variable `SUNAT_API_TOKEN` (antes quedaba el token default en el código).
+- **Tests**: `tests/Unit/ExchangeRateServiceTest` — 5 tests / 31 assertions (BD ok sin HTTP, API ok persiste, API falla → fallback último, PEN → null, job persiste fecha). Regresión: Estimate + ProviderSettlement + ServiceVoucher + WorkOrderCost = **42 passed (133 assertions)**.
+- **Nota**: `QUEUE_CONNECTION=database` → en producción ejecutar `php artisan queue:work` para que el job de login se procese; el mecanismo bajo demanda cubre el caso sin worker.
+
 ## Fecha de inicio: 17 de agosto de 2026
 
 ### 📌 Sesión: Garantías, gastos internos y siniestros por responsabilidad del taller

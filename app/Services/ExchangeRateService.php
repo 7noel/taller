@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ExchangeRate;
+use Illuminate\Support\Facades\Log;
 
 class ExchangeRateService
 {
@@ -13,6 +14,55 @@ class ExchangeRateService
     public const BASE_CURRENCY = 'PEN';
 
     public const RATE_CURRENCY = 'USD';
+
+    public function __construct(protected SunatExchangeService $sunat)
+    {
+    }
+
+    /**
+     * Garantiza un tipo de cambio para una fecha con la estrategia:
+     * 1) buscar en BD; 2) si no existe, consultar la API SUNAT y persistir;
+     * 3) si la API falla o no trae dato, usar el último registrado (≤ fecha).
+     *
+     * Se usa el tipo de cambio de venta (sell_rate), convención del sistema.
+     */
+    public function ensureRateForDate(string $date, string $currency = self::RATE_CURRENCY): ?ExchangeRate
+    {
+        if ($currency === self::BASE_CURRENCY) {
+            return null; // PEN no necesita tipo de cambio (1).
+        }
+
+        // 1) ¿Ya está en BD para esa fecha?
+        $existing = ExchangeRate::query()
+            ->where('date', $date)
+            ->where('currency', $currency)
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        // 2) Consultar SUNAT y persistir.
+        try {
+            $data = $this->sunat->getTipoCambio($date);
+
+            if ($data && (float) $data->venta > 0) {
+                return ExchangeRate::updateOrCreate(
+                    ['date' => $date, 'currency' => $currency],
+                    [
+                        'buy_rate' => $data->compra,
+                        'sell_rate' => $data->venta,
+                        'source' => 'SUNAT',
+                    ]
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::warning("No se pudo obtener el tipo de cambio SUNAT para {$date}: {$e->getMessage()}");
+        }
+
+        // 3) Fallback: último tipo de cambio registrado.
+        return $this->latestFor($currency, $date);
+    }
 
     /**
      * Último tipo de cambio registrado para una moneda (hasta una fecha).

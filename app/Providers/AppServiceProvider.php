@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Jobs\FetchExchangeRateJob;
 use App\Models\Brand;
 use App\Models\CheckIn;
 use App\Models\CheckInChecklistItem;
@@ -46,6 +47,8 @@ use App\Policies\WorkOrderPolicy;
 use App\Policies\InventoryGuidePolicy;
 use App\Policies\PartOrderPolicy;
 use App\Policies\PurchaseOrderPolicy;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -86,5 +89,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(PurchaseOrder::class, PurchaseOrderPolicy::class);
         Gate::policy(InventoryGuide::class, InventoryGuidePolicy::class);
         Gate::policy(PartOrder::class, PartOrderPolicy::class);
+
+        // Precarga el tipo de cambio del día al iniciar sesión (cola database).
+        Event::listen(Login::class, function (): void {
+            FetchExchangeRateJob::dispatch();
+        });
     }
 }

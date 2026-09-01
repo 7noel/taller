@@ -73,6 +73,11 @@ class ExchangeRateController extends Controller
             return response()->json(['rate' => 1.0]);
         }
 
+        // Bajo demanda: garantiza el T.C. del día (BD → SUNAT → último registrado).
+        if ($currency !== 'PEN') {
+            $this->service->ensureRateForDate(now()->toDateString(), $currency);
+        }
+
         return response()->json(['rate' => $this->service->suggestRate($currency)]);
     }
 }
