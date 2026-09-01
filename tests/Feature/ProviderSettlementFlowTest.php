@@ -238,7 +238,33 @@ class ProviderSettlementFlowTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('provider_settlements', ['document_sn' => 'LST01-000001']);
     }
+
+    public function test_settlement_normalizes_usd_vouchers_to_pen(): void
+    {
+        $provider = Party::factory()->company()->create(['is_supplier' => true]);
+        $v1 = $this->makeCompletedVoucher($provider, 1000);
+
+        $usdVoucher = app(ServiceVoucherService::class)->create([
+            'work_order_id' => $this->makeWorkOrder()->id,
+            'provider_id' => $provider->id,
+            'execution_date' => '2026-08-05',
+            'description' => 'Radio reparada en dólares',
+            'agreed_amount' => 100,
+            'discount_applied' => 0,
+            'currency' => 'USD',
+            'exchange_rate' => 3.5,
+            'igv_rate' => 0,
+            'detraction_rate' => 0,
+        ]);
+        app(ServiceVoucherService::class)->complete($usdVoucher);
+
+        $settlement = $this->service->create($this->makeSettlementData($provider, [$v1->id, $usdVoucher->id]));
+
+        // 1000 PEN + (100 USD × 3.5) = 1350 → la liquidación siempre en PEN.
+        $this->assertEquals(1350, $settlement->subtotal);
+        $this->assertEquals(1350, $settlement->base_amount);
+        $this->assertEquals(243, $settlement->igv_amount);
+        $this->assertEquals(1593, $settlement->total_with_igv);
+    }
 }
-
-
 

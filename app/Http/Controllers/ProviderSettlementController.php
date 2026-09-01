@@ -207,7 +207,16 @@ class ProviderSettlementController extends Controller
             'execution_date' => $v->execution_date?->format('d/m/Y'),
             'description' => $v->description,
             'plate' => $v->workOrder?->vehicle?->plate,
+            'currency' => $v->currency ?? 'PEN',
+            'exchange_rate' => $v->exchange_rate ?? 1,
             'base_amount' => round($v->base_amount, 2),
+            // Equivalente en soles (moneda funcional de la liquidación).
+            'base_amount_pen' => round(app(ExchangeRateService::class)->convert(
+                (float) $v->base_amount,
+                $v->currency ?? 'PEN',
+                'PEN',
+                (float) ($v->exchange_rate ?? 1)
+            ), 2),
         ]));
     }
 }

@@ -25,15 +25,21 @@ class ServiceVoucherController extends Controller
         return view('service-vouchers.index');
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         Gate::authorize('create', ServiceVoucher::class);
 
         $setting = CompanySetting::get();
 
+        $preselectedWorkOrder = null;
+        if ($request->filled('work_order_id')) {
+            $preselectedWorkOrder = \App\Models\WorkOrder::with('vehicle')->find((int) $request->query('work_order_id'));
+        }
+
         return view('service-vouchers.create', [
             'igvRate' => $setting?->igv_rate ?? 0.18,
             'detractionRate' => $setting?->detraccion_rate ?? 0.12,
+            'preselectedWorkOrder' => $preselectedWorkOrder,
         ]);
     }
 
@@ -145,6 +151,8 @@ class ServiceVoucherController extends Controller
             'provider_document' => $v->provider?->document_number,
             'plate' => $v->workOrder?->vehicle?->plate,
             'work_order_sn' => $v->workOrder?->document_sn,
+            'currency' => $v->currency ?? 'PEN',
+            'exchange_rate' => $v->exchange_rate ?? 1,
             'base_amount' => round($v->base_amount, 2),
             'igv_amount' => round($v->igv_amount, 2),
             'total_with_igv' => round($v->total_with_igv, 2),

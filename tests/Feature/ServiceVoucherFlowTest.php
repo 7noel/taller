@@ -188,6 +188,49 @@ class ServiceVoucherFlowTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('service_vouchers', ['document_sn' => 'CST01-000001']);
     }
-}
 
+
+
+    public function test_voucher_defaults_to_pen_with_rate_one(): void
+    {
+        $voucher = $this->service->create($this->baseData());
+
+        $this->assertEquals('PEN', $voucher->currency);
+        $this->assertEquals(1.0, $voucher->exchange_rate);
+    }
+
+    public function test_creates_voucher_in_usd_with_exchange_rate_and_no_taxes(): void
+    {
+        $data = array_merge($this->baseData(), [
+            'currency' => 'USD',
+            'exchange_rate' => 3.75,
+            'igv_rate' => 0,
+            'detraction_rate' => 0,
+        ]);
+
+        $voucher = $this->service->create($data);
+
+        $this->assertEquals('USD', $voucher->currency);
+        $this->assertEquals(3.75, $voucher->exchange_rate);
+        $this->assertEquals(1000, $voucher->base_amount);
+        $this->assertEquals(0, $voucher->igv_amount);
+        $this->assertEquals(0, $voucher->detraction_amount);
+        $this->assertEquals(1000, $voucher->total_payable);
+    }
+
+    public function test_update_preserves_currency_snapshot(): void
+    {
+        $voucher = $this->service->create(array_merge($this->baseData(), [
+            'currency' => 'USD',
+            'exchange_rate' => 3.75,
+        ]));
+
+        $updated = $this->service->update($voucher, ['agreed_amount' => 500]);
+
+        $this->assertEquals('USD', $updated->currency);
+        $this->assertEquals(3.75, $updated->exchange_rate);
+        $this->assertEquals(500, $updated->base_amount);
+    }
+
+}
 

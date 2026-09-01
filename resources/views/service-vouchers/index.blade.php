@@ -47,7 +47,8 @@
             'liquidated': 'bg-green-100 text-green-800'
         };
         const statusLabel = (s) => ({ 'pending': 'Pendiente', 'completed': 'Completado', 'liquidated': 'Liquidado' }[s] || s || '');
-        const money = (v) => 'S/ ' + Number(v || 0).toFixed(2);
+        const money = (v, c) => (c === 'USD' ? 'US$ ' : 'S/ ') + Number(v || 0).toFixed(2);
+        const moneyFor = (field) => (cell) => money(cell.getValue(), cell.getData().currency);
 
         const table = new Tabulator('#service-voucher-table', {
             ajaxURL: "{{ route('api.service-vouchers.search') }}?limit=100",
@@ -77,11 +78,11 @@
                     }
                 },
                 { title: 'Fecha', field: 'execution_date', width: 100, hozAlign: 'center' },
-                { title: 'Total c/ IGV', field: 'total_with_igv', width: 110, hozAlign: 'right', formatter: cell => money(cell.getValue()) },
-                { title: 'Detracción', field: 'detraction_amount', width: 105, hozAlign: 'right', formatter: cell => money(cell.getValue()) },
+                { title: 'Total c/ IGV', field: 'total_with_igv', width: 110, hozAlign: 'right', formatter: moneyFor('total_with_igv') },
+                { title: 'Detracción', field: 'detraction_amount', width: 105, hozAlign: 'right', formatter: moneyFor('detraction_amount') },
                 {
                     title: 'Total a pagar', field: 'total_payable', width: 115, hozAlign: 'right',
-                    formatter: cell => `<span class="font-semibold">${money(cell.getValue())}</span>`
+                    formatter: cell => `<span class="font-semibold">${money(cell.getValue(), cell.getData().currency)}</span>`
                 },
                 {
                     title: 'Estado', field: 'status', width: 110, hozAlign: 'center',

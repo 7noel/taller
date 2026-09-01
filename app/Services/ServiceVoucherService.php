@@ -22,6 +22,8 @@ class ServiceVoucherService
             $settings = CompanySetting::get();
             $data['igv_rate'] = (float) ($data['igv_rate'] ?? $settings?->igv_rate ?? 0.18);
             $data['detraction_rate'] = (float) ($data['detraction_rate'] ?? $settings?->detraccion_rate ?? 0.12);
+            $data['currency'] = strtoupper((string) ($data['currency'] ?? 'PEN'));
+            $data['exchange_rate'] = (float) ($data['exchange_rate'] ?? 1);
 
             $establishmentId = (int) ($data['establishment_id'] ?? Auth::user()?->establishment_id);
             $numbers = app(DocumentSeriesService::class)->getNextNumber($establishmentId, 'CST', 'CST01');
@@ -57,6 +59,8 @@ class ServiceVoucherService
         return DB::transaction(function () use ($voucher, $data) {
             $data['igv_rate'] = (float) ($data['igv_rate'] ?? $voucher->igv_rate);
             $data['detraction_rate'] = (float) ($data['detraction_rate'] ?? $voucher->detraction_rate);
+            $data['currency'] = strtoupper((string) ($data['currency'] ?? $voucher->currency ?? 'PEN'));
+            $data['exchange_rate'] = (float) ($data['exchange_rate'] ?? $voucher->exchange_rate ?? 1);
             $data['updated_by'] = Auth::id();
 
             $voucher->update($this->computeTotals($data));

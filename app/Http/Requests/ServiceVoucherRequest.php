@@ -20,6 +20,8 @@ class ServiceVoucherRequest extends FormRequest
             'description' => ['required', 'string', 'max:2000'],
             'agreed_amount' => ['required', 'numeric', 'min:0.01'],
             'discount_applied' => ['nullable', 'numeric', 'min:0'],
+            'currency' => ['nullable', 'string', 'in:PEN,USD'],
+            'exchange_rate' => ['nullable', 'numeric', 'gt:0'],
             'igv_rate' => ['nullable', 'numeric', 'min:0', 'max:1'],
             'detraction_rate' => ['nullable', 'numeric', 'min:0', 'max:1'],
         ];

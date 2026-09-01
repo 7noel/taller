@@ -92,7 +92,13 @@
                                     <td class="px-4 py-2">{{ $voucher->execution_date?->format('d/m/Y') }}</td>
                                     <td class="px-4 py-2">{{ $voucher->workOrder?->vehicle?->plate }}</td>
                                     <td class="px-4 py-2 text-gray-600">{{ \Illuminate\Support\Str::limit($voucher->description, 60) }}</td>
-                                    <td class="px-4 py-2 text-right">S/ {{ number_format($voucher->base_amount, 2) }}</td>
+                                    <td class="px-4 py-2 text-right">
+                                        @php $vSym = ($voucher->currency ?? 'PEN') === 'USD' ? 'US$' : 'S/'; @endphp
+                                        {{ $vSym }} {{ number_format($voucher->base_amount, 2) }}
+                                        @if (($voucher->currency ?? 'PEN') === 'USD')
+                                            <div class="text-xs text-gray-400">S/ {{ number_format($voucher->base_amount * ($voucher->exchange_rate ?? 1), 2) }}</div>
+                                        @endif
+                                    </td>
                                     @if ($settlement->status === 'draft')
                                     <td class="px-4 py-2 text-center">
                                         <form method="POST" action="{{ route('provider-settlements.vouchers.detach', [$settlement, $voucher]) }}" class="inline" data-confirm="¿Quitar este comprobante de la liquidación?">

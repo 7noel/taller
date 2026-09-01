@@ -213,17 +213,18 @@ class ProviderSettlementService
     protected function computeTotals(array $data, ?ProviderSettlement $settlement = null): array
     {
         if ($settlement) {
-            $subtotal = round((float) $settlement->vouchers()->sum('base_amount'), 2);
+            $subtotal = round($this->sumVoucherBasePen($settlement->vouchers()->get()), 2);
             $discount = (float) ($data['global_discount'] ?? $settlement->global_discount);
             $igvRate = (float) ($data['igv_rate'] ?? $settlement->igv_rate);
             $detractionRate = (float) ($data['detraction_rate'] ?? $settlement->detraction_rate);
         } else {
-            $subtotal = round((float) ServiceVoucher::query()
+            $vouchers = ServiceVoucher::query()
                 ->where('provider_id', $data['provider_id'])
                 ->where('status', ServiceVoucher::STATUS_COMPLETED)
                 ->whereNull('provider_settlement_id')
                 ->whereIn('id', $data['voucher_ids'] ?? [])
-                ->sum('base_amount'), 2);
+                ->get();
+            $subtotal = round($this->sumVoucherBasePen($vouchers), 2);
             $discount = (float) ($data['global_discount'] ?? 0);
             $igvRate = (float) ($data['igv_rate'] ?? 0.18);
             $detractionRate = (float) ($data['detraction_rate'] ?? 0.12);
@@ -243,6 +244,26 @@ class ProviderSettlementService
             'detraction_amount' => $detraction,
             'total_payable' => $totalPayable,
         ]);
+    }
+
+    /**
+     * Suma el monto base (sin IGV) de los vales normalizado a PEN, usando el
+     * tipo de cambio snapshot de cada vale (convención: soles por 1 dólar).
+     * La liquidación (LST01) se expresa SIEMPRE en la moneda funcional (PEN).
+     */
+    protected function sumVoucherBasePen(iterable $vouchers): float
+    {
+        $exchange = app(ExchangeRateService::class);
+        $total = 0.0;
+
+        foreach ($vouchers as $voucher) {
+            $currency = strtoupper((string) ($voucher->currency ?? 'PEN'));
+            $rate = (float) ($voucher->exchange_rate ?: 1);
+
+            $total += $exchange->convert((float) $voucher->base_amount, $currency, 'PEN', $rate);
+        }
+
+        return $total;
     }
 }
 

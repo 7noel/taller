@@ -133,8 +133,10 @@ class WorkOrderController extends Controller
             'estimates.items.service.category',
             'estimates.items.part.category',
             'estimates.vehicle.vehicleModel.brand',
+            'estimates.thirdPartyOrders',
             'assignments.substage',
             'assignments.user',
+            'serviceVouchers.provider',
             'checkIns',
             'qualityControls.reviewer',
             'satisfactionSurvey',
@@ -173,6 +175,9 @@ class WorkOrderController extends Controller
         $pendingAssignments = $workOrder->assignments()->whereIn('status', ['pending', 'in_progress'])->count();
         $qcGuardRequired = (bool) (CompanySetting::get()?->qc_require_assignments_completed ?? true);
 
+        // Costos y utilidad de la OT (normalizado a PEN, moneda funcional).
+        $costSummary = app(\App\Services\WorkOrderCostService::class)->summary($workOrder);
+
         return view('work-orders.show', compact(
             'workOrder',
             'availableEstimates',
@@ -186,7 +191,8 @@ class WorkOrderController extends Controller
             'recipientsUrl',
             'actionUrl',
             'pendingAssignments',
-            'qcGuardRequired'
+            'qcGuardRequired',
+            'costSummary'
         ));
     }
     /**

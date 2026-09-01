@@ -8,13 +8,20 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            @php
+                $newVoucher = new \App\Models\ServiceVoucher();
+                if (!empty($preselectedWorkOrder)) {
+                    $newVoucher->work_order_id = $preselectedWorkOrder->id;
+                }
+            @endphp
             @include('service-vouchers._form', [
                 'action' => route('service-vouchers.store'),
                 'method' => 'POST',
                 'submitLabel' => 'Emitir Comprobante',
-                'voucher' => new \App\Models\ServiceVoucher(),
+                'voucher' => $newVoucher,
                 'igvRate' => $igvRate,
                 'detractionRate' => $detractionRate,
+                'preselectedWorkOrder' => $preselectedWorkOrder ?? null,
             ])
         </div>
     </div>

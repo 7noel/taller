@@ -79,16 +79,20 @@
                     </div>
 
                     <div class="rounded-lg border border-gray-200 overflow-hidden mb-6">
+                        @php $symbol = ($voucher->currency ?? 'PEN') === 'USD' ? 'US$' : 'S/'; @endphp
                         <table class="w-full text-sm">
                             <tbody class="divide-y divide-gray-100">
-                                <tr><td class="px-4 py-2 text-gray-600">Base (sin IGV)</td><td class="px-4 py-2 text-right font-medium">S/ {{ number_format($voucher->base_amount, 2) }}</td></tr>
-                                @if ($voucher->discount_applied > 0)
-                                <tr><td class="px-4 py-2 text-gray-600">Descuento</td><td class="px-4 py-2 text-right text-red-600">- S/ {{ number_format($voucher->discount_applied, 2) }}</td></tr>
+                                @if (($voucher->currency ?? 'PEN') === 'USD')
+                                <tr><td class="px-4 py-2 text-gray-600">Tipo de cambio (S/ por US$)</td><td class="px-4 py-2 text-right font-medium">{{ number_format($voucher->exchange_rate ?? 1, 4) }}</td></tr>
                                 @endif
-                                <tr><td class="px-4 py-2 text-gray-600">IGV ({{ $voucher->igv_rate * 100 }}%)</td><td class="px-4 py-2 text-right">S/ {{ number_format($voucher->igv_amount, 2) }}</td></tr>
-                                <tr class="bg-gray-50"><td class="px-4 py-2 font-medium text-gray-800">Total con IGV</td><td class="px-4 py-2 text-right font-semibold">S/ {{ number_format($voucher->total_with_igv, 2) }}</td></tr>
-                                <tr><td class="px-4 py-2 text-gray-600">Detracción ({{ $voucher->detraction_rate * 100 }}%)</td><td class="px-4 py-2 text-right text-amber-700">- S/ {{ number_format($voucher->detraction_amount, 2) }}</td></tr>
-                                <tr class="bg-blue-50"><td class="px-4 py-2 font-semibold text-blue-800">Total a pagar al proveedor</td><td class="px-4 py-2 text-right font-bold text-blue-800">S/ {{ number_format($voucher->total_payable, 2) }}</td></tr>
+                                <tr><td class="px-4 py-2 text-gray-600">Base (sin IGV)</td><td class="px-4 py-2 text-right font-medium">{{ $symbol }} {{ number_format($voucher->base_amount, 2) }}</td></tr>
+                                @if ($voucher->discount_applied > 0)
+                                <tr><td class="px-4 py-2 text-gray-600">Descuento</td><td class="px-4 py-2 text-right text-red-600">- {{ $symbol }} {{ number_format($voucher->discount_applied, 2) }}</td></tr>
+                                @endif
+                                <tr><td class="px-4 py-2 text-gray-600">IGV ({{ $voucher->igv_rate * 100 }}%)</td><td class="px-4 py-2 text-right">{{ $symbol }} {{ number_format($voucher->igv_amount, 2) }}</td></tr>
+                                <tr class="bg-gray-50"><td class="px-4 py-2 font-medium text-gray-800">Total con IGV</td><td class="px-4 py-2 text-right font-semibold">{{ $symbol }} {{ number_format($voucher->total_with_igv, 2) }}</td></tr>
+                                <tr><td class="px-4 py-2 text-gray-600">Detracción ({{ $voucher->detraction_rate * 100 }}%)</td><td class="px-4 py-2 text-right text-amber-700">- {{ $symbol }} {{ number_format($voucher->detraction_amount, 2) }}</td></tr>
+                                <tr class="bg-blue-50"><td class="px-4 py-2 font-semibold text-blue-800">Total a pagar al proveedor</td><td class="px-4 py-2 text-right font-bold text-blue-800">{{ $symbol }} {{ number_format($voucher->total_payable, 2) }}</td></tr>
                             </tbody>
                         </table>
                     </div>

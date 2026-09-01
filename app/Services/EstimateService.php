@@ -157,6 +157,8 @@ class EstimateService
             foreach ($estimate->thirdPartyOrders()->get() as $order) {
                 $order->updateQuietly([
                     'amount_without_iva' => $this->convertAmount((float) $order->amount_without_iva, $oldCurrency, $newCurrency, $newExchangeRate),
+                    'currency' => $newCurrency,
+                    'exchange_rate' => $newExchangeRate,
                 ]);
             }
 
@@ -392,6 +394,9 @@ class EstimateService
                 'description' => $order['description'] ?? null,
                 'amount_without_iva' => $order['amount_without_iva'] ?? 0,
                 'provider_name' => $order['provider_name'] ?? null,
+                // Las OC de terceros heredan la moneda y el T.C. del presupuesto.
+                'currency' => $estimate->currency ?: 'PEN',
+                'exchange_rate' => $estimate->exchange_rate ?: 1,
             ];
 
             $id = $order['id'] ?? null;

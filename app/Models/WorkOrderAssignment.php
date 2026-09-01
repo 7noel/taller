@@ -12,6 +12,8 @@ class WorkOrderAssignment extends Model
         'user_id',
         'hours',
         'cost',
+        'currency',
+        'exchange_rate',
         'status',
         'notes',
         'created_by',
@@ -21,6 +23,7 @@ class WorkOrderAssignment extends Model
     protected $casts = [
         'hours' => 'float',
         'cost' => 'float',
+        'exchange_rate' => 'float',
     ];
 
     public const STATUS_LABELS = [

@@ -37,6 +37,8 @@ class ServiceVoucher extends Model
         'document_sn',
         'work_order_id',
         'provider_id',
+        'currency',
+        'exchange_rate',
         'execution_date',
         'description',
         'agreed_amount',
@@ -56,6 +58,7 @@ class ServiceVoucher extends Model
 
     protected $casts = [
         'document_number' => 'integer',
+        'exchange_rate' => 'float',
         'execution_date' => 'date',
         'agreed_amount' => 'float',
         'discount_applied' => 'float',

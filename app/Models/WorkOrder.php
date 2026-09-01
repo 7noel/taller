@@ -170,6 +170,14 @@ class WorkOrder extends Model
         return $this->hasMany(WorkOrderAssignment::class)->orderBy('id');
     }
 
+    /**
+     * Comprobantes de servicio tercerizado (vales CST01) de la OT.
+     */
+    public function serviceVouchers()
+    {
+        return $this->hasMany(ServiceVoucher::class)->orderBy('execution_date')->orderBy('id');
+    }
+
     public function qualityControls()
     {
         return $this->hasMany(WorkOrderQualityControl::class)->orderByDesc('id');

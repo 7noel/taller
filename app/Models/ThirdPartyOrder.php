@@ -16,10 +16,13 @@ class ThirdPartyOrder extends Model
         'description',
         'amount_without_iva',
         'provider_name',
+        'currency',
+        'exchange_rate',
     ];
 
     protected $casts = [
         'amount_without_iva' => 'float',
+        'exchange_rate' => 'float',
     ];
 
     public function estimate()

@@ -131,13 +131,14 @@
             + '<th class="px-3 py-2 text-left">Placa</th><th class="px-3 py-2 text-left">Descripción</th><th class="px-3 py-2 text-right">Base (sin IGV)</th></tr></thead><tbody>';
         items.forEach(v => {
             const checked = presetVoucherIds.includes(v.id) ? ' checked' : '';
+            const vSym = v.currency === 'USD' ? 'US$' : 'S/';
             html += `<tr class="border-t border-gray-100">
-                <td class="px-3 py-2"><input type="checkbox" name="voucher_ids[]" value="${v.id}" data-base="${v.base_amount}"${checked} class="voucher-check rounded border-gray-300 text-blue-600 focus:ring-blue-500"></td>
+                <td class="px-3 py-2"><input type="checkbox" name="voucher_ids[]" value="${v.id}" data-base-pen="${v.base_amount_pen}"${checked} class="voucher-check rounded border-gray-300 text-blue-600 focus:ring-blue-500"></td>
                 <td class="px-3 py-2 font-mono text-xs">${v.document_sn}</td>
                 <td class="px-3 py-2">${v.execution_date}</td>
                 <td class="px-3 py-2">${v.plate || ''}</td>
                 <td class="px-3 py-2 text-gray-600">${v.description || ''}</td>
-                <td class="px-3 py-2 text-right">S/ ${Number(v.base_amount || 0).toFixed(2)}</td>
+                <td class="px-3 py-2 text-right">${vSym} ${Number(v.base_amount || 0).toFixed(2)}<div class="text-xs text-gray-400">S/ ${Number(v.base_amount_pen || 0).toFixed(2)}</div></td>
             </tr>`;
         });
         html += '</tbody></table>';
@@ -148,7 +149,7 @@
 
     function updatePreview() {
         const checks = Array.from(document.querySelectorAll('.voucher-check:checked'));
-        const subtotal = r2(checks.reduce((s, cb) => s + (parseFloat(cb.dataset.base) || 0), 0));
+        const subtotal = r2(checks.reduce((s, cb) => s + (parseFloat(cb.dataset.basePen) || 0), 0));
         const discount = parseFloat(document.getElementById('global_discount').value) || 0;
         const base = r2(subtotal - discount);
         const igvRate = parseFloat(document.getElementById('igv_rate').value) || 0;

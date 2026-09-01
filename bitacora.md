@@ -1,6 +1,17 @@
 
 ## Fecha de inicio: 17 de agosto de 2026
 
+### 📌 Sesión: Costos y utilidad en Órdenes de Trabajo (moneda en costos + WorkOrderCostService)
+- **Fecha**: 01 de septiembre de 2026
+- **Tarea**: Registrar costos de terceros (planchado/pintura y trabajos fuera del taller, p. ej. radio en Lima) en su moneda original (PEN/USD) y calcular la utilidad de la OT normalizada a soles (moneda funcional). Los vales (CST01) son el mecanismo para servicios tercerizados; la utilidad se muestra en la moneda del primer presupuesto de la OT.
+- **Migración**: `2026_09_01_000400_add_currency_to_cost_tables_table` — `currency` + `exchange_rate` (snapshot, soles por 1 dólar) en `service_vouchers`, `third_party_orders` y `work_order_assignments`. (`stock_movements` ya lo tenía con `unit_cost_pen`/`total_cost_pen`.)
+- **`ServiceVoucherService`**: respeta `currency`/`exchange_rate` (default PEN/1) al crear/editar; flujo "sin IGV ni detracción" (tasas 0) para maestros sin comprobante. `ServiceVoucherRequest` valida `currency` (PEN/USD) + `exchange_rate`.
+- **`ProviderSettlementService`**: `computeTotals()` normaliza la suma de vales a PEN vía `sumVoucherBasePen()` — la liquidación LST01 se expresa SIEMPRE en moneda funcional (PEN).
+- **`EstimateService`**: las OC de terceros heredan `currency`/`exchange_rate` del presupuesto (`syncThirdPartyOrders` + `convertCurrency`).
+- **Nuevo `WorkOrderCostService`**: `summary()` agrega ingresos (Σ totales de presupuestos → PEN) y costos por componente — repuestos (ítems part `cost_price×qty`), vales (base sin IGV), mano de obra (asignaciones) y OC de terceros — normalizando a PEN con el T.C. snapshot; expone utilidad y margen en PEN y en la moneda del primer presupuesto (visualización).
+- **UI**: vale con selector de moneda + T.C. snapshot + toggle "Pago directo sin IGV ni detracción" + preview con símbolo; `show` del vale con moneda; OT `show` con cards "Costos y utilidad" (KPIs + desglose por componente) y "Servicios tercerizados" (lista de vales + botón nuevo vale que preselecciona la OT); listado de vales con moneda.
+- **Tests**: `ServiceVoucherFlowTest` +3 (default PEN, USD sin impuestos, update preserva snapshot), `ProviderSettlementFlowTest` +1 (liquidación normaliza USD→PEN), nuevo `WorkOrderCostTest` +2 (PEN con costos mixtos, USD). Verificación: **21 tests / 84 assertions OK** (Voucher+Settlement+Cost), **44 / 118 OK** (Estimate+WorkOrder), `php -l` OK, `view:cache` OK.
+
 ### 📌 Sesión: Moneda en presupuestos (entidad tipo de cambio + bloqueo + conversión + catálogo)
 - **Fecha**: 01 de septiembre de 2026
 - **Tarea**: Permitir cambiar la moneda (PEN/USD) en presupuestos con reglas claras: moneda bloqueada al tener ítems, acción explícita "Cambiar moneda" (solo borrador) que convierte todos los montos, precios de catálogo convertidos a la moneda del presupuesto, y facturación multi-presupuesto con moneda uniforme (UX).

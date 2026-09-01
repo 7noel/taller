@@ -135,7 +135,7 @@
                         </div>
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total (presupuestos vinculados)</p>
-                            <p class="font-semibold text-gray-800">S/ {{ number_format($workOrder->estimates->sum('total'), 2) }}</p>
+                            <p class="font-semibold text-gray-800">{{ $costSummary['display_currency'] === 'USD' ? 'US$' : 'S/' }} {{ number_format($costSummary['income'], 2) }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Creada por</p>
@@ -219,6 +219,139 @@
                     @endif
                 </div>
             </div>
+            {{-- Costos y utilidad de la OT --}}
+            <div class="card mb-4">
+                <div class="p-4 sm:p-5">
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-3">
+                        <h3 class="font-semibold text-sm text-gray-800 uppercase tracking-wider">Costos y utilidad</h3>
+                        @can('crear vales de servicio')
+                            <a href="{{ route('service-vouchers.create', ['work_order_id' => $workOrder->id]) }}" class="btn btn-secondary" title="Registrar planchado, pintura u otro servicio a un tercero">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Nuevo vale (tercero)
+                            </a>
+                        @endcan
+                    </div>
+
+                    @php $costSym = $costSummary['display_currency'] === 'USD' ? 'US$' : 'S/'; @endphp
+
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                        <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Ingresos (presupuestos)</p>
+                            <p class="text-lg font-bold text-gray-900">{{ $costSym }} {{ number_format($costSummary['income'], 2) }}</p>
+                            <p class="text-xs text-gray-500">S/ {{ number_format($costSummary['income_pen'], 2) }} en PEN</p>
+                        </div>
+                        <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Costos</p>
+                            <p class="text-lg font-bold text-gray-900">{{ $costSym }} {{ number_format($costSummary['total_cost'], 2) }}</p>
+                            <p class="text-xs text-gray-500">S/ {{ number_format($costSummary['total_cost_pen'], 2) }} en PEN</p>
+                        </div>
+                        <div class="rounded-lg border p-3 {{ $costSummary['profit'] >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200' }}">
+                            <p class="text-xs font-semibold uppercase tracking-wider {{ $costSummary['profit'] >= 0 ? 'text-green-700' : 'text-red-700' }}">Utilidad estimada</p>
+                            <p class="text-lg font-bold {{ $costSummary['profit'] >= 0 ? 'text-green-700' : 'text-red-700' }}">{{ $costSym }} {{ number_format($costSummary['profit'], 2) }}</p>
+                            <p class="text-xs {{ $costSummary['profit'] >= 0 ? 'text-green-600' : 'text-red-600' }}">S/ {{ number_format($costSummary['profit_pen'], 2) }} en PEN</p>
+                        </div>
+                        <div class="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-blue-700">Margen</p>
+                            <p class="text-lg font-bold text-blue-700">{{ number_format($costSummary['margin'], 1) }}%</p>
+                            <p class="text-xs text-blue-600">Sobre ingresos (PEN)</p>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Componente</th>
+                                    <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Costo ({{ $costSummary['display_currency'] }})</th>
+                                    <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Equivalente PEN</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach ($costSummary['components'] as $component)
+                                    <tr class="hover:bg-blue-50/50">
+                                        <td class="px-3 py-2 text-gray-800">
+                                            {{ $component['label'] }}
+                                            <span class="text-xs text-gray-500">({{ $component['count'] }})</span>
+                                            @if ($component['mixed_currency'])
+                                                <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">monedas mixtas</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-2 text-right font-medium text-gray-800">{{ $costSym }} {{ number_format($component['amount_display'], 2) }}</td>
+                                        <td class="px-3 py-2 text-right text-gray-500">S/ {{ number_format($component['amount_pen'], 2) }}</td>
+                                    </tr>
+                                @endforeach
+                                <tr class="bg-gray-50">
+                                    <td class="px-3 py-2 font-semibold text-gray-800">Costo total</td>
+                                    <td class="px-3 py-2 text-right font-bold text-gray-900">{{ $costSym }} {{ number_format($costSummary['total_cost'], 2) }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-gray-700">S/ {{ number_format($costSummary['total_cost_pen'], 2) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="mt-3 text-xs text-gray-500">
+                        Moneda de visualización: {{ $costSummary['display_currency'] }} (T.C. snapshot {{ number_format($costSummary['display_rate'], 4) }} · soles por 1 dólar).
+                        Cada costo se registra en su moneda original y se normaliza a soles (PEN) para el cálculo de utilidad.
+                    </p>
+                </div>
+            </div>
+
+            {{-- Servicios tercerizados (vales CST01) --}}
+            <div class="card mb-4">
+                <div class="p-4 sm:p-5">
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-3">
+                        <h3 class="font-semibold text-sm text-gray-800 uppercase tracking-wider">Servicios tercerizados ({{ $workOrder->serviceVouchers->count() }})</h3>
+                        @can('crear vales de servicio')
+                            <a href="{{ route('service-vouchers.create', ['work_order_id' => $workOrder->id]) }}" class="btn btn-secondary" title="Registrar planchado, pintura u otro servicio a un tercero">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Nuevo vale
+                            </a>
+                        @endcan
+                    </div>
+
+                    @if ($workOrder->serviceVouchers->isEmpty())
+                        <p class="text-sm text-gray-500">Sin vales registrados. Usa esta sección para asignar planchado, pintura u otros trabajos a maestros o proveedores externos.</p>
+                    @else
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Documento</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Proveedor</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Descripción</th>
+                                        <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Base (sin IGV)</th>
+                                        <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($workOrder->serviceVouchers as $voucher)
+                                        @php
+                                            $voucherColors = [
+                                                'pending' => 'bg-amber-100 text-amber-800',
+                                                'completed' => 'bg-blue-100 text-blue-800',
+                                                'liquidated' => 'bg-green-100 text-green-800',
+                                            ];
+                                            $vSym = ($voucher->currency ?? 'PEN') === 'USD' ? 'US$' : 'S/';
+                                        @endphp
+                                        <tr class="hover:bg-blue-50/50">
+                                            <td class="px-3 py-2">
+                                                <a href="{{ route('service-vouchers.show', $voucher) }}" class="font-mono text-blue-600 hover:text-blue-800">{{ $voucher->document_sn }}</a>
+                                            </td>
+                                            <td class="px-3 py-2 text-gray-700">{{ $voucher->provider?->display_name }}</td>
+                                            <td class="px-3 py-2 text-gray-600 max-w-xs truncate" title="{{ $voucher->description }}">{{ $voucher->description }}</td>
+                                            <td class="px-3 py-2 text-right text-gray-800">{{ $vSym }} {{ number_format($voucher->base_amount, 2) }}</td>
+                                            <td class="px-3 py-2 text-center">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $voucherColors[$voucher->status] ?? 'bg-gray-100 text-gray-800' }}">{{ \App\Models\ServiceVoucher::STATUS_LABELS[$voucher->status] ?? $voucher->status }}</span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             {{-- Subetapas y técnicos --}}
             <div class="card mb-4">
                 <div class="p-4 sm:p-5">

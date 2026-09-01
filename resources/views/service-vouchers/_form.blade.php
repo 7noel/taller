@@ -32,12 +32,30 @@
                     <input type="number" step="0.01" min="0" name="discount_applied" id="discount_applied" value="{{ old('discount_applied', $voucher->discount_applied) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Moneda <span class="text-red-500">*</span></label>
+                    <select name="currency" id="currency" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="PEN" {{ old('currency', $voucher->currency ?? 'PEN') === 'PEN' ? 'selected' : '' }}>Soles (PEN)</option>
+                        <option value="USD" {{ old('currency', $voucher->currency ?? 'PEN') === 'USD' ? 'selected' : '' }}>Dólares (USD)</option>
+                    </select>
+                </div>
+                <div id="exchange-rate-field">
+                    <label class="block text-sm font-medium text-gray-700">Tipo de cambio (S/ por US$)</label>
+                    <input type="number" step="0.0001" min="0" name="exchange_rate" id="exchange_rate" value="{{ old('exchange_rate', $voucher->exchange_rate ?? 1) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <p class="mt-1 text-xs text-gray-500">Snapshot: soles por 1 dólar (PEN = 1). Se usa para normalizar el costo a soles.</p>
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700">Tasa IGV (%)</label>
                     <input type="number" step="0.0001" min="0" max="1" name="igv_rate" id="igv_rate" value="{{ old('igv_rate', $voucher->igv_rate ?? $igvRate) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Tasa de detracción (%)</label>
                     <input type="number" step="0.0001" min="0" max="1" name="detraction_rate" id="detraction_rate" value="{{ old('detraction_rate', $voucher->detraction_rate ?? $detractionRate) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                        <input type="checkbox" id="no-taxes" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        Pago directo sin IGV ni detracción (maestro pintor / planchador, sin comprobante)
+                    </label>
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700">Descripción del servicio <span class="text-red-500">*</span></label>
@@ -68,7 +86,8 @@
 @push('scripts')
 <script>
     const r2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
-    const fmt = (n) => 'S/ ' + r2(n).toFixed(2);
+    const currencySymbol = () => document.getElementById('currency').value === 'USD' ? 'US$ ' : 'S/ ';
+    const fmt = (n) => currencySymbol() + r2(n).toFixed(2);
 
     const providerSelect = new TomSelect('#provider_id', {
         valueField: 'id', labelField: 'display_name', searchField: ['display_name', 'document_number'],
@@ -108,6 +127,9 @@
         providerSelect.addItem({{ $voucher->provider_id }});
         workOrderSelect.addOption({ id: {{ $voucher->work_order_id }}, document_sn: @json($voucher->workOrder?->document_sn), vehicle: { plate: @json($voucher->workOrder?->vehicle?->plate) } });
         workOrderSelect.addItem({{ $voucher->work_order_id }});
+    @elseif (!empty($preselectedWorkOrder))
+        workOrderSelect.addOption({ id: {{ $preselectedWorkOrder->id }}, document_sn: @json($preselectedWorkOrder->document_sn), vehicle: { plate: @json($preselectedWorkOrder->vehicle?->plate) } });
+        workOrderSelect.addItem({{ $preselectedWorkOrder->id }});
     @endif
 
     function updatePreview() {
@@ -126,6 +148,41 @@
         document.getElementById('preview-detraction').textContent = fmt(detraction);
         document.getElementById('preview-payable').textContent = fmt(payable);
     }
+
+    // Pago directo sin IGV ni detracción (maestro pintor / planchador).
+    const noTaxes = document.getElementById('no-taxes');
+    const igvInput = document.getElementById('igv_rate');
+    const detractionInput = document.getElementById('detraction_rate');
+    noTaxes.addEventListener('change', function () {
+        if (this.checked) {
+            this.dataset.prevIgv = igvInput.value;
+            this.dataset.prevDetraction = detractionInput.value;
+            igvInput.value = 0;
+            detractionInput.value = 0;
+            igvInput.disabled = true;
+            detractionInput.disabled = true;
+        } else {
+            if (this.dataset.prevIgv !== undefined) igvInput.value = this.dataset.prevIgv;
+            if (this.dataset.prevDetraction !== undefined) detractionInput.value = this.dataset.prevDetraction;
+            igvInput.disabled = false;
+            detractionInput.disabled = false;
+        }
+        updatePreview();
+    });
+
+    // Moneda: el tipo de cambio es snapshot solo cuando el vale es en USD.
+    const currencySelect = document.getElementById('currency');
+    const exchangeInput = document.getElementById('exchange_rate');
+    function syncCurrency() {
+        const isUsd = currencySelect.value === 'USD';
+        document.getElementById('exchange-rate-field').classList.toggle('opacity-50', !isUsd);
+        exchangeInput.disabled = !isUsd;
+        if (!isUsd) exchangeInput.value = 1;
+        updatePreview();
+    }
+    currencySelect.addEventListener('change', syncCurrency);
+    syncCurrency();
+
     ['agreed_amount', 'discount_applied', 'igv_rate', 'detraction_rate'].forEach(id => {
         document.getElementById(id).addEventListener('input', updatePreview);
     });
