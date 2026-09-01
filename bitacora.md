@@ -1,4 +1,15 @@
 
+### 📌 Módulo: Reportes y KPIs (Centro de Reportes)
+- **Fecha**: 01 de septiembre de 2026
+- **Tarea**: Crear el módulo 10 de reportes para la toma de decisiones: frecuencia de vehículos (marca/modelo/año), rentabilidad de asesores, costos y utilidad por OT, seguimientos, ingresos/cobranza y repuestos utilizados.
+- **`ReportService`** (nuevo, inyecta `ExchangeRateService`): 6 agregaciones normalizadas a PEN con snapshot de T.C. — `vehicleFrequency()`, `advisorProfitability()` (atribuye utilidad de OTs al asesor del primer presupuesto facturable), `workOrderProfitability()`/`workOrderProfitRows()` (ingreso = estimates facturables; costos por componente: repuestos `cost_price×qty`, mano de obra `assignments.cost`, vales `base_amount`, OC terceros `amount_without_iva`, gastos internos — una consulta por componente), `followUps()`, `revenue()` (facturado vs cobrado por invoice) y `partsUsage()` (join estimates→vehicles→brands para cruzar repuestos con marca de vehículo).
+- **`ReportController`** + 13 rutas bajo `/reports` (protegidas con permiso `ver reportes`): 6 páginas + 6 endpoints `api/reports/*` (JSON con kpis/series/rows).
+- **Vistas** `resources/views/reports/`: hub `index` + 6 reportes con filtros GET (desde/hasta/establecimiento + filtro propio), 4 KPIs, gráficos ApexCharts (barras/donut/área) y tabla Tabulator con paginación local, export CSV e imprimir; partial `_helpers` con utilidades JS compartidas (renderKpis, baseBar/baseDonut/baseLine, buildQuery).
+- **Permisos**: `ver reportes` agregado al seeder (Administrador vía `Permission::all()` + Asesor) — seeder ejecutado. **Navegación**: grupo "Reportes" (Centro + 6 reportes) en la sidebar.
+- **Verificación**: `route:list` 13 rutas OK, `view:cache` OK, smoke test tinker (6 métodos con datos reales + 7 vistas renderizadas OK), `php -l` OK. `follow_ups`/`invoices` vacíos en BD → reportes muestran 0 con placeholder.
+- **Pendiente**: dashboard global de KPIs (reutiliza `ReportService`), modo oscuro en ApexCharts al integrar el theme toggle.
+
+
 ### 📌 Sesión: Tipo de cambio automático (SUNAT) — login + bajo demanda
 - **Fecha**: 01 de septiembre de 2026
 - **Tarea**: Garantizar el T.C. del día (venta SUNAT) con estrategia **BD → API → último registrado**, activada al iniciar sesión y bajo demanda al crear/editar presupuestos.

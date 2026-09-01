@@ -34,6 +34,7 @@ use App\Http\Controllers\InvoiceController;
 
 use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -248,6 +249,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('exchange-rates', [ExchangeRateController::class, 'store'])->name('exchange-rates.store');
     Route::delete('exchange-rates/{exchangeRate}', [ExchangeRateController::class, 'destroy'])->name('exchange-rates.destroy');
     Route::get('api/exchange-rates/latest', [ExchangeRateController::class, 'latest'])->name('api.exchange-rates.latest');
+
+    // Reportes de gestión (módulo 10)
+    Route::prefix('reports')->middleware('can:ver reportes')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('vehicles', [ReportController::class, 'vehicles'])->name('reports.vehicles');
+        Route::get('advisors', [ReportController::class, 'advisors'])->name('reports.advisors');
+        Route::get('profitability', [ReportController::class, 'profitability'])->name('reports.profitability');
+        Route::get('followups', [ReportController::class, 'followups'])->name('reports.followups');
+        Route::get('revenue', [ReportController::class, 'revenue'])->name('reports.revenue');
+        Route::get('parts', [ReportController::class, 'parts'])->name('reports.parts');
+
+        Route::get('api/vehicles', [ReportController::class, 'vehiclesData'])->name('api.reports.vehicles');
+        Route::get('api/advisors', [ReportController::class, 'advisorsData'])->name('api.reports.advisors');
+        Route::get('api/profitability', [ReportController::class, 'profitabilityData'])->name('api.reports.profitability');
+        Route::get('api/followups', [ReportController::class, 'followupsData'])->name('api.reports.followups');
+        Route::get('api/revenue', [ReportController::class, 'revenueData'])->name('api.reports.revenue');
+        Route::get('api/parts', [ReportController::class, 'partsData'])->name('api.reports.parts');
+    });
 
     Route::get('api/parties/search', [PartyController::class, 'search'])->name('api.parties.search');
     Route::get('api/parties/suppliers', [PartyController::class, 'suppliers'])->name('api.parties.suppliers');
