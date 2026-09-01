@@ -70,6 +70,22 @@ class CheckIn extends Model
         'closed_at' => 'datetime',
     ];
 
+    /**
+     * Cita asociada en tiempo de ejecución (no persiste en BD).
+     * Solo se expone al controlador para el flash de "cita asociada".
+     */
+    protected $appointmentAssociated;
+
+    public function getAppointmentAssociatedAttribute()
+    {
+        return $this->appointmentAssociated;
+    }
+
+    public function setAppointmentAssociatedAttribute($value)
+    {
+        $this->appointmentAssociated = $value;
+    }
+
     public const STATUS_LABELS = [
         'draft' => 'Borrador',
         'pending_approval' => 'Pendiente aprobación cliente',
