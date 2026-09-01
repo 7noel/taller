@@ -1,6 +1,15 @@
 
 ## Fecha de inicio: 17 de agosto de 2026
 
+### 📌 Sesión: Consolidación de migraciones (solo Schema::create)
+- **Fecha**: 31 de agosto de 2026
+- **Tarea**: Eliminar todas las migraciones que solo modifican tablas (`Schema::table` / ALTER) fusionando sus cambios en las migraciones `create` correspondientes, de modo que solo existan migraciones que crean tablas.
+- **Resultado**: 55 migraciones, **0 `Schema::table`** y **0 `->after(`** en `database/migrations`.
+- **Eliminadas (17)**: `032001/032002` (activity_log), `035054` (users), `063000` (parties), `125108` (users), `08_24_000004-000007` (check_ins doc), `08_24_000101` (establishments), `08_24_000102` (parties), `08_25_000005` (estimate_items), `08_25_000006` (estimate_discounts), `08_27_000003` (work_order_id), `08_27_000400` (work_orders), `09_01_000400` (invoices/dispatches nullable), `09_01_000500` (check_ins). También se removieron los 2 bloques `Schema::table` dentro de `08_28_000300` (ahora solo crea purchase_orders/items/inventory_guides).
+- **Reordenamiento (9 renombres, orden topológico)**: `users` → `2026_08_18_035054` (después de establishments), `work_orders` → `2026_08_24_000004` (antes de check_ins/estimates/stock_movements), `check_ins` → `2026_08_24_000005` + hijos checklist/results/damages/photos → `000006-000009`, `part_orders` → `2026_08_25_000008` (después de estimates), `stock_movements` → `2026_08_28_000400` (después de purchase_orders/inventory_guides). FKs inline verificadas sin ciclos.
+- **Nota**: los backfills de datos (document_type DNI→1, document_number string→int, document_sn generado) desaparecen por ser irrelevantes en instalación limpia; `parties.type` desaparece del esquema (ya dropeado en vivo por `063000`). El esquema final es idéntico al esquema dev pre-consolidación.
+- **Verificación**: `php -l` OK en las 55 migraciones; **`migrate:fresh --seed` OK** en dev (55 migraciones, 74 tablas, seeders completos incl. DemoDataSeeder); suite completa **185 tests / 559 assertions OK** (79s); grep `Schema::table`=0, `->after(`=0.
+
 ### 📌 Sesión: Recordatorios, mantenimiento preventivo y rol Gestor de Citas (citas y seguimiento)
 - **Fecha**: 01 de septiembre de 2026
 - **Tarea**: Panel de recordatorios (revisión técnica, mantenimiento preventivo y presupuestos en aprobación), cálculo del próximo preventivo por kilometraje, sincronización de fechas desde el check-in al vehículo, y rol "Gestor de Citas" para el personal de agenda.

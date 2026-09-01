@@ -26,8 +26,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('part_id')->references('id')->on('parts')->cascadeOnDelete();
-            // Nota: la FK de estimate_id se agrega en la migración
-            // 2026_08_28_000300 (estimates se crea después de part_orders).
+            $table->foreign('estimate_id')->references('id')->on('estimates')->nullOnDelete();
             $table->foreign('provider_id')->references('id')->on('parties')->nullOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();

@@ -21,6 +21,15 @@ return new class extends Migration
             $table->string('status')->default('open');
             $table->date('start_date')->nullable();
             $table->date('estimated_end_date')->nullable();
+            // ===== Entrega y encuesta de satisfacción =====
+            $table->timestamp('delivered_at')->nullable();
+            $table->unsignedBigInteger('delivered_by')->nullable();
+            $table->timestamp('survey_sent_at')->nullable();
+            $table->string('survey_sent_to')->nullable();
+            $table->string('survey_sent_to_phone')->nullable();
+            $table->string('last_sent_to')->nullable();
+            $table->string('last_sent_to_phone')->nullable();
+            $table->timestamp('last_sent_at')->nullable();
             $table->text('notes')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
@@ -31,6 +40,7 @@ return new class extends Migration
             $table->foreign('client_id')->references('id')->on('parties')->restrictOnDelete();
             $table->foreign('establishment_id')->references('id')->on('establishments')->restrictOnDelete();
             $table->foreign('document_series_id')->references('id')->on('document_series')->nullOnDelete();
+            $table->foreign('delivered_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
 

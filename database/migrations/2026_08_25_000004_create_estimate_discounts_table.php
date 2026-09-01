@@ -12,14 +12,18 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('estimate_id');
             $table->enum('type', ['percentage', 'fixed'])->default('percentage');
+            $table->string('source', 30)->default('other'); // other | insurance | client | advisor
             $table->decimal('value', 12, 2)->default(0);
             $table->decimal('amount', 12, 2)->default(0);
             $table->enum('applied_to', ['subtotal', 'total'])->default('subtotal');
+            $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
 
             $table->foreign('estimate_id')->references('id')->on('estimates')->cascadeOnDelete();
+            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
 
             $table->index('estimate_id');
+            $table->index('source');
         });
     }
 

@@ -47,6 +47,9 @@ return new class extends Migration
             $table->decimal('franchise_percentage_applied', 12, 2)->nullable();
             $table->decimal('franchise_amount', 12, 2)->nullable();
             $table->string('status')->default('draft');
+            // Una OT agrupa uno o más presupuestos aprobados (muchos a uno).
+            // La misma OT puede recibir presupuestos de distintos check-ins (reingresos).
+            $table->unsignedBigInteger('work_order_id')->nullable();
 
             // ===== Quién aprobó/rechazó el gate del CLIENTE (usuario o vía portal) =====
             $table->unsignedBigInteger('approved_by_user_id')->nullable();
@@ -88,6 +91,7 @@ return new class extends Migration
             $table->foreign('advisor_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign('establishment_id')->references('id')->on('establishments')->restrictOnDelete();
             $table->foreign('document_series_id')->references('id')->on('document_series')->nullOnDelete();
+            $table->foreign('work_order_id')->references('id')->on('work_orders')->nullOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
 
@@ -96,6 +100,7 @@ return new class extends Migration
             $table->index('vehicle_id');
             $table->index('client_id');
             $table->index('status');
+            $table->index('work_order_id');
         });
     }
 

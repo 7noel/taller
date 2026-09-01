@@ -14,6 +14,12 @@ return new class extends Migration
             $table->foreignId('client_id')->nullable()->constrained('parties');
             $table->foreignId('insurance_company_id')->nullable()->constrained('parties');
             $table->foreignId('establishment_id')->constrained('establishments');
+            // Identidad del documento (regla .clinerules/10)
+            $table->foreignId('document_series_id')->nullable()->constrained('document_series');
+            $table->string('document_type_code')->nullable();
+            $table->string('document_serie')->nullable();
+            $table->unsignedInteger('document_number')->nullable();
+            $table->string('document_sn')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
 
@@ -29,6 +35,8 @@ return new class extends Migration
             $table->text('client_request')->nullable();
             $table->text('observations')->nullable();
             $table->enum('status', ['draft', 'pending_approval', 'approved', 'rejected', 'closed'])->default('draft');
+            // Vincula cada visita física (check-in original y reingresos) a la OT.
+            $table->unsignedBigInteger('work_order_id')->nullable();
 
             // ===== Quién aprobó/rechazó (usuario interno o cliente vía portal) =====
             $table->unsignedBigInteger('approved_by_user_id')->nullable();
@@ -49,14 +57,20 @@ return new class extends Migration
             // ===== Cierre (el vehículo salió del taller) =====
             $table->unsignedBigInteger('closed_by')->nullable();
             $table->timestamp('closed_at')->nullable();
+            $table->boolean('appointment_associated')->default(false);
 
             $table->timestamps();
             $table->softDeletes();
 
+            $table->foreign('work_order_id')->references('id')->on('work_orders')->nullOnDelete();
             $table->foreign('approved_by_user_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign('rejected_by_user_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign('closed_by')->references('id')->on('users')->nullOnDelete();
 
+            $table->index('document_sn');
+            $table->index('document_serie');
+            $table->index('document_number');
+            $table->index('work_order_id');
             $table->index(['vehicle_id', 'status']);
             $table->index('establishment_id');
             $table->index('service_type');
