@@ -104,6 +104,32 @@
                     </select>
                 </div>
 
+                {{-- Vínculo a catálogo (solo ítems ya guardados) --}}
+                <div id="item-link-wrap" class="hidden border-t border-gray-100 pt-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-sm font-medium text-gray-700">Vínculo a catálogo</label>
+                        <span id="item-link-status" class="text-xs font-medium"></span>
+                    </div>
+                    <div id="item-link-picker" class="space-y-2">
+                        <select id="item-link-select" class="mt-1 block w-full"></select>
+                        <div class="flex items-center justify-between gap-2">
+                            <p id="item-link-hint" class="text-xs text-gray-500"></p>
+                            <button type="button" id="item-link-save" class="btn btn-secondary shrink-0">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                Vincular
+                            </button>
+                        </div>
+                    </div>
+                    <div id="item-link-linked" class="hidden flex items-center justify-between gap-2">
+                        <span id="item-link-linked-name" class="text-sm text-gray-700"></span>
+                        <button type="button" id="item-link-unlink" class="btn btn-secondary shrink-0">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                Desvincular
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <input type="hidden" id="item-cost-price" value="0">
                 <input type="hidden" id="item-id" value="">
             </div>

@@ -7,6 +7,7 @@ use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\DocumentSeriesController;
 use App\Http\Controllers\EstablishmentController;
 use App\Http\Controllers\EstimateController;
+use App\Http\Controllers\EstimateItemController;
 use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\FormTemplateController;
 use App\Http\Controllers\InventoryGuideController;
@@ -232,6 +233,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('api/estimates/calculate', [EstimateController::class, 'calculate'])->name('api.estimates.calculate');
     Route::get('api/estimates/from-check-in/{checkIn}', [EstimateController::class, 'fromCheckIn'])->name('api.estimates.from-check-in');
+
+    // Vínculo de líneas libres del presupuesto al catálogo (repuestos/servicios)
+    Route::get('api/estimate-items/unlinked-parts', [EstimateItemController::class, 'unlinkedParts'])->name('api.estimate-items.unlinked-parts');
+    Route::post('api/estimate-items/{estimateItem}/link-part', [EstimateItemController::class, 'linkPart'])->name('api.estimate-items.link-part');
+    Route::post('api/estimate-items/{estimateItem}/link-service', [EstimateItemController::class, 'linkService'])->name('api.estimate-items.link-service');
+    Route::delete('api/estimate-items/{estimateItem}/link', [EstimateItemController::class, 'unlink'])->name('api.estimate-items.unlink');
 
     // Tipos de cambio (mantenimiento + API de sugerencia)
     Route::get('exchange-rates', [ExchangeRateController::class, 'index'])->name('exchange-rates.index');

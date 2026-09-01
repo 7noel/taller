@@ -34,6 +34,9 @@ class PartRequest extends FormRequest
             // Inventario inicial (solo al crear)
             'initial_quantity' => ['nullable', 'numeric', 'min:0'],
             'initial_warehouse_id' => ['nullable', 'required_with:initial_quantity', 'exists:warehouses,id'],
+            // Líneas libres de presupuesto (repuestos) a vincular al catálogo.
+            'estimate_item_ids' => ['nullable', 'array'],
+            'estimate_item_ids.*' => ['integer', Rule::exists('estimate_items', 'id')],
         ];
     }
 

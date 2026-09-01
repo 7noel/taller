@@ -24,6 +24,7 @@
             'discount_pct' => (float) $i->discount_pct,
             'supply_source' => $i->supply_source ?? 'internal',
             'cost_price' => (float) $i->cost_price,
+            'catalog_name' => $i->part?->name ?? $i->service?->name ?? null,
         ])->values()
         : collect();
 
@@ -509,6 +510,11 @@
     function price(i) { return num(i.unit_price); }
     function pct(i) { return Math.min(100, Math.max(0, num(i.discount_pct))); }
 
+    function linkedBadge(item) {
+        if (!item.part_id && !item.service_id) return '';
+        return `<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700">${escapeHtml(item.catalog_name || 'Vinculado')}</span>`;
+    }
+
     function hiddenInputs(item, index) {
         const escape = escapeHtml;
         return `
@@ -537,7 +543,7 @@
             return `
             <tr>
                 <td class="px-3 py-2">${typeBadge(item.item_type)}</td>
-                <td class="px-3 py-2 font-medium text-gray-900">${escapeHtml(item.description || '')}</td>
+                <td class="px-3 py-2 font-medium text-gray-900">${escapeHtml(item.description || '')}${linkedBadge(item)}</td>
                 <td class="px-3 py-2 text-gray-600">${catCell}</td>
                 <td class="px-3 py-2 text-right text-gray-700">${money(qty(item))}</td>
                 <td class="px-3 py-2 text-right text-gray-700">${money(price(item))}</td>
@@ -924,6 +930,7 @@
         serviceCatSelect.value = serviceCatSelect.options[0]?.value || '';
         partCatSelect.value = partCatSelect.options[0]?.value || '';
         applyTypeVisibility();
+        if (itemLinkWrap) itemLinkWrap.classList.add('hidden');
     }
 
     function openItemModal(index) {
@@ -954,6 +961,7 @@
 
             if (item.service_id) setModalServiceById(item.service_id);
             if (item.part_id) setModalPartById(item.part_id);
+            setupLinkSection(item);
         }
         modal.classList.remove('hidden');
         modal.setAttribute('aria-hidden', 'false');
@@ -1087,6 +1095,168 @@
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
     });
+
+    // =====================================================
+    // Vínculo de línea libre a catálogo (part_id / service_id)
+    // =====================================================
+    const itemLinkWrap = document.getElementById('item-link-wrap');
+    const itemLinkStatus = document.getElementById('item-link-status');
+    const itemLinkPicker = document.getElementById('item-link-picker');
+    const itemLinkSelect = document.getElementById('item-link-select');
+    const itemLinkSave = document.getElementById('item-link-save');
+    const itemLinkHint = document.getElementById('item-link-hint');
+    const itemLinkLinked = document.getElementById('item-link-linked');
+    const itemLinkLinkedName = document.getElementById('item-link-linked-name');
+    const itemLinkUnlink = document.getElementById('item-link-unlink');
+
+    let linkKind = 'part';
+    let linkTom = null;
+
+    if (itemLinkSelect && window.TomSelect) {
+        linkTom = new TomSelect(itemLinkSelect, {
+            valueField: 'id',
+            labelField: 'label',
+            searchField: ['label'],
+            maxItems: 1,
+            closeAfterSelect: true,
+            create: false,
+            copyClassesToDropdown: false,
+            dropdownParent: 'body',
+            placeholder: 'Buscar en catálogo...',
+            load: function (query, callback) {
+                const url = linkKind === 'part'
+                    ? '/api/parts/search'
+                    : '/api/repair-services/search';
+                fetch(`${url}?q=${encodeURIComponent(query)}`)
+                    .then(r => r.json())
+                    .then(list => callback((list || []).map(d => ({
+                        id: d.id,
+                        label: linkKind === 'part'
+                            ? `${d.name}${d.sku ? ' · ' + d.sku : ''}`
+                            : d.name,
+                    }))))
+                    .catch(() => callback());
+            },
+            onItemAdd: function () { linkTom.blur(); linkTom.close(); },
+            onDropdownOpen: function () {
+                if (linkTom.items.length) {
+                    linkTom.setTextValue('');
+                    linkTom.input.setSelectionRange(0, 0);
+                }
+            },
+        });
+    }
+
+    function setupLinkSection(item) {
+        if (!itemLinkWrap) return;
+        if (!item.id) { itemLinkWrap.classList.add('hidden'); return; }
+
+        itemLinkWrap.classList.remove('hidden');
+        linkKind = item.item_type === 'part' ? 'part' : 'service';
+        if (linkTom) linkTom.clear();
+
+        const linked = item.part_id || item.service_id;
+        if (linked) {
+            itemLinkPicker.classList.add('hidden');
+            itemLinkLinked.classList.remove('hidden');
+            itemLinkStatus.textContent = 'Vinculado';
+            itemLinkStatus.className = 'text-xs font-medium text-green-700';
+            itemLinkLinkedName.textContent = item.catalog_name || (linkKind === 'part'
+                ? `Repuesto #${item.part_id}`
+                : `Servicio #${item.service_id}`);
+        } else {
+            itemLinkLinked.classList.add('hidden');
+            itemLinkPicker.classList.remove('hidden');
+            itemLinkStatus.textContent = 'Sin vínculo';
+            itemLinkStatus.className = 'text-xs font-medium text-amber-600';
+            itemLinkHint.textContent = linkKind === 'part'
+                ? 'Enlaza la línea al catálogo de repuestos sin cambiar descripción ni precios.'
+                : 'Enlaza la línea al catálogo de servicios sin cambiar descripción ni precios.';
+        }
+    }
+
+    function linkCsrfHeaders() {
+        return { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' };
+    }
+
+    let linkSaving = false;
+    if (itemLinkSave) {
+        itemLinkSave.addEventListener('click', function () {
+            const item = editingIndex !== null ? items[editingIndex] : null;
+            const catalogId = linkTom ? linkTom.getValue() : null;
+            if (!item || !item.id || !catalogId) {
+                alert('Selecciona un repuesto o servicio del catálogo.');
+                return;
+            }
+            if (linkSaving) return;
+            linkSaving = true;
+            itemLinkSave.disabled = true;
+            const originalText = itemLinkSave.textContent;
+            itemLinkSave.textContent = 'Vinculando...';
+
+            const url = linkKind === 'part'
+                ? `/api/estimate-items/${item.id}/link-part`
+                : `/api/estimate-items/${item.id}/link-service`;
+            const payload = linkKind === 'part' ? { part_id: Number(catalogId) } : { service_id: Number(catalogId) };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...linkCsrfHeaders() },
+                body: JSON.stringify(payload),
+            })
+                .then(r => {
+                    if (!r.ok) throw new Error('No se pudo vincular la línea al catálogo.');
+                    return r.json();
+                })
+                .then(data => {
+                    item.part_id = data.item.part_id;
+                    item.service_id = data.item.service_id;
+                    item.catalog_name = data.item.catalog_name;
+                    renderItems();
+                    setupLinkSection(item);
+                })
+                .catch(err => alert(err.message || 'Error al vincular la línea.'))
+                .finally(() => {
+                    linkSaving = false;
+                    itemLinkSave.disabled = false;
+                    itemLinkSave.textContent = originalText;
+                });
+        });
+    }
+
+    if (itemLinkUnlink) {
+        itemLinkUnlink.addEventListener('click', function () {
+            const item = editingIndex !== null ? items[editingIndex] : null;
+            if (!item || !item.id) return;
+            if (linkSaving) return;
+            linkSaving = true;
+            itemLinkUnlink.disabled = true;
+            const originalText = itemLinkUnlink.textContent;
+            itemLinkUnlink.textContent = 'Desvinculando...';
+
+            fetch(`/api/estimate-items/${item.id}/link`, {
+                method: 'DELETE',
+                headers: { Accept: 'application/json', ...linkCsrfHeaders() },
+            })
+                .then(r => {
+                    if (!r.ok) throw new Error('No se pudo desvincular la línea.');
+                    return r.json();
+                })
+                .then(data => {
+                    item.part_id = data.item.part_id;
+                    item.service_id = data.item.service_id;
+                    item.catalog_name = data.item.catalog_name;
+                    renderItems();
+                    setupLinkSection(item);
+                })
+                .catch(err => alert(err.message || 'Error al desvincular la línea.'))
+                .finally(() => {
+                    linkSaving = false;
+                    itemLinkUnlink.disabled = false;
+                    itemLinkUnlink.textContent = originalText;
+                });
+        });
+    }
 
     // =====================================================
     // Recalcular al cambiar descuento global
