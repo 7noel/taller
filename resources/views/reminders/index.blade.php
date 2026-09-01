@@ -169,6 +169,13 @@
                 : '<span class="text-gray-400">—</span>';
         }
 
+        function whatsappBadge(status) {
+            if (status === 'sent') return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">Enviado</span>';
+            if (status === 'pending') return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">Programado</span>';
+            if (status === 'failed') return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">Fallido</span>';
+            return '<span class="text-gray-400">—</span>';
+        }
+
         function payloadFor(d) {
             return encodeURIComponent(JSON.stringify(d));
         }
@@ -230,6 +237,7 @@
                     { title: 'Total', field: 'total', width: 100, hozAlign: 'right' },
                     { title: 'Esperando', field: 'days_waiting', width: 110, hozAlign: 'center', formatter: c => daysBadge(-c.getValue()) },
                     { title: 'Enviado', field: 'last_sent_at', width: 100, hozAlign: 'center' },
+                    { title: 'WhatsApp', field: 'whatsapp', width: 110, hozAlign: 'center', formatter: c => whatsappBadge(c.getValue()) },
                     { title: 'Acciones', field: 'id', width: 120, hozAlign: 'center', headerSort: false, formatter: c => estimateActions(c.getData()) }
                 ];
             }
@@ -247,6 +255,7 @@
                     return `<div class="text-gray-800">${esc(d.contact_name || '—')}</div><div class="text-xs text-gray-500">${esc(d.contact_phone || '')}</div>`;
                 } },
                 { title: 'Cita', field: 'has_appointment', width: 100, hozAlign: 'center', formatter: c => appointmentBadge(c.getValue()) },
+                { title: 'WhatsApp', field: 'whatsapp', width: 110, hozAlign: 'center', formatter: c => whatsappBadge(c.getValue()) },
                 { title: 'Acciones', field: 'id', width: 190, hozAlign: 'center', headerSort: false, formatter: c => vehicleActions(c.getData(), currentTab) }
             ];
         }

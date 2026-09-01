@@ -17,6 +17,7 @@
                         <button type="button" data-tab="tab-detraccion" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Detracción y Contacto</button>
                         <button type="button" data-tab="tab-integraciones" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Integraciones</button>
                         <button type="button" data-tab="tab-maintenance" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Mantenimiento</button>
+                        <button type="button" data-tab="tab-reminders" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Recordatorios</button>
                     </nav>
                 </div>
 
@@ -211,6 +212,108 @@
                                 <label class="block text-sm font-medium text-gray-700">Visitas a usar (historial) *</label>
                                 <input type="number" name="maintenance_history_visits" value="{{ old('maintenance_history_visits', $setting->maintenance_history_visits) }}" min="2" max="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <p class="mt-1 text-xs text-gray-500">Últimas 2-3 visitas con kilometraje para proyectar (default 3).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Pestaña 6: Recordatorios automáticos por WhatsApp --}}
+                    <div id="tab-reminders" class="tab-panel hidden">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-1">Recordatorios automáticos por WhatsApp</h3>
+                        <p class="text-sm text-gray-500 mb-4">Define qué recordatorios se envían automáticamente, con cuántos días de anticipación y a qué hora. Usa las credenciales de WhatsApp de la pestaña Integraciones; el envío lo ejecuta el comando programado <code>reminders:process</code> (cada 30 minutos).</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                            <div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <input type="checkbox" name="reminder_enabled" value="1" {{ old('reminder_enabled', $setting->reminder_enabled ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    Recordatorios automáticos activos
+                                </label>
+                                <p class="mt-1 text-xs text-gray-500">Switch maestro: apaga todos los envíos automáticos de una vez.</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Hora de envío</label>
+                                <input type="time" name="reminder_hour" value="{{ old('reminder_hour', $setting->reminder_hour ?? '09:00') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p class="mt-1 text-xs text-gray-500">Horario prudente para no molestar (default 09:00).</p>
+                            </div>
+                        </div>
+
+                        {{-- Revisión técnica --}}
+                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start justify-between gap-4 mb-3">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-800">Revisión técnica</h4>
+                                    <p class="text-xs text-gray-500">Al cliente (dueño del vehículo) antes del vencimiento de la revisión técnica.</p>
+                                </div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+                                    <input type="checkbox" name="reminder_technical_review_enabled" value="1" {{ old('reminder_technical_review_enabled', $setting->reminder_technical_review_enabled ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    Activo
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Días de anticipación</label>
+                                    <input type="number" name="reminder_technical_review_days" value="{{ old('reminder_technical_review_days', $setting->reminder_technical_review_days ?? 10) }}" min="0" max="90" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Mantenimiento preventivo --}}
+                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start justify-between gap-4 mb-3">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-800">Mantenimiento preventivo</h4>
+                                    <p class="text-xs text-gray-500">Al cliente (dueño del vehículo) antes de la próxima visita preventiva calculada.</p>
+                                </div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+                                    <input type="checkbox" name="reminder_maintenance_enabled" value="1" {{ old('reminder_maintenance_enabled', $setting->reminder_maintenance_enabled ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    Activo
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Días de anticipación</label>
+                                    <input type="number" name="reminder_maintenance_days" value="{{ old('reminder_maintenance_days', $setting->reminder_maintenance_days ?? 7) }}" min="0" max="90" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Autopartes de seguro --}}
+                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start justify-between gap-4 mb-3">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-800">Autopartes de seguro</h4>
+                                    <p class="text-xs text-gray-500">Al asesor (del presupuesto, con respaldo en quien creó el pedido) para hacer seguimiento a los repuestos que traerá la aseguradora.</p>
+                                </div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+                                    <input type="checkbox" name="reminder_part_order_enabled" value="1" {{ old('reminder_part_order_enabled', $setting->reminder_part_order_enabled ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    Activo
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Hitos (días antes de la entrega)</label>
+                                    <input type="text" name="reminder_part_milestones" value="{{ old('reminder_part_milestones', $setting->reminder_part_milestones ?? '25,20,17,15,10,5') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <p class="mt-1 text-xs text-gray-500">Separados por comas. Ej. 25,20,17,15,10,5 (default).</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Presupuestos en aprobación --}}
+                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start justify-between gap-4 mb-3">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-800">Presupuestos en aprobación</h4>
+                                    <p class="text-xs text-gray-500">Al asesor del presupuesto para dar seguimiento a las aprobaciones pendientes (seguro o cliente).</p>
+                                </div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+                                    <input type="checkbox" name="reminder_estimate_enabled" value="1" {{ old('reminder_estimate_enabled', $setting->reminder_estimate_enabled ?? true) ? 'checked' : '' }} class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    Activo
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Cada cuántos días</label>
+                                    <input type="number" name="reminder_estimate_every_days" value="{{ old('reminder_estimate_every_days', $setting->reminder_estimate_every_days ?? 3) }}" min="1" max="60" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -27,6 +27,15 @@ class CompanySettingController extends Controller
     {
         Gate::authorize('editar configuración');
 
+        // Los checkboxes de recordatorios deben persistir false cuando se desmarcan.
+        $request->merge([
+            'reminder_enabled' => $request->boolean('reminder_enabled'),
+            'reminder_technical_review_enabled' => $request->boolean('reminder_technical_review_enabled'),
+            'reminder_maintenance_enabled' => $request->boolean('reminder_maintenance_enabled'),
+            'reminder_part_order_enabled' => $request->boolean('reminder_part_order_enabled'),
+            'reminder_estimate_enabled' => $request->boolean('reminder_estimate_enabled'),
+        ]);
+
         $validated = $request->validate([
             'ruc' => ['nullable', 'string', 'max:11'],
             'razon_social' => ['nullable', 'string', 'max:255'],
@@ -51,6 +60,16 @@ class CompanySettingController extends Controller
             'maintenance_interval_km' => ['nullable', 'integer', 'min:500', 'max:50000'],
             'maintenance_default_days' => ['nullable', 'integer', 'min:15', 'max:365'],
             'maintenance_history_visits' => ['nullable', 'integer', 'min:2', 'max:5'],
+            'reminder_enabled' => ['required', 'boolean'],
+            'reminder_hour' => ['nullable', 'date_format:H:i'],
+            'reminder_technical_review_enabled' => ['required', 'boolean'],
+            'reminder_technical_review_days' => ['nullable', 'integer', 'min:0', 'max:90'],
+            'reminder_maintenance_enabled' => ['required', 'boolean'],
+            'reminder_maintenance_days' => ['nullable', 'integer', 'min:0', 'max:90'],
+            'reminder_part_order_enabled' => ['required', 'boolean'],
+            'reminder_part_milestones' => ['nullable', 'string', 'max:100', 'regex:/^[0-9,\s]+$/'],
+            'reminder_estimate_enabled' => ['required', 'boolean'],
+            'reminder_estimate_every_days' => ['nullable', 'integer', 'min:1', 'max:60'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:2048'],
             'favicon' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,ico', 'max:1024'],
         ]);

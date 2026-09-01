@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\CheckIn;
 use App\Models\Estimate;
 use App\Models\FollowUp;
+use App\Models\ReminderLog;
 use App\Models\Vehicle;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -136,6 +137,7 @@ class ReminderController extends Controller
                     'party_id' => $estimate->client_id,
                     'reminder_note' => "Seguimiento del presupuesto {$estimate->document_sn} ({$estimate->status_label}): verificar respuesta de " . ($estimate->status === 'sent_insurance' ? 'la aseguradora' : 'el cliente') . '.',
                     'context' => 'Presupuesto ' . ($estimate->document_sn ?? '#' . $estimate->id),
+                    'whatsapp' => $this->whatsappLog('estimate', $estimate->id, 'estimate'),
                 ];
             })
             ->sortByDesc('days_waiting')
@@ -167,7 +169,22 @@ class ReminderController extends Controller
             'vehicle_id' => $vehicle->id,
             'reminder_note' => $reminderNote,
             'context' => $type === 'maintenance' ? "Mantenimiento preventivo · {$vehicle->plate}" : "Revisión técnica · {$vehicle->plate}",
+            'whatsapp' => $this->whatsappLog($type, $vehicle->id, 'vehicle'),
         ];
+    }
+
+    /**
+     * Estado del recordatorio automático de WhatsApp para hoy (pending|sent|failed|null).
+     */
+    protected function whatsappLog(string $type, int $targetId, string $targetType): ?string
+    {
+        return ReminderLog::query()
+            ->where('type', $type)
+            ->where('target_type', $targetType)
+            ->where('target_id', $targetId)
+            ->where('trigger_date', now()->toDateString())
+            ->orderByDesc('id')
+            ->value('status');
     }
 
     /**

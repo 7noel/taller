@@ -37,6 +37,18 @@ return new class extends Migration
             $table->integer('maintenance_interval_km')->default(5000);
             $table->integer('maintenance_default_days')->default(120);
             $table->integer('maintenance_history_visits')->default(3);
+            // Configuración de recordatorios automáticos por WhatsApp (switch maestro
+            // + toggle por tipo + hora de envío). Ver ReminderService.
+            $table->boolean('reminder_enabled')->default(true);
+            $table->string('reminder_hour', 5)->default('09:00');
+            $table->boolean('reminder_technical_review_enabled')->default(true);
+            $table->integer('reminder_technical_review_days')->default(10);
+            $table->boolean('reminder_maintenance_enabled')->default(true);
+            $table->integer('reminder_maintenance_days')->default(7);
+            $table->boolean('reminder_part_order_enabled')->default(true);
+            $table->string('reminder_part_milestones', 100)->default('25,20,17,15,10,5');
+            $table->boolean('reminder_estimate_enabled')->default(true);
+            $table->integer('reminder_estimate_every_days')->default(3);
             $table->timestamps();
 
             $table->foreign('ubigeo_code')->references('code')->on('ubigeos')->nullOnDelete();

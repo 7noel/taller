@@ -35,6 +35,16 @@ class CompanySetting extends Model
         'maintenance_interval_km',
         'maintenance_default_days',
         'maintenance_history_visits',
+        'reminder_enabled',
+        'reminder_hour',
+        'reminder_technical_review_enabled',
+        'reminder_technical_review_days',
+        'reminder_maintenance_enabled',
+        'reminder_maintenance_days',
+        'reminder_part_order_enabled',
+        'reminder_part_milestones',
+        'reminder_estimate_enabled',
+        'reminder_estimate_every_days',
     ];
 
     protected $casts = [
@@ -45,6 +55,14 @@ class CompanySetting extends Model
         'maintenance_interval_km' => 'integer',
         'maintenance_default_days' => 'integer',
         'maintenance_history_visits' => 'integer',
+        'reminder_enabled' => 'boolean',
+        'reminder_technical_review_enabled' => 'boolean',
+        'reminder_maintenance_enabled' => 'boolean',
+        'reminder_part_order_enabled' => 'boolean',
+        'reminder_estimate_enabled' => 'boolean',
+        'reminder_technical_review_days' => 'integer',
+        'reminder_maintenance_days' => 'integer',
+        'reminder_estimate_every_days' => 'integer',
     ];
 
     /**
