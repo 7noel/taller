@@ -81,9 +81,14 @@ class EstimateController extends Controller
             'statusHistory.user',
             'thirdPartyOrders',
             'workOrder',
+            'payments.invoice',
+            'payments.paymentMethod',
         ]);
 
         $grouped = $this->service->getClientGroupedItems($estimate);
+
+        $paymentMethods = \App\Models\PaymentMethod::query()->where('is_active', true)->orderBy('name')->get();
+        $paidTotal = (float) $estimate->payments->where('direction', 'in')->sum('amount');
 
         // Datos para el botón "Enviar por WhatsApp" / "Copiar enlace" del portal.
         $vehicle = $estimate->vehicle;
@@ -106,7 +111,9 @@ class EstimateController extends Controller
             'publicLink',
             'initialMessage',
             'recipientsUrl',
-            'actionUrl'
+            'actionUrl',
+            'paymentMethods',
+            'paidTotal'
         ));
     }
 
@@ -161,6 +168,32 @@ class EstimateController extends Controller
         Gate::authorize('viewAny', Estimate::class);
 
         return response()->json($this->service->getSearchResults($request->all()));
+    }
+
+    /**
+     * Presupuestos facturables del mismo vehículo y de la misma OT que el
+     * presupuesto dado (para facturación agrupada: siniestro + ampliaciones,
+     * flota de vehículos, etc.).
+     */
+    public function related(Request $request): JsonResponse
+    {
+        Gate::authorize('viewAny', Estimate::class);
+
+        $estimate = Estimate::query()->findOrFail($request->integer('estimate_id'));
+
+        return response()->json($this->service->getRelatedBillable($estimate));
+    }
+
+    /**
+     * Presupuestos facturables de un vehículo (origen "Por Vehículo").
+     */
+    public function byVehicle(Request $request): JsonResponse
+    {
+        Gate::authorize('viewAny', Estimate::class);
+
+        $vehicleId = $request->integer('vehicle_id');
+
+        return response()->json($this->service->getRelatedBillable(null, $vehicleId));
     }
 
     /**

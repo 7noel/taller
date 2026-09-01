@@ -559,7 +559,8 @@ class EstimateService
     public function getSearchResults(array $filters): array
     {
         $query = Estimate::query()
-            ->with(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany']);
+            ->with(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany'])
+            ->with(['invoices' => fn ($q) => $q->where('invoices.status', '!=', 'voided')]);
 
         if (!empty($filters['q'])) {
             $term = $filters['q'];
@@ -604,6 +605,15 @@ class EstimateService
         return $query->get()->map(fn (Estimate $estimate) => [
             'id' => $estimate->id,
             'document_sn' => $estimate->document_sn,
+            'text' => sprintf(
+                '%s · %s · %s · S/ %s',
+                $estimate->document_sn,
+                $estimate->vehicle?->plate ?? 'sin placa',
+                $estimate->client?->display_name ?? '—',
+                number_format((float) $estimate->total, 2)
+            ),
+            'vehicle_id' => $estimate->vehicle_id,
+            'vehicle_plate' => $estimate->vehicle?->plate,
             'plate' => $estimate->vehicle?->plate,
             'client_name' => $estimate->client?->display_name,
             'client_document' => $estimate->client?->document_number,
@@ -612,8 +622,49 @@ class EstimateService
             'status_label' => $estimate->status_label,
             'subtotal' => $estimate->subtotal,
             'total' => $estimate->total,
+            'invoiced_total' => round((float) $estimate->invoices->sum('total'), 2),
+            'billable_balance' => round(max(0, (float) $estimate->total - (float) $estimate->invoices->sum('total')), 2),
             'created_at' => $estimate->created_at?->format('d/m/Y'),
         ])->all();
+    }
+
+    /**
+     * Presupuestos facturables relacionados con un presupuesto (mismo vehículo
+     * o misma OT) o con un vehículo (origen "Por Vehículo").
+     */
+    public function getRelatedBillable(?Estimate $estimate, ?int $vehicleId = null): array
+    {
+        $query = Estimate::query()
+            ->with(['vehicle.vehicleModel.brand', 'client'])
+            ->whereIn('status', Estimate::BILLABLE_STATUSES);
+
+        if ($vehicleId) {
+            $query->where('vehicle_id', $vehicleId);
+        } elseif ($estimate) {
+            $query->where(function ($q) use ($estimate) {
+                $q->where('vehicle_id', $estimate->vehicle_id);
+
+                if ($estimate->work_order_id) {
+                    $q->orWhere('work_order_id', $estimate->work_order_id);
+                }
+            });
+        } else {
+            return [];
+        }
+
+        return $query->limit(50)->get()->map(fn (Estimate $e) => [
+            'id' => $e->id,
+            'text' => sprintf(
+                '%s · %s · S/ %s',
+                $e->document_sn,
+                $e->vehicle?->plate ?? 'sin placa',
+                number_format((float) $e->total, 2)
+            ),
+            'plate' => $e->vehicle?->plate,
+            'total' => (float) $e->total,
+            'status' => $e->status,
+            'status_label' => $e->status_label,
+        ])->values()->all();
     }
 
     /**

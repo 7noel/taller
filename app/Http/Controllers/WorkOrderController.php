@@ -502,6 +502,14 @@ class WorkOrderController extends Controller
                 'start_date' => $workOrder->start_date?->format('d/m/Y'),
                 'estimated_end_date' => $workOrder->estimated_end_date?->format('d/m/Y'),
                 'establishment' => $workOrder->establishment?->name,
+                'text' => sprintf(
+                    '%s · %s · %s · %d presupuesto(s) · S/ %s',
+                    $workOrder->document_sn,
+                    $workOrder->vehicle?->plate ?? 'sin placa',
+                    $workOrder->client?->display_name ?? '—',
+                    (int) ($workOrder->estimates_count ?? 0),
+                    number_format((float) ($workOrder->estimates_sum_total ?? 0), 2)
+                ),
             ];
         });
 

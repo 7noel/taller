@@ -151,6 +151,11 @@ class WorkOrder extends Model
         return $this->hasMany(Estimate::class, 'work_order_id');
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     /**
      * Visitas físicas vinculadas a la OT: el check-in original y los reingresos
      * (por ejemplo, retorno para instalar un repuesto pendiente).
