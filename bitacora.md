@@ -1,4 +1,12 @@
 
+### 📌 Sesión: Consolidación de migraciones #2 (nuevas ALTERs fusionadas)
+- **Fecha**: 31 de agosto de 2026
+- **Tarea**: Consolidar las 3 nuevas migraciones ALTER creadas para soporte de moneda, responsabilidad del taller y presupuestos hijo, fusionándolas en los `Schema::create` correspondientes.
+- **Eliminadas (3)**: `09_01_000200_add_parent_estimate_id` (estimates), `09_01_000400_add_currency_to_cost_tables` (service_vouchers, third_party_orders, work_order_assignments), `09_01_000500_add_special_fields` (estimates: is_chargeable, liability, liability_user_id, warranty_of_estimate_id, incident_type, incident_reported_at).
+- **Creadas nuevas que se mantienen**: `09_01_000300_create_exchange_rates`, `09_01_000600_create_work_order_internal_expenses`, `09_01_000700_create_reminder_logs` (tablas nuevas, sin cambios).
+- **Resultado**: 58 migraciones, **0 `Schema::table`** y **0 `->after(`**. Sin reordenamientos (FKs self-referenciales y a users ya resueltas en el orden actual).
+- **Verificación**: `php -l` OK; `migrate:fresh --seed` OK (58 migraciones, seeders completos); suite **233 tests / 717 assertions OK** (116s) — incluye los nuevos tests que ejercitan los campos fusionados (WarrantyInternalFlowTest, ProviderSettlement con USD, WhatsAppReminderTest).
+
 ### 📌 Módulo: Reportes y KPIs (Centro de Reportes)
 - **Fecha**: 01 de septiembre de 2026
 - **Tarea**: Crear el módulo 10 de reportes para la toma de decisiones: frecuencia de vehículos (marca/modelo/año), rentabilidad de asesores, costos y utilidad por OT, seguimientos, ingresos/cobranza y repuestos utilizados.

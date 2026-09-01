@@ -26,6 +26,9 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->decimal('hours', 8, 2)->default(0);
             $table->decimal('cost', 12, 2)->default(0);
+            // Soporte de moneda (PEN/USD) + snapshot del tipo de cambio (soles por 1 USD).
+            $table->string('currency', 3)->default('PEN');
+            $table->decimal('exchange_rate', 12, 4)->default(1);
             $table->string('status')->default('pending');
             $table->text('notes')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();

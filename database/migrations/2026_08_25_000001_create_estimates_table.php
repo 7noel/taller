@@ -39,6 +39,13 @@ return new class extends Migration
             $table->decimal('taxable_base', 12, 2)->default(0);
             $table->decimal('iva', 12, 2)->default(0);
             $table->decimal('total', 12, 2)->default(0);
+            // ===== Responsabilidad del taller (garantía, daño interno / siniestro por maniobra) =====
+            $table->boolean('is_chargeable')->default(true);
+            $table->string('liability', 20)->nullable()->default('client');
+            $table->unsignedBigInteger('liability_user_id')->nullable();
+            $table->unsignedBigInteger('warranty_of_estimate_id')->nullable();
+            $table->string('incident_type', 30)->nullable();
+            $table->timestamp('incident_reported_at')->nullable();
             $table->decimal('franchise_minimum_amount', 12, 2)->nullable();
             $table->decimal('franchise_percentage', 5, 2)->nullable();
             $table->boolean('franchise_minimum_includes_tax')->default(false);
@@ -50,6 +57,8 @@ return new class extends Migration
             // Una OT agrupa uno o más presupuestos aprobados (muchos a uno).
             // La misma OT puede recibir presupuestos de distintos check-ins (reingresos).
             $table->unsignedBigInteger('work_order_id')->nullable();
+            // Presupuesto hijo: ampliación de un presupuesto padre (siniestro + ampliaciones).
+            $table->unsignedBigInteger('parent_estimate_id')->nullable();
 
             // ===== Quién aprobó/rechazó el gate del CLIENTE (usuario o vía portal) =====
             $table->unsignedBigInteger('approved_by_user_id')->nullable();
@@ -92,6 +101,9 @@ return new class extends Migration
             $table->foreign('establishment_id')->references('id')->on('establishments')->restrictOnDelete();
             $table->foreign('document_series_id')->references('id')->on('document_series')->nullOnDelete();
             $table->foreign('work_order_id')->references('id')->on('work_orders')->nullOnDelete();
+            $table->foreign('parent_estimate_id')->references('id')->on('estimates')->nullOnDelete();
+            $table->foreign('liability_user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('warranty_of_estimate_id')->references('id')->on('estimates')->nullOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
 
@@ -101,6 +113,9 @@ return new class extends Migration
             $table->index('client_id');
             $table->index('status');
             $table->index('work_order_id');
+            $table->index('parent_estimate_id');
+            $table->index(['is_chargeable', 'liability']);
+            $table->index('warranty_of_estimate_id');
         });
     }
 

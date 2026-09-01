@@ -18,6 +18,9 @@ return new class extends Migration
             $table->string('document_sn', 30)->nullable()->index();
             $table->foreignId('work_order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('provider_id')->constrained('parties')->cascadeOnDelete();
+            // Soporte de moneda (PEN/USD) + snapshot del tipo de cambio (soles por 1 USD).
+            $table->string('currency', 3)->default('PEN');
+            $table->decimal('exchange_rate', 12, 4)->default(1);
             $table->date('execution_date');
             $table->text('description');
             $table->decimal('agreed_amount', 12, 2)->default(0);

@@ -11,6 +11,9 @@ return new class extends Migration
         Schema::create('third_party_orders', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('estimate_id');
+            // Soporte de moneda (PEN/USD) + snapshot del tipo de cambio (soles por 1 USD).
+            $table->string('currency', 3)->default('PEN');
+            $table->decimal('exchange_rate', 12, 4)->default(1);
             $table->string('description');
             $table->decimal('amount_without_iva', 12, 2)->default(0);
             $table->string('provider_name')->nullable();
