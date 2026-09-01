@@ -29,6 +29,30 @@ class EstimateRequest extends FormRequest
                 },
             ],
             'claim_number' => ['nullable', 'string', 'max:100'],
+            'parent_estimate_id' => [
+                'nullable',
+                'integer',
+                'exists:estimates,id',
+                function ($attribute, $value, $fail) {
+                    if (!$value) {
+                        return;
+                    }
+
+                    $parent = \App\Models\Estimate::withTrashed()->find($value);
+
+                    if (!$parent) {
+                        return; // lo cubre la regla exists
+                    }
+
+                    if ($parent->parent_estimate_id) {
+                        $fail('El presupuesto padre no puede ser a su vez una ampliación (solo se permite un nivel).');
+                    }
+
+                    if ((int) $parent->vehicle_id !== (int) $this->input('vehicle_id')) {
+                        $fail('La ampliación debe pertenecer al mismo vehículo que el presupuesto padre.');
+                    }
+                },
+            ],
             'service_type' => ['required', 'string', Rule::in(array_keys(\App\Models\CheckIn::SERVICE_TYPES))],
             'advisor_id' => ['nullable', 'integer', 'exists:users,id'],
             'work_days' => ['nullable', 'integer', 'min:0', 'max:999'],

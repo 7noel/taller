@@ -7,7 +7,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <form method="POST" action="{{ route('estimates.store') }}">
                 @csrf
-                @include('estimates._form', ['estimate' => null, 'checkIn' => $checkIn ?? null, 'advisors' => $advisors, 'establishment' => $establishment])
+                @include('estimates._form', ['estimate' => null, 'checkIn' => $checkIn ?? null, 'parentEstimate' => $parentEstimate ?? null, 'advisors' => $advisors, 'establishment' => $establishment])
 
                 <div class="mt-6 flex gap-2">
                     <button type="submit" class="btn btn-primary">Guardar Presupuesto</button>
@@ -18,5 +18,5 @@
     </div>
 
     @include('partials.contact-modal')
-    @include('estimates._form-scripts', ['estimate' => null, 'checkIn' => $checkIn ?? null, 'establishment' => $establishment])
+    @include('estimates._form-scripts', ['estimate' => null, 'checkIn' => $checkIn ?? null, 'parentEstimate' => $parentEstimate ?? null, 'establishment' => $establishment])
 </x-app-layout>

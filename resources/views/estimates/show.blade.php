@@ -6,6 +6,12 @@
                 @if ($estimate->document_sn)
                     <x-document-badge :sn="$estimate->document_sn" />
                 @endif
+                @if ($estimate->is_ampliacion && $estimate->parent)
+                    <a href="{{ route('estimates.show', $estimate->parent) }}" title="Ver el presupuesto principal"
+                       class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">
+                        Ampliación de {{ $estimate->parent->document_sn }}
+                    </a>
+                @endif
                 @if ($estimate->vehicle?->plate)
                     <span class="text-sm text-gray-500">{{ $estimate->vehicle->plate }}</span>
                 @endif
@@ -38,6 +44,11 @@
                 @can('update', $estimate)
                     @if (!$estimate->is_final)
                         <a href="{{ route('estimates.edit', $estimate) }}" class="btn btn-secondary">Editar</a>
+                    @endif
+                @endcan
+                @can('create', \App\Models\Estimate::class)
+                    @if (!$estimate->is_ampliacion)
+                        <a href="{{ route('estimates.create', ['parent_estimate_id' => $estimate->id]) }}" class="btn btn-secondary" title="Crear una ampliación de este presupuesto (misma moneda, misma aseguradora)">Ampliar</a>
                     @endif
                 @endcan
                 @can('returnToDraft', $estimate)
@@ -347,6 +358,39 @@
                 </div>
             </div>
 
+
+            {{-- Ampliaciones del presupuesto (siniestro + ampliaciones = grupo) --}}
+            @if ($estimate->ampliaciones->isNotEmpty())
+                <div class="card mb-4">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Ampliaciones ({{ $estimate->ampliaciones->count() }})</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Documento</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Estado</th>
+                                        <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @foreach ($estimate->ampliaciones as $amp)
+                                        <tr>
+                                            <td class="px-3 py-2 font-medium">
+                                                <a href="{{ route('estimates.show', $amp) }}" class="text-blue-600 hover:text-blue-800">{{ $amp->document_sn }}</a>
+                                            </td>
+                                            <td class="px-3 py-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-700">{{ $amp->status_label }}</span>
+                                            </td>
+                                            <td class="px-3 py-2 text-right">{{ number_format((float) $amp->total, 2) }} {{ $amp->currency }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- Órdenes de compra de terceros --}}
             @if ($estimate->thirdPartyOrders->isNotEmpty())

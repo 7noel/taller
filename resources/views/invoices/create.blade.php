@@ -47,8 +47,9 @@
                         <div>
                             <label for="estimate_ids" class="block text-sm font-medium text-gray-700">Presupuesto(s) <span class="text-red-500">*</span></label>
                             <select id="estimate_ids" name="estimate_ids[]" multiple class="mt-1 block w-full max-w-xl rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"></select>
-                            <p class="text-xs text-gray-500 mt-1">Puedes seleccionar varios presupuestos para una misma factura (siniestro + ampliaciones, flota, etc.).</p>
+                            <p class="text-xs text-gray-500 mt-1">Puedes seleccionar varios presupuestos para una misma factura (siniestro + ampliaciones, flota, etc.). Todos deben estar en la misma moneda.</p>
                             <button type="button" id="add-related-btn" class="mt-2 btn btn-secondary">+ Agregar presupuestos del mismo vehículo</button>
+                            <p id="currency-mix-warning" class="hidden mt-1 text-xs text-red-600"><span id="currency-mix-warning-text"></span></p>
                         </div>
                     </div>
 
@@ -148,11 +149,18 @@
             document.getElementById('free-items').appendChild(div);
         };
 
+        // Mapa id → moneda de los presupuestos cargados (para validar moneda uniforme).
+        const estimateCurrencyMap = {};
+
         const ts = (el, url, multi, onAdd) => new TomSelect(el, {
             valueField: 'id', labelField: 'text', searchField: ['text', 'document_sn'], maxItems: multi ? 20 : 1, closeAfterSelect: true, create: false, copyClassesToDropdown: false, dropdownParent: 'body',
             load: (q, cb) => {
                 fetch(url + '?q=' + encodeURIComponent(q), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                    .then(r => r.json()).then(d => cb(Array.isArray(d) ? d : d.data || [])).catch(() => cb());
+                    .then(r => r.json()).then(d => {
+                        const rows = Array.isArray(d) ? d : d.data || [];
+                        rows.forEach(r => { if (r.id) estimateCurrencyMap[r.id] = r.currency || 'PEN'; });
+                        cb(rows);
+                    }).catch(() => cb());
             },
             render: { option: (d, e) => `<div>${d.text || d.document_sn}</div>` },
             onItemAdd: (value, item) => { document.activeElement.blur(); if (onAdd) onAdd(value); },
@@ -161,14 +169,33 @@
 
         let autoSuggesting = false;
 
+        const currencyWarn = document.getElementById('currency-mix-warning');
+        const currencyWarnText = document.getElementById('currency-mix-warning-text');
+        const showCurrencyWarning = (msg) => {
+            if (!currencyWarn) return;
+            if (currencyWarnText) currencyWarnText.textContent = msg;
+            currencyWarn.classList.remove('hidden');
+        };
+        const hideCurrencyWarning = () => { if (currencyWarn) currencyWarn.classList.add('hidden'); };
+
         const addEstimatesToSelect = (rows, select) => {
             const current = select.items.map(String);
+            const firstCurrency = current.length ? (estimateCurrencyMap[current[0]] || 'PEN') : null;
+            let skipped = 0;
             rows.forEach(r => {
+                if (r.id) estimateCurrencyMap[r.id] = r.currency || 'PEN';
+                // Solo se auto-agregan presupuestos de la misma moneda que el primero.
+                if (firstCurrency && (r.currency || 'PEN') !== firstCurrency) { skipped++; return; }
                 if (!current.includes(String(r.id))) {
-                    select.addOption({ id: r.id, text: r.text, document_sn: r.text });
+                    select.addOption({ id: r.id, text: r.text, document_sn: r.text, currency: r.currency || 'PEN' });
                     select.addItem(r.id, true);
                 }
             });
+            if (skipped > 0) {
+                showCurrencyWarning(`Se omitieron ${skipped} presupuesto(s) por estar en una moneda distinta a la seleccionada.`);
+            } else {
+                hideCurrencyWarning();
+            }
         };
 
         const fetchRelated = (estimateId) => fetch("{{ route('api.estimates.related') }}?estimate_id=" + estimateId, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
@@ -190,6 +217,23 @@
             autoSuggesting = true;
             fetchRelated(first).then(rows => addEstimatesToSelect(rows, estimateSelect)).finally(() => { autoSuggesting = false; });
         });
+
+        // Moneda uniforme: bloquea el envío si se mezclan presupuestos PEN y USD.
+        const invoiceForm = document.querySelector('form[action*="/invoices"]');
+        if (invoiceForm) {
+            invoiceForm.addEventListener('submit', function (e) {
+                const ids = estimateSelect.items.map(String);
+                if (ids.length < 2) { hideCurrencyWarning(); return; }
+                const currencies = ids.map(id => estimateCurrencyMap[id] || 'PEN');
+                if (new Set(currencies).size > 1) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showCurrencyWarning('No se pueden facturar presupuestos en monedas distintas (PEN/USD). Todos deben estar en la misma moneda.');
+                } else {
+                    hideCurrencyWarning();
+                }
+            });
+        }
 
         // Origen "Por Vehículo": carga los presupuestos facturables del vehículo.
         const vehicleSelect = ts('#invoice_vehicle', "{{ route('api.vehicles.search') }}", false);

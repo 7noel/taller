@@ -52,6 +52,7 @@ class EstimateService
         $establishmentId = $data['establishment_id'] ?? Auth::user()?->establishment_id;
         $data['establishment_id'] = $establishmentId;
 
+        $data = $this->applyParentInheritance($data);
         $this->fillDefaults($data);
 
         if (empty($data['document_number'])) {
@@ -78,6 +79,23 @@ class EstimateService
             throw new RuntimeException('No se puede editar un presupuesto finalizado.');
         }
 
+        // Una ampliación SIEMPRE conserva la moneda y el tipo de cambio del
+        // presupuesto principal (siniestro): no se pueden cambiar aquí.
+        if ($estimate->parent_estimate_id && $estimate->parent) {
+            $data['currency'] = $estimate->parent->currency ?: $estimate->currency ?: 'PEN';
+            $data['exchange_rate'] = $estimate->parent->exchange_rate ?: $estimate->exchange_rate ?: 1;
+        }
+
+        // La moneda de un presupuesto con ítems/OC cargados NO se puede cambiar
+        // desde el formulario (los montos quedarían con el mismo número en otra
+        // moneda): solo mediante la acción explícita "Cambiar moneda"
+        // (convertCurrency), que convierte todos los montos con el nuevo T.C.
+        $hasDetail = $estimate->items()->exists() || $estimate->thirdPartyOrders()->exists();
+
+        if ($hasDetail && !empty($data['currency']) && $data['currency'] !== $estimate->currency) {
+            throw new RuntimeException('No se puede cambiar la moneda de un presupuesto con ítems cargados. Usa el botón "Cambiar moneda" para convertir todos los montos.');
+        }
+
         $data['updated_by'] = Auth::id();
 
         DB::transaction(function () use ($estimate, $data) {
@@ -92,13 +110,142 @@ class EstimateService
         return $estimate->load($this->defaultRelations());
     }
 
+    /**
+     * Cambia la moneda de un presupuesto en BORRADOR y convierte todos los
+     * montos (ítems, OC, tarifas, descuentos, franquicia) con el nuevo tipo de
+     * cambio. Las ampliaciones están excluidas: siempre heredan la moneda del
+     * siniestro (ver update/applyParentInheritance).
+     */
+    public function convertCurrency(Estimate $estimate, string $newCurrency, float $newExchangeRate): Estimate
+    {
+        if ($estimate->status !== 'draft') {
+            throw new RuntimeException('Solo se puede cambiar la moneda de un presupuesto en borrador.');
+        }
+
+        if ($estimate->parent_estimate_id) {
+            throw new RuntimeException('Una ampliación conserva la moneda del siniestro: no se puede cambiar.');
+        }
+
+        if (!in_array($newCurrency, ['PEN', 'USD'], true)) {
+            throw new RuntimeException('Moneda no válida.');
+        }
+
+        $oldCurrency = $estimate->currency ?: 'PEN';
+
+        if ($newCurrency === $oldCurrency) {
+            return $estimate;
+        }
+
+        DB::transaction(function () use ($estimate, $newCurrency, $newExchangeRate, $oldCurrency) {
+            // Cabecera: tarifas y descuento global fijo.
+            $estimate->hourly_rate = $this->convertAmount((float) $estimate->hourly_rate, $oldCurrency, $newCurrency, $newExchangeRate);
+            $estimate->panel_rate = $this->convertAmount((float) $estimate->panel_rate, $oldCurrency, $newCurrency, $newExchangeRate);
+
+            if ($estimate->global_discount_type === 'fixed') {
+                $estimate->global_discount_value = $this->convertAmount((float) $estimate->global_discount_value, $oldCurrency, $newCurrency, $newExchangeRate);
+            }
+
+            // Ítems: precios y costos unitarios (los totales se recalculan luego).
+            foreach ($estimate->items()->get() as $item) {
+                $item->updateQuietly([
+                    'unit_price' => $this->convertAmount((float) $item->unit_price, $oldCurrency, $newCurrency, $newExchangeRate),
+                    'cost_price' => $this->convertAmount((float) $item->cost_price, $oldCurrency, $newCurrency, $newExchangeRate),
+                ]);
+            }
+
+            // Órdenes de compra de terceros.
+            foreach ($estimate->thirdPartyOrders()->get() as $order) {
+                $order->updateQuietly([
+                    'amount_without_iva' => $this->convertAmount((float) $order->amount_without_iva, $oldCurrency, $newCurrency, $newExchangeRate),
+                ]);
+            }
+
+            // Franquicia (vive en el principal): los montos se convierten, el %
+            // se mantiene. Los campos calculados se recalculan en calculate().
+            if ($estimate->franchise_minimum_amount !== null) {
+                $estimate->franchise_minimum_amount = $this->convertAmount((float) $estimate->franchise_minimum_amount, $oldCurrency, $newCurrency, $newExchangeRate);
+            }
+            if ($estimate->franchise_minimum_without_tax !== null) {
+                $estimate->franchise_minimum_without_tax = $this->convertAmount((float) $estimate->franchise_minimum_without_tax, $oldCurrency, $newCurrency, $newExchangeRate);
+            }
+            if ($estimate->franchise_base !== null) {
+                $estimate->franchise_base = $this->convertAmount((float) $estimate->franchise_base, $oldCurrency, $newCurrency, $newExchangeRate);
+            }
+            if ($estimate->franchise_percentage_applied !== null) {
+                $estimate->franchise_percentage_applied = $this->convertAmount((float) $estimate->franchise_percentage_applied, $oldCurrency, $newCurrency, $newExchangeRate);
+            }
+            if ($estimate->franchise_amount !== null) {
+                $estimate->franchise_amount = $this->convertAmount((float) $estimate->franchise_amount, $oldCurrency, $newCurrency, $newExchangeRate);
+            }
+
+            $estimate->currency = $newCurrency;
+            $estimate->exchange_rate = $newExchangeRate;
+            $estimate->updated_by = Auth::id();
+            $estimate->save();
+
+            // Recalcula todos los totales (los ítems ya están convertidos).
+            $this->calculation->calculate($estimate);
+
+            activity()
+                ->performedOn($estimate)
+                ->causedBy(Auth::id())
+                ->withProperties([
+                    'from' => $oldCurrency,
+                    'to' => $newCurrency,
+                    'exchange_rate' => $newExchangeRate,
+                ])
+                ->log("Moneda cambiada de {$oldCurrency} a {$newCurrency}.");
+        });
+
+        return $estimate->fresh()->load($this->defaultRelations());
+    }
+
+    /**
+     * Convierte un monto entre monedas según la convención del sistema
+     * (exchange_rate = soles por 1 dólar).
+     *
+     * - PEN → otra: monto / tipo (cada dólar vale $rate soles).
+     * - otra → PEN: monto × tipo.
+     * - misma moneda: sin cambios.
+     */
+    protected function convertAmount(float $amount, string $from, string $to, float $rate): float
+    {
+        if ($from === $to) {
+            return round($amount, 4);
+        }
+
+        $rate = max($rate, 0.0001);
+
+        if ($from === 'PEN') {
+            return round($amount / $rate, 4);
+        }
+
+        return round($amount * $rate, 4);
+    }
+
     public function delete(Estimate $estimate): bool
     {
-        if ($estimate->work_order_id) {
+        // Si es un presupuesto principal, la eliminación se propaga a sus
+        // ampliaciones (soft delete en cascada lógica).
+        $group = collect([$estimate]);
+
+        if (!$estimate->parent_estimate_id) {
+            $group = $group->merge($estimate->ampliaciones()->get());
+        }
+
+        $linked = $group->first(fn ($e) => (bool) $e->work_order_id);
+
+        if ($linked) {
             throw new RuntimeException('No se puede eliminar un presupuesto vinculado a una orden de trabajo. Desvincúlelo primero desde la OT.');
         }
 
-        return (bool) $estimate->delete();
+        return DB::transaction(function () use ($group) {
+            foreach ($group as $estimate) {
+                $estimate->delete();
+            }
+
+            return true;
+        });
     }
 
     /**
@@ -146,6 +293,49 @@ class EstimateService
                 $item['service_category_id'] = $item['service_category_id'] ?? null;
                 $item['part_category_id'] = $item['part_category_id'] ?? null;
                 $item['uom'] = $item['uom'] ?? null;
+            }
+
+            // Precio de catálogo → moneda del presupuesto (defensa en profundidad):
+            // si el frontend no envió unit_price/cost_price (0 o vacío) y el
+            // catálogo tiene precio, se deriva convirtiendo con el exchange_rate
+            // de la cabecera (convención: soles por 1 dólar).
+            $estimateCurrency = $estimate->currency ?: 'PEN';
+            $exchangeRate = (float) ($estimate->exchange_rate ?: 1);
+
+            if ($serviceId && $service) {
+                if ((float) ($item['unit_price'] ?? 0) <= 0 && (float) ($service->sell_price ?? 0) > 0) {
+                    $item['unit_price'] = $this->convertAmount(
+                        (float) $service->sell_price,
+                        $service->currency ?: 'PEN',
+                        $estimateCurrency,
+                        $exchangeRate
+                    );
+                }
+                if ((float) ($item['cost_price'] ?? 0) <= 0 && (float) ($service->cost_price ?? 0) > 0) {
+                    $item['cost_price'] = $this->convertAmount(
+                        (float) $service->cost_price,
+                        $service->cost_currency ?: ($service->currency ?: 'PEN'),
+                        $estimateCurrency,
+                        $exchangeRate
+                    );
+                }
+            } elseif ($partId && $part) {
+                if ((float) ($item['unit_price'] ?? 0) <= 0 && (float) ($part->sell_price ?? 0) > 0) {
+                    $item['unit_price'] = $this->convertAmount(
+                        (float) $part->sell_price,
+                        $part->currency ?: 'PEN',
+                        $estimateCurrency,
+                        $exchangeRate
+                    );
+                }
+                if ((float) ($item['cost_price'] ?? 0) <= 0 && (float) ($part->cost_price ?? 0) > 0) {
+                    $item['cost_price'] = $this->convertAmount(
+                        (float) $part->cost_price,
+                        $part->cost_currency ?: ($part->currency ?: 'PEN'),
+                        $estimateCurrency,
+                        $exchangeRate
+                    );
+                }
             }
 
             $id = $item['id'] ?? null;
@@ -559,7 +749,7 @@ class EstimateService
     public function getSearchResults(array $filters): array
     {
         $query = Estimate::query()
-            ->with(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany'])
+            ->with(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany', 'parent'])
             ->with(['invoices' => fn ($q) => $q->where('invoices.status', '!=', 'voided')]);
 
         if (!empty($filters['q'])) {
@@ -606,10 +796,12 @@ class EstimateService
             'id' => $estimate->id,
             'document_sn' => $estimate->document_sn,
             'text' => sprintf(
-                '%s · %s · %s · S/ %s',
+                '%s%s · %s · %s · %s %s',
                 $estimate->document_sn,
+                $estimate->is_ampliacion ? ' (Ampl.)' : '',
                 $estimate->vehicle?->plate ?? 'sin placa',
                 $estimate->client?->display_name ?? '—',
+                $estimate->currency === 'USD' ? 'US$' : 'S/',
                 number_format((float) $estimate->total, 2)
             ),
             'vehicle_id' => $estimate->vehicle_id,
@@ -618,6 +810,9 @@ class EstimateService
             'client_name' => $estimate->client?->display_name,
             'client_document' => $estimate->client?->document_number,
             'insurance_company' => $estimate->insuranceCompany?->display_name,
+            'currency' => $estimate->currency,
+            'is_ampliacion' => $estimate->is_ampliacion,
+            'parent_sn' => $estimate->parent?->document_sn,
             'status' => $estimate->status,
             'status_label' => $estimate->status_label,
             'subtotal' => $estimate->subtotal,
@@ -629,20 +824,38 @@ class EstimateService
     }
 
     /**
-     * Presupuestos facturables relacionados con un presupuesto (mismo vehículo
-     * o misma OT) o con un vehículo (origen "Por Vehículo").
+     * Presupuestos facturables relacionados con un presupuesto (grupo de
+     * ampliaciones + mismo vehículo + misma OT) o con un vehículo
+     * (origen "Por Vehículo").
      */
     public function getRelatedBillable(?Estimate $estimate, ?int $vehicleId = null): array
     {
         $query = Estimate::query()
-            ->with(['vehicle.vehicleModel.brand', 'client'])
+            ->with(['vehicle.vehicleModel.brand', 'client', 'parent'])
             ->whereIn('status', Estimate::BILLABLE_STATUSES);
 
         if ($vehicleId) {
             $query->where('vehicle_id', $vehicleId);
         } elseif ($estimate) {
-            $query->where(function ($q) use ($estimate) {
-                $q->where('vehicle_id', $estimate->vehicle_id);
+            // Grupo de ampliaciones: siniestro + sus ampliaciones (un solo nivel).
+            $groupIds = [$estimate->id];
+
+            if ($estimate->parent_estimate_id) {
+                $root = $estimate->parent;
+                $groupIds[] = $root?->id;
+
+                if ($root) {
+                    $groupIds = array_merge($groupIds, $root->ampliaciones()->pluck('id')->all());
+                }
+            } else {
+                $groupIds = array_merge($groupIds, $estimate->ampliaciones()->pluck('id')->all());
+            }
+
+            $groupIds = array_values(array_unique(array_filter($groupIds)));
+
+            $query->where(function ($q) use ($estimate, $groupIds) {
+                $q->whereIn('estimates.id', $groupIds)
+                    ->orWhere('vehicle_id', $estimate->vehicle_id);
 
                 if ($estimate->work_order_id) {
                     $q->orWhere('work_order_id', $estimate->work_order_id);
@@ -655,15 +868,20 @@ class EstimateService
         return $query->limit(50)->get()->map(fn (Estimate $e) => [
             'id' => $e->id,
             'text' => sprintf(
-                '%s · %s · S/ %s',
+                '%s%s · %s · %s %s',
                 $e->document_sn,
+                $e->is_ampliacion ? ' (Ampl.)' : '',
                 $e->vehicle?->plate ?? 'sin placa',
+                $e->currency === 'USD' ? 'US$' : 'S/',
                 number_format((float) $e->total, 2)
             ),
             'plate' => $e->vehicle?->plate,
             'total' => (float) $e->total,
             'status' => $e->status,
             'status_label' => $e->status_label,
+            'is_ampliacion' => $e->is_ampliacion,
+            'parent_sn' => $e->parent?->document_sn,
+            'currency' => $e->currency,
         ])->values()->all();
     }
 
@@ -693,6 +911,56 @@ class EstimateService
             'hourly_rate' => round($hourlyRate, 2),
             'panel_rate' => round($panelRate, 2),
         ];
+    }
+
+    /**
+     * Cuando el presupuesto es una ampliación, hereda la moneda y el tipo de
+     * cambio del presupuesto principal (siniestro) y pre-rellena el contexto
+     * que venga vacío (vehículo, cliente, aseguradora, nº de siniestro, tarifas).
+     */
+    protected function applyParentInheritance(array $data): array
+    {
+        $parentId = $data['parent_estimate_id'] ?? null;
+
+        if (!$parentId) {
+            return $data;
+        }
+
+        $parent = Estimate::withTrashed()->find($parentId);
+
+        if (!$parent) {
+            throw new RuntimeException('El presupuesto padre de la ampliación no existe.');
+        }
+
+        if ($parent->parent_estimate_id) {
+            throw new RuntimeException('El presupuesto padre no puede ser a su vez una ampliación (solo se permite un nivel).');
+        }
+
+        // La ampliación debe pertenecer al mismo vehículo que el siniestro.
+        if (!empty($data['vehicle_id']) && (int) $data['vehicle_id'] !== (int) $parent->vehicle_id) {
+            throw new RuntimeException('La ampliación debe pertenecer al mismo vehículo que el presupuesto padre.');
+        }
+
+        // La moneda SIEMPRE es la del siniestro (no se permite elegir otra).
+        $data['currency'] = $parent->currency ?: 'PEN';
+        $data['exchange_rate'] = $parent->exchange_rate ?: 1;
+
+        // Contexto por defecto desde el padre (rellena solo lo vacío).
+        foreach (['vehicle_id', 'client_id', 'insurance_company_id', 'claim_number', 'service_type', 'establishment_id'] as $field) {
+            if (empty($data[$field]) && !empty($parent->{$field})) {
+                $data[$field] = $parent->{$field};
+            }
+        }
+
+        if (empty($data['hourly_rate']) && (float) $parent->hourly_rate > 0) {
+            $data['hourly_rate'] = (float) $parent->hourly_rate;
+        }
+
+        if (empty($data['panel_rate']) && (float) $parent->panel_rate > 0) {
+            $data['panel_rate'] = (float) $parent->panel_rate;
+        }
+
+        return $data;
     }
 
     /**

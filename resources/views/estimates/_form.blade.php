@@ -3,11 +3,33 @@
     $items = $isEdit ? ($estimate->items ?? collect()) : collect();
     $priceLabel = ($establishment->prices_include_tax ?? false) ? 'Precio (inc. IGV)' : 'Precio (sin IGV)';
     $inputCls = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500';
+
+    $parentEstimate = $parentEstimate ?? null;
+    $parentForForm = $parentEstimate ?? ($isEdit ? ($estimate->parent ?? null) : null);
+    $isAmpliacionForm = $parentForForm !== null;
+
+    // La moneda se bloquea cuando ya hay ítems/OC cargados (o es ampliación).
+    $hasDetail = $isEdit && ($estimate->items->isNotEmpty() || $estimate->thirdPartyOrders->isNotEmpty());
+    $currencyLocked = $isAmpliacionForm || ($isEdit && $hasDetail);
+    $canChangeCurrency = $isEdit && !$isAmpliacionForm && $hasDetail && $estimate->status === 'draft';
 @endphp
 
 <input type="hidden" name="check_in_id" id="check_in_id" value="{{ old('check_in_id', $checkIn->id ?? $estimate->check_in_id ?? '') }}">
 <input type="hidden" name="establishment_id" id="establishment_id" value="{{ old('establishment_id', $checkIn->establishment_id ?? $estimate->establishment_id ?? $establishment->id ?? '') }}">
 <input type="hidden" name="contact_name" id="contact_name" value="{{ old('contact_name', $estimate->contact_name ?? '') }}">
+@if ($parentForForm)
+    <input type="hidden" name="parent_estimate_id" id="parent_estimate_id" value="{{ old('parent_estimate_id', $estimate->parent_estimate_id ?? $parentForForm->id) }}">
+@endif
+
+@if ($isAmpliacionForm)
+    <div class="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm">
+        <strong class="font-semibold">Ampliación</strong> del presupuesto
+        <a href="{{ route('estimates.show', $parentForForm) }}" class="font-semibold underline">{{ $parentForForm->document_sn }}</a>
+        · {{ $parentForForm->vehicle?->plate }} · Moneda:
+        <span class="font-semibold">{{ $parentForForm->currency ?? 'PEN' }}</span> (heredada del siniestro).
+        La franquicia se calcula sobre el grupo (siniestro + ampliaciones) y se muestra en el presupuesto principal.
+    </div>
+@endif
 
 {{-- ===== Cabecera en un solo card (3 columnas, sin subtítulos) ===== --}}
 <div class="card p-6">
@@ -102,15 +124,40 @@
         <div class="sm:col-span-2 xl:col-span-1">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="currency" class="block text-sm font-medium text-gray-700">Moneda</label>
-                    <select id="currency" name="currency" class="{{ $inputCls }}">
-                        <option value="PEN" @selected(old('currency', $estimate->currency ?? '') === 'PEN')>Soles (PEN)</option>
-                        <option value="USD" @selected(old('currency', $estimate->currency ?? '') === 'USD')>Dólares (USD)</option>
-                    </select>
+                    <label for="currency" class="block text-sm font-medium text-gray-700">Moneda <span class="text-red-500">*</span></label>
+                    @if ($currencyLocked)
+                        <input type="hidden" name="currency" value="{{ old('currency', $estimate->currency ?? ($parentForForm->currency ?? 'PEN')) }}">
+                        <input type="text" value="{{ (old('currency', $estimate->currency ?? ($parentForForm->currency ?? 'PEN'))) === 'USD' ? 'Dólares (USD)' : 'Soles (PEN)' }}" disabled class="{{ $inputCls }} bg-gray-100 text-gray-500">
+                        <p class="mt-1 text-xs text-gray-500">
+                            @if ($isAmpliacionForm)
+                                Heredada del siniestro.
+                            @else
+                                Bloqueada al tener ítems cargados.
+                            @endif
+                        </p>
+                    @else
+                        <select id="currency" name="currency" class="{{ $inputCls }}">
+                            <option value="PEN" @selected(old('currency', $estimate->currency ?? '') === 'PEN')>Soles (PEN)</option>
+                            <option value="USD" @selected(old('currency', $estimate->currency ?? '') === 'USD')>Dólares (USD)</option>
+                        </select>
+                        <p id="currency-lock-hint" class="mt-1 text-xs text-gray-500 hidden">Se bloquea al agregar ítems. Usa "Cambiar moneda" si necesitas convertirla después.</p>
+                    @endif
                 </div>
                 <div>
                     <label for="exchange_rate" class="block text-sm font-medium text-gray-700">Tipo de cambio</label>
-                    <input type="number" id="exchange_rate" name="exchange_rate" step="0.0001" min="0" value="{{ old('exchange_rate', $estimate->exchange_rate ?? 1) }}" class="{{ $inputCls }}">
+                    @if ($currencyLocked)
+                        <input type="hidden" name="exchange_rate" value="{{ old('exchange_rate', $estimate->exchange_rate ?? ($parentForForm->exchange_rate ?? 1)) }}">
+                        <input type="text" id="exchange_rate" value="{{ old('exchange_rate', $estimate->exchange_rate ?? ($parentForForm->exchange_rate ?? 1)) }}" disabled class="{{ $inputCls }} bg-gray-100 text-gray-500">
+                    @else
+                        <input type="number" id="exchange_rate" name="exchange_rate" step="0.0001" min="0" value="{{ old('exchange_rate', $estimate->exchange_rate ?? 1) }}" class="{{ $inputCls }}">
+                        <p class="mt-1 text-xs text-gray-500">Soles por 1 dólar (PEN → 1).</p>
+                    @endif
+                    @if ($canChangeCurrency)
+                        <button type="button" id="btn-change-currency" class="mt-2 btn btn-secondary w-full">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            Cambiar moneda
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
@@ -249,20 +296,28 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-            <div>
-                <label for="franchise_minimum_amount" class="block text-sm font-medium text-gray-700">Monto mínimo</label>
-                <input type="number" id="franchise_minimum_amount" name="franchise_minimum_amount" step="0.01" min="0" value="{{ old('franchise_minimum_amount', $estimate->franchise_minimum_amount ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-right">
-            </div>
-            <div>
-                <label for="franchise_percentage" class="block text-sm font-medium text-gray-700">% Franquicia</label>
-                <input type="number" id="franchise_percentage" name="franchise_percentage" step="0.01" min="0" max="100" value="{{ old('franchise_percentage', $estimate->franchise_percentage ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-right">
-            </div>
-            <div class="flex items-end">
-                <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <input type="checkbox" id="franchise_minimum_includes_tax" name="franchise_minimum_includes_tax" value="1" @checked(old('franchise_minimum_includes_tax', $estimate->franchise_minimum_includes_tax ?? false)) class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    El monto mínimo incluye IGV
-                </label>
-            </div>
+            @if ($isAmpliacionForm)
+                <div class="sm:col-span-3 px-4 py-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-sm">
+                    La franquicia es del grupo (siniestro + ampliaciones). El monto mínimo y el porcentaje se definen en el
+                    presupuesto principal
+                    <a href="{{ route('estimates.show', $parentForForm) }}" class="font-semibold underline">{{ $parentForForm->document_sn }}</a>.
+                </div>
+            @else
+                <div>
+                    <label for="franchise_minimum_amount" class="block text-sm font-medium text-gray-700">Monto mínimo</label>
+                    <input type="number" id="franchise_minimum_amount" name="franchise_minimum_amount" step="0.01" min="0" value="{{ old('franchise_minimum_amount', $estimate->franchise_minimum_amount ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-right">
+                </div>
+                <div>
+                    <label for="franchise_percentage" class="block text-sm font-medium text-gray-700">% Franquicia</label>
+                    <input type="number" id="franchise_percentage" name="franchise_percentage" step="0.01" min="0" max="100" value="{{ old('franchise_percentage', $estimate->franchise_percentage ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-right">
+                </div>
+                <div class="flex items-end">
+                    <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <input type="checkbox" id="franchise_minimum_includes_tax" name="franchise_minimum_includes_tax" value="1" @checked(old('franchise_minimum_includes_tax', $estimate->franchise_minimum_includes_tax ?? false)) class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        El monto mínimo incluye IGV
+                    </label>
+                </div>
+            @endif
         </div>
 
         {{-- Desglose de franquicia (calculado en vivo) --}}

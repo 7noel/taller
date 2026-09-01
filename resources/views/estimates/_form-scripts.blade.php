@@ -35,6 +35,58 @@
             'amount_without_iva' => (float) $o->amount_without_iva,
         ])->values()
         : collect();
+
+    // Datos del presupuesto principal para una ampliación (creación o edición).
+    $parentEstimate = $parentEstimate ?? null;
+    $parentForForm = $parentEstimate;
+
+    if (!$parentForForm && $isEdit && ($estimate->is_ampliacion ?? false)) {
+        $parentForForm = $estimate->parent;
+    }
+
+    $isAmpliacionForm = $parentForForm !== null;
+
+    // Moneda y T.C. vigentes del formulario (para conversión de catálogo).
+    $formCurrency = old('currency', $estimate->currency ?? ($parentForForm->currency ?? ($establishment->base_currency ?? 'PEN')));
+    $formExchangeRate = (float) old('exchange_rate', $estimate->exchange_rate ?? ($parentForForm->exchange_rate ?? 1));
+
+    $parentData = null;
+    if ($isAmpliacionForm && $parentForForm) {
+        $parentForForm->loadMissing(['ampliaciones.thirdPartyOrders', 'thirdPartyOrders']);
+
+        // Base de franquicia YA guardada del grupo, excluyendo el presupuesto
+        // que se está creando/ editando (se recalcula con los valores nuevos).
+        $currentId = $isEdit ? ($estimate->id ?? null) : null;
+        $savedBase = (float) $parentForForm->taxable_base;
+        $savedBase += (float) $parentForForm->thirdPartyOrders->sum('amount_without_iva');
+
+        foreach ($parentForForm->ampliaciones as $amp) {
+            if ($currentId && (int) $amp->id === (int) $currentId) {
+                continue;
+            }
+
+            $savedBase += (float) $amp->taxable_base;
+            $savedBase += (float) $amp->thirdPartyOrders->sum('amount_without_iva');
+        }
+
+        $parentData = [
+            'id' => $parentForForm->id,
+            'sn' => $parentForForm->document_sn,
+            'currency' => $parentForForm->currency ?: 'PEN',
+            'exchange_rate' => (float) ($parentForForm->exchange_rate ?: 1),
+            'vehicle_id' => $parentForForm->vehicle_id,
+            'client_id' => $parentForForm->client_id,
+            'insurance_company_id' => $parentForForm->insurance_company_id,
+            'claim_number' => $parentForForm->claim_number,
+            'service_type' => $parentForForm->service_type,
+            'hourly_rate' => (float) $parentForForm->hourly_rate,
+            'panel_rate' => (float) $parentForForm->panel_rate,
+            'franchise_minimum_amount' => (float) ($parentForForm->franchise_minimum_amount ?? 0),
+            'franchise_percentage' => (float) ($parentForForm->franchise_percentage ?? 0),
+            'franchise_minimum_includes_tax' => (bool) ($parentForForm->franchise_minimum_includes_tax ?? false),
+            'group_saved_base' => round($savedBase, 2),
+        ];
+    }
 @endphp
 
 @push('scripts')
@@ -50,6 +102,10 @@
     const initialServiceType = "{{ old('service_type', $estimate->service_type ?? '') }}";
     const initialItems = @json($initialItems);
     const initialThirdPartyOrders = @json($initialThirdPartyOrders);
+    const isAmpliacion = {{ $isAmpliacionForm ? 'true' : 'false' }};
+    const parentData = @json($parentData ?? null);
+    const estimateCurrency = @json($formCurrency);
+    const estimateExchangeRate = @json($formExchangeRate);
 
     const serviceCategories = @json($serviceCategoriesData);
     const partCategories = @json($partCategoriesData);
@@ -61,6 +117,61 @@
     function round2(n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; }
     function money(n) { return round2(n || 0).toFixed(2); }
     function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+    function round4(n) { return Math.round((Number(n) + Number.EPSILON) * 10000) / 10000; }
+
+    // Convierte un precio del catálogo a la moneda del presupuesto.
+    // Convención: exchange_rate = soles por 1 dólar.
+    function convertCatalogPrice(price, catCurrency) {
+        const from = catCurrency || 'PEN';
+        const to = estimateCurrency || 'PEN';
+        const amount = num(price);
+        if (from === to) return round2(amount);
+        const rate = num(estimateExchangeRate) || 1;
+        return from === 'PEN' ? round4(amount / rate) : round4(amount * rate);
+    }
+
+    // Nota visible en el modal de ítems cuando el catálogo está en otra moneda.
+    function setPriceNote(catPrice, catCurrency, convertedPrice) {
+        const note = document.getElementById('item-price-note');
+        if (!note) return;
+        const sym = c => (c === 'USD' ? 'US$' : 'S/');
+        if (catCurrency && catCurrency !== estimateCurrency && num(catPrice) > 0) {
+            note.textContent = `Catálogo: ${sym(catCurrency)} ${money(catPrice)} · T.C. ${num(estimateExchangeRate) || 1} → ${sym(estimateCurrency)} ${money(convertedPrice)}`;
+            note.classList.remove('hidden');
+        } else {
+            note.textContent = '';
+            note.classList.add('hidden');
+        }
+    }
+
+    // Bloquea el select de moneda cuando ya hay ítems/OC cargados (solo en
+    // creación o edición sin ítems: en edición con ítems el servidor ya lo
+    // renderiza bloqueado con input hidden).
+    function lockCurrency() {
+        const select = document.getElementById('currency');
+        const hint = document.getElementById('currency-lock-hint');
+        if (!select) return;
+        const hasDetail = items.length > 0 || orders.length > 0;
+        if (hasDetail && !select.disabled) {
+            if (!document.getElementById('currency-locked-value')) {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.id = 'currency-locked-value';
+                hidden.name = 'currency';
+                hidden.value = select.value || estimateCurrency || 'PEN';
+                select.parentNode.appendChild(hidden);
+            }
+            select.disabled = true;
+            select.classList.add('bg-gray-100', 'text-gray-500');
+            if (hint) hint.classList.remove('hidden');
+        } else if (!hasDetail && select.disabled) {
+            const hidden = document.getElementById('currency-locked-value');
+            if (hidden) hidden.remove();
+            select.disabled = false;
+            select.classList.remove('bg-gray-100', 'text-gray-500');
+            if (hint) hint.classList.add('hidden');
+        }
+    }
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
         return String(str).replace(/[&<>"']/g, m => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#039;' }[m]));
@@ -448,6 +559,7 @@
                 </td>
             </tr>`;
         }).join('') || '<tr><td colspan="9" class="px-3 py-8 text-center text-sm text-gray-500">Sin ítems. Haz clic en "Agregar ítem".</td></tr>';
+        lockCurrency();
     }
 
     itemsBody.addEventListener('click', function (e) {
@@ -502,6 +614,7 @@
                 </td>
             </tr>`;
         }).join('') || '<tr><td colspan="4" class="px-3 py-8 text-center text-sm text-gray-500">Sin órdenes. Haz clic en "Agregar orden".</td></tr>';
+        lockCurrency();
     }
 
     ordersBody.addEventListener('click', function (e) {
@@ -657,11 +770,20 @@
         // Órdenes de compra de terceros: solo suman a la base de la franquicia.
         const ordersTotal = orders.reduce((sum, o) => sum + num(o.amount_without_iva), 0);
 
-        // Franquicia (informativa).
-        const franchiseMinAmount = num(document.getElementById('franchise_minimum_amount').value);
-        const franchisePct = Math.min(100, Math.max(0, num(document.getElementById('franchise_percentage').value)));
-        const franchiseIncludesTax = document.getElementById('franchise_minimum_includes_tax').checked;
-        const franchiseBase = round2(taxableBase + ordersTotal);
+        // Franquicia (informativa). En una ampliación se calcula sobre el GRUPO:
+        // base guardada del siniestro + demás ampliaciones + lo actual del form.
+        const franchiseMinAmount = isAmpliacion && parentData
+            ? num(parentData.franchise_minimum_amount)
+            : num(document.getElementById('franchise_minimum_amount').value);
+        const franchisePct = isAmpliacion && parentData
+            ? Math.min(100, Math.max(0, num(parentData.franchise_percentage)))
+            : Math.min(100, Math.max(0, num(document.getElementById('franchise_percentage').value)));
+        const franchiseIncludesTax = isAmpliacion && parentData
+            ? !!parentData.franchise_minimum_includes_tax
+            : document.getElementById('franchise_minimum_includes_tax').checked;
+        const franchiseBase = isAmpliacion && parentData
+            ? round2((parentData.group_saved_base || 0) + taxableBase + ordersTotal)
+            : round2(taxableBase + ordersTotal);
         const minWithoutTax = franchiseMinAmount > 0
             ? round2(franchiseIncludesTax ? (franchiseMinAmount / (1 + igvRate)) : franchiseMinAmount)
             : 0;
@@ -710,6 +832,7 @@
                 .then(data => callback(data.map(s => ({
                     id: s.id, label: s.name, sub: s.category || '',
                     sell_price: s.sell_price, cost_price: s.cost_price,
+                    currency: s.currency, cost_currency: s.cost_currency,
                     pricing_type: s.pricing_type, estimated_hours: s.estimated_hours,
                     is_outsourced: s.is_outsourced, service_category_id: s.service_category_id,
                 }))))
@@ -726,9 +849,12 @@
         const v = this.getValue();
         if (!v) return;
         const s = this.options[v];
+        const unitPrice = convertCatalogPrice(s.sell_price, s.currency);
+        const costPrice = convertCatalogPrice(s.cost_price, s.cost_currency || s.currency);
         document.getElementById('item-description').value = s.label || '';
-        document.getElementById('item-unit-price').value = s.sell_price || 0;
-        document.getElementById('item-cost-price').value = s.cost_price || 0;
+        document.getElementById('item-unit-price').value = unitPrice;
+        document.getElementById('item-cost-price').value = costPrice;
+        setPriceNote(s.sell_price, s.currency, unitPrice);
         document.getElementById('item-supply-source').value = s.is_outsourced ? 'external' : 'internal';
         if (s.service_category_id) serviceCatSelect.value = s.service_category_id;
         if (s.pricing_type === 'time_based' && s.estimated_hours) document.getElementById('item-quantity').value = s.estimated_hours;
@@ -743,6 +869,7 @@
                 .then(data => callback(data.map(p => ({
                     id: p.id, label: p.name, sub: [p.sku, p.brand].filter(Boolean).join(' '),
                     sell_price: p.sell_price, cost_price: p.cost_price,
+                    currency: p.currency, cost_currency: p.cost_currency,
                     part_category_id: p.part_category_id,
                 }))))
                 .catch(() => callback());
@@ -758,9 +885,12 @@
         const v = this.getValue();
         if (!v) return;
         const p = this.options[v];
+        const unitPrice = convertCatalogPrice(p.sell_price, p.currency);
+        const costPrice = convertCatalogPrice(p.cost_price, p.cost_currency || p.currency);
         document.getElementById('item-description').value = p.label || '';
-        document.getElementById('item-unit-price').value = p.sell_price || 0;
-        document.getElementById('item-cost-price').value = p.cost_price || 0;
+        document.getElementById('item-unit-price').value = unitPrice;
+        document.getElementById('item-cost-price').value = costPrice;
+        setPriceNote(p.sell_price, p.currency, unitPrice);
         if (p.part_category_id) partCatSelect.value = p.part_category_id;
         if (p.uom) document.getElementById('item-uom').value = p.uom;
     });
@@ -789,6 +919,8 @@
         document.getElementById('item-cost-price').value = 0;
         document.getElementById('item-uom').value = '';
         document.getElementById('item-id').value = '';
+        const priceNote = document.getElementById('item-price-note');
+        if (priceNote) { priceNote.textContent = ''; priceNote.classList.add('hidden'); }
         serviceCatSelect.value = serviceCatSelect.options[0]?.value || '';
         partCatSelect.value = partCatSelect.options[0]?.value || '';
         applyTypeVisibility();
@@ -844,6 +976,7 @@
                 const opt = {
                     id: s.id, label: s.name, sub: s.category || '',
                     sell_price: s.sell_price, cost_price: s.cost_price,
+                    currency: s.currency, cost_currency: s.cost_currency,
                     pricing_type: s.pricing_type, estimated_hours: s.estimated_hours,
                     is_outsourced: s.is_outsourced, service_category_id: s.service_category_id,
                     uom: s.uom,
@@ -862,6 +995,7 @@
                 const opt = {
                     id: p.id, label: p.name, sub: [p.sku, p.brand].filter(Boolean).join(' '),
                     sell_price: p.sell_price, cost_price: p.cost_price,
+                    currency: p.currency, cost_currency: p.cost_currency,
                     part_category_id: p.part_category_id,
                     uom: p.uom,
                 };
@@ -969,6 +1103,79 @@
     });
 
     // =====================================================
+    // Moneda: sugerir T.C. al cambiar (solo formularios con select libre)
+    // =====================================================
+    const currencyEl = document.getElementById('currency');
+    if (currencyEl) {
+        currencyEl.addEventListener('change', function () {
+            const rateEl = document.getElementById('exchange_rate');
+            if (!rateEl) return;
+            if (this.value === 'PEN') { rateEl.value = 1; return; }
+            fetch(`/api/exchange-rates/latest?currency=${encodeURIComponent(this.value)}`)
+                .then(r => r.json())
+                .then(d => { if (d && d.rate) rateEl.value = d.rate; })
+                .catch(() => {});
+        });
+    }
+
+    // =====================================================
+    // Cambiar moneda (modal independiente, solo edición con ítems en borrador)
+    // =====================================================
+    const currencyModal = document.getElementById('currency-modal');
+    if (currencyModal) {
+        const currentCurrency = @json($estimate->currency ?? 'PEN');
+        const currentTotal = @json((float) ($estimate->total ?? 0));
+        const btnChangeCurrency = document.getElementById('btn-change-currency');
+        const currencyNew = document.getElementById('currency-new');
+        const currencyRate = document.getElementById('currency-rate');
+        const currencyCurrentTotal = document.getElementById('currency-current-total');
+        const currencyNewTotal = document.getElementById('currency-new-total');
+
+        function updateCurrencyPreview() {
+            const to = currencyNew.value;
+            const rate = num(currencyRate.value);
+            let newTotal = currentTotal;
+            if (rate > 0 && to !== currentCurrency) {
+                newTotal = to === 'PEN' ? currentTotal * rate : currentTotal / rate;
+            }
+            currencyNewTotal.textContent = (to === 'USD' ? 'US$ ' : 'S/ ') + money(newTotal);
+        }
+
+        function openCurrencyModal() {
+            currencyCurrentTotal.textContent = (currentCurrency === 'USD' ? 'US$ ' : 'S/ ') + money(currentTotal);
+            updateCurrencyPreview();
+            fetch(`/api/exchange-rates/latest?currency=${encodeURIComponent(currencyNew.value)}`)
+                .then(r => r.json())
+                .then(d => { if (d && d.rate) currencyRate.value = d.rate; updateCurrencyPreview(); })
+                .catch(() => {});
+            currencyModal.classList.remove('hidden');
+            currencyModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeCurrencyModal() {
+            currencyModal.classList.add('hidden');
+            currencyModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        if (btnChangeCurrency) btnChangeCurrency.addEventListener('click', openCurrencyModal);
+        currencyNew.addEventListener('change', function () {
+            fetch(`/api/exchange-rates/latest?currency=${encodeURIComponent(this.value)}`)
+                .then(r => r.json())
+                .then(d => { if (d && d.rate) currencyRate.value = d.rate; updateCurrencyPreview(); })
+                .catch(() => updateCurrencyPreview());
+        });
+        currencyRate.addEventListener('input', updateCurrencyPreview);
+        document.getElementById('currency-modal-overlay').addEventListener('click', closeCurrencyModal);
+        document.getElementById('currency-modal-close-x').addEventListener('click', closeCurrencyModal);
+        document.getElementById('currency-modal-cancel').addEventListener('click', closeCurrencyModal);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !currencyModal.classList.contains('hidden')) closeCurrencyModal();
+        });
+    }
+
+    // =====================================================
     // Precarga desde check-in o valores iniciales
     // =====================================================
     function setVehicleById(id) {
@@ -1009,7 +1216,13 @@
                 if (data.claim_number) document.getElementById('claim_number').value = data.claim_number;
                 if (data.hourly_rate) document.getElementById('hourly_rate').value = data.hourly_rate;
                 if (data.panel_rate) document.getElementById('panel_rate').value = data.panel_rate;
-                if (data.currency) document.getElementById('currency').value = data.currency;
+                if (data.currency) {
+                    const curEl = document.getElementById('currency');
+                    if (curEl) {
+                        curEl.value = data.currency;
+                        curEl.dispatchEvent(new Event('change')); // sugiere el T.C.
+                    }
+                }
                 if (data.service_type) {
                     document.getElementById('service_type').value = data.service_type;
                     setClaimNumberVisibility(data.service_type);
@@ -1040,6 +1253,21 @@
         if (vId) setVehicleById(vId);
         if (initialClientId) clientInput.value = initialClientId;
         if (initialInsuranceId) setPartyById(insuranceSelect, initialInsuranceId);
+    }
+
+    // Precarga de una ampliación desde el presupuesto principal (siniestro).
+    if (isAmpliacion && parentData) {
+        if (!document.getElementById('vehicle_id').value && parentData.vehicle_id) setVehicleById(parentData.vehicle_id);
+        if (parentData.client_id && !clientInput.value) clientInput.value = parentData.client_id;
+        if (!initialInsuranceId && parentData.insurance_company_id) setPartyById(insuranceSelect, parentData.insurance_company_id);
+        if (parentData.claim_number) document.getElementById('claim_number').value = parentData.claim_number;
+        if (parentData.hourly_rate) document.getElementById('hourly_rate').value = parentData.hourly_rate;
+        if (parentData.panel_rate) document.getElementById('panel_rate').value = parentData.panel_rate;
+        if (parentData.exchange_rate) document.getElementById('exchange_rate').value = parentData.exchange_rate;
+        if (parentData.service_type) {
+            document.getElementById('service_type').value = parentData.service_type;
+            setClaimNumberVisibility(parentData.service_type);
+        }
     }
 
     renderItems();

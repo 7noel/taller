@@ -73,6 +73,9 @@
                     </div>
                 </div>
 
+                {{-- Nota de conversión de catálogo (cuando el catálogo está en otra moneda) --}}
+                <p id="item-price-note" class="text-xs text-gray-500 hidden"></p>
+
                 {{-- Unidad de medida (SUNAT Catálogo 03) --}}
                 <div>
                     <label for="item-uom" class="block text-sm font-medium text-gray-700">Unidad de medida</label>

@@ -397,5 +397,19 @@ class InvoiceFlowTest extends TestCase
         $this->assertCount(2, $response->json());
         $this->assertArrayHasKey('text', $response->json()[0]);
     }
+
+    public function test_rejects_invoice_with_estimates_in_different_currencies(): void
+    {
+        $penEstimate = $this->makeEstimate(1000);
+
+        $usdEstimate = $this->makeEstimate(500);
+        $usdEstimate->update(['currency' => 'USD']);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->service->createFromEstimates(
+            [$penEstimate->id, $usdEstimate->id],
+            ['invoice_type' => 'regular', 'party_id' => $this->clientRuc->id]
+        );
+    }
 }
 

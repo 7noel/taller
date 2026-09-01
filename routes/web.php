@@ -7,6 +7,7 @@ use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\DocumentSeriesController;
 use App\Http\Controllers\EstablishmentController;
 use App\Http\Controllers\EstimateController;
+use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\FormTemplateController;
 use App\Http\Controllers\InventoryGuideController;
 use App\Http\Controllers\KanbanController;
@@ -223,6 +224,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('estimates/{estimate}/start-repair', [EstimateController::class, 'startRepair'])->name('estimates.start-repair');
     Route::post('estimates/{estimate}/finalize', [EstimateController::class, 'finalize'])->name('estimates.finalize');
     Route::post('estimates/{estimate}/return-to-draft', [EstimateController::class, 'returnToDraft'])->name('estimates.return-to-draft');
+    Route::post('estimates/{estimate}/change-currency', [EstimateController::class, 'changeCurrency'])->name('estimates.change-currency');
 
     Route::get('api/estimates/search', [EstimateController::class, 'search'])->name('api.estimates.search');
     Route::get('api/estimates/related', [EstimateController::class, 'related'])->name('api.estimates.related');
@@ -230,6 +232,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('api/estimates/calculate', [EstimateController::class, 'calculate'])->name('api.estimates.calculate');
     Route::get('api/estimates/from-check-in/{checkIn}', [EstimateController::class, 'fromCheckIn'])->name('api.estimates.from-check-in');
+
+    // Tipos de cambio (mantenimiento + API de sugerencia)
+    Route::get('exchange-rates', [ExchangeRateController::class, 'index'])->name('exchange-rates.index');
+    Route::post('exchange-rates', [ExchangeRateController::class, 'store'])->name('exchange-rates.store');
+    Route::delete('exchange-rates/{exchangeRate}', [ExchangeRateController::class, 'destroy'])->name('exchange-rates.destroy');
+    Route::get('api/exchange-rates/latest', [ExchangeRateController::class, 'latest'])->name('api.exchange-rates.latest');
 
     Route::get('api/parties/search', [PartyController::class, 'search'])->name('api.parties.search');
     Route::get('api/parties/suppliers', [PartyController::class, 'suppliers'])->name('api.parties.suppliers');

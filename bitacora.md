@@ -1,6 +1,30 @@
 
 ## Fecha de inicio: 17 de agosto de 2026
 
+### 📌 Sesión: Moneda en presupuestos (entidad tipo de cambio + bloqueo + conversión + catálogo)
+- **Fecha**: 01 de septiembre de 2026
+- **Tarea**: Permitir cambiar la moneda (PEN/USD) en presupuestos con reglas claras: moneda bloqueada al tener ítems, acción explícita "Cambiar moneda" (solo borrador) que convierte todos los montos, precios de catálogo convertidos a la moneda del presupuesto, y facturación multi-presupuesto con moneda uniforme (UX).
+- **Convención**: `exchange_rate` = soles por 1 dólar (PEN → 1). Se guarda snapshot por presupuesto (ya existía).
+- **Entidad nueva `ExchangeRate`**: migración `2026_09_01_000300_create_exchange_rates_table` (date+currency único, buy/sell/source), modelo, `ExchangeRateService::suggestRate()/convert()`, `ExchangeRatePolicy` (permiso `ver configuración`), `ExchangeRateController` (index/store/destroy + API `api/exchange-rates/latest`), vista de mantenimiento `exchange-rates/index` + menú "Tipos de Cambio" en Administración.
+- **`EstimateService`**: `update()` rechaza cambiar `currency` si hay ítems/OC; `convertCurrency()` (solo draft y raíz) convierte tarifas, ítems, OC, descuento global fijo y franquicia y recalcula con `EstimateCalculationService` + activity log; `syncItems()` deriva precio de catálogo (sell/cost) convertido cuando el frontend no envía valor; `getRelatedBillable()` expone `currency`.
+- **Frontend presupuestos**: en edición con ítems la moneda se renderiza bloqueada (hidden + texto) + botón "Cambiar moneda" (solo borrador) con modal `_currency-modal` (formulario independiente, preview del nuevo total y T.C. sugerido); en creación `lockCurrency()` deshabilita el select al agregar ítems; al elegir moneda se sugiere el T.C.; en el modal de ítems el precio del catálogo se convierte y se muestra nota "Catálogo: S/ X · T.C. Y → US$ Z".
+- **Facturación (`invoices/create`)**: al auto-agregar relacionados se omiten presupuestos de otra moneda (con aviso) y el envío se bloquea si se mezclan PEN/USD (además del guard backend existente).
+- **Tests**: `EstimateFlowTest` +5 (bloqueo de cambio con ítems, conversión PEN→USD y USD→PEN, rechazo fuera de borrador/ampliación, precio de catálogo convertido). Verificación: **EstimateFlowTest 21 OK / 47 assertions**, **InvoiceFlowTest 14 OK / 47 assertions**, `php -l` OK, `view:cache` OK, migración aplicada.
+
+### 📌 Sesión: Ampliaciones de presupuestos (siniestro + ampliaciones = grupo)
+- **Fecha**: 01 de septiembre de 2026
+- **Tarea**: Modelar las **ampliaciones de presupuesto** como relación padre-hijo (`parent_estimate_id` en `estimates`), con moneda heredada del siniestro, franquicia calculada a nivel de GRUPO (siniestro + ampliaciones + TODAS sus OC) y facturación multi-presupuesto con moneda uniforme.
+- **Decisión**: NO se crea un tipo de servicio "ampliación" (`service_type` sigue describiendo la naturaleza del trabajo); la ampliación se identifica por `parent_estimate_id != null` (un solo nivel, el padre debe ser raíz). Badge "Ampliación de PRE01-XXXXXX" en listados/show + contador en el show del principal.
+- **Migración nueva**: `2026_09_01_000200_add_parent_estimate_id_to_estimates_table` (nullable, auto-FK `nullOnDelete`, índice). Aditiva: NO requiere `migrate:fresh` (la columna se agrega sobre la BD existente).
+- **Modelo `Estimate`**: `parent()` (belongsTo conTrashed), `ampliaciones()` (hasMany orderBy document_sn), accessors `is_ampliacion` y `grupo_label`; `parent_estimate_id` en fillable y LogsActivity.
+- **`EstimateRequest`**: `parent_estimate_id` nullable + existe, padre no puede ser ampliación, y debe ser del mismo vehículo.
+- **`EstimateService`**: `applyParentInheritance()` fuerza SIEMPRE `currency`/`exchange_rate` del padre (ignora lo enviado) y pre-rellena contexto (vehículo, cliente, aseguradora, claim, tarifas); `update()` re-fuerza moneda del padre; `delete()` propaga soft-delete a las ampliaciones del grupo; `getSearchResults()`/`getRelatedBillable()` exponen `is_ampliacion`, `parent_sn`, `currency` y agrupan por siniestro+ampliaciones+mismo vehículo/OT.
+- **`EstimateCalculationService`**: franquicia por GRUPO — `applyFranchise()` (raíz calcula `calculateGroupFranchise()`, ampliación limpia sus `franchise_*` y dispara recálculo del raíz). `base = Σ taxable_base del grupo + Σ OC del grupo`; mínimo y % del presupuesto principal; `franquicia = max(mínimo_sin_IGV, base×%)` guardada en el principal.
+- **`InvoiceService`**: guard de moneda uniforme en `createFromEstimates` (rechaza mezclar PEN/USD); `addFranchiseLines()`/`addInsuranceLines()` resuelven las ampliaciones a su raíz (`resolveFranchiseCarriers()`) → UNA línea de franquicia por grupo ("Franquicia … y N ampliación(es)").
+- **Frontend**: botón "Ampliar" en `estimates/show` (raíz) → `estimates/create?parent_estimate_id=X`; banner ámbar, moneda y T.C. bloqueados (heredados), franquicia de solo lectura (vive en el principal); precarga de vehículo/cliente/aseguradora/claim/tarifas y resumen de franquicia del GRUPO en vivo (`_form-scripts`: `parentData.group_saved_base` excluye el presupuesto en edición). Badge "Ampl." + moneda por fila en `estimates/index`.
+- **Tests**: `EstimateFlowTest` (+4: herencia de moneda/T.C., mismo vehículo obligatorio, franquicia de grupo agregada en el padre con OC, relacionados incluyen el grupo) y `InvoiceFlowTest` (+1: rechaza factura con presupuestos en monedas distintas). Verificación: **EstimateFlowTest 16 OK / 35 assertions**, **InvoiceFlowTest 14 OK / 47 assertions**, `php -l` OK, `view:cache` OK.
+
+
 ### 📌 Sesión: Consolidación de migraciones (solo Schema::create)
 - **Fecha**: 31 de agosto de 2026
 - **Tarea**: Eliminar todas las migraciones que solo modifican tablas (`Schema::table` / ALTER) fusionando sus cambios en las migraciones `create` correspondientes, de modo que solo existan migraciones que crean tablas.

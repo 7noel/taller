@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangeCurrencyRequest;
 use App\Http\Requests\EstimateRequest;
 use App\Jobs\SendWhatsAppMessage;
 use App\Models\CheckIn;
@@ -47,12 +48,31 @@ class EstimateController extends Controller
                 ->find($request->integer('check_in_id'));
         }
 
+        // Creación de una ampliación desde el presupuesto principal (siniestro).
+        $parentEstimate = null;
+        if ($request->filled('parent_estimate_id')) {
+            $parentEstimate = Estimate::with([
+                'vehicle.vehicleModel.brand',
+                'client',
+                'insuranceCompany',
+                'establishment',
+                'ampliaciones',
+                'thirdPartyOrders',
+            ])->find($request->integer('parent_estimate_id'));
+
+            abort_unless(
+                $parentEstimate && !$parentEstimate->is_ampliacion,
+                422,
+                'No se puede ampliar una ampliación: el presupuesto padre debe ser el principal.'
+            );
+        }
+
         $advisors = User::role('Asesor')->orderBy('name')->get();
         $establishment = auth()->user()?->establishment;
         $serviceCategories = ServiceCategory::query()->where('is_active', true)->orderBy('name')->get();
         $partCategories = PartCategory::query()->where('is_active', true)->orderBy('name')->get();
 
-        return view('estimates.create', compact('checkIn', 'advisors', 'establishment', 'serviceCategories', 'partCategories'));
+        return view('estimates.create', compact('checkIn', 'parentEstimate', 'advisors', 'establishment', 'serviceCategories', 'partCategories'));
     }
 
     public function store(EstimateRequest $request)
@@ -81,6 +101,8 @@ class EstimateController extends Controller
             'statusHistory.user',
             'thirdPartyOrders',
             'workOrder',
+            'parent',
+            'ampliaciones',
             'payments.invoice',
             'payments.paymentMethod',
         ]);
@@ -396,5 +418,26 @@ class EstimateController extends Controller
         $this->service->changeStatus($estimate, 'draft');
 
         return back()->with('success', 'Presupuesto reabierto para edición.');
+    }
+
+    /**
+     * Cambia la moneda de un presupuesto en borrador y convierte todos los
+     * montos con el nuevo tipo de cambio (acción explícita "Cambiar moneda").
+     */
+    public function changeCurrency(ChangeCurrencyRequest $request, Estimate $estimate)
+    {
+        Gate::authorize('update', $estimate);
+
+        try {
+            $this->service->convertCurrency(
+                $estimate,
+                $request->input('currency'),
+                (float) $request->input('exchange_rate')
+            );
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['currency' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Moneda del presupuesto actualizada y montos convertidos correctamente.');
     }
 }

@@ -186,6 +186,143 @@ class EstimateFlowTest extends TestCase
         $this->assertEquals('sent_client', $updated->status);
     }
 
+    // =====================================================
+    // Ampliaciones (siniestro + ampliaciones = grupo)
+    // =====================================================
+
+    public function test_ampliacion_inherits_currency_and_exchange_rate_from_parent(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+
+        $parent = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'currency' => 'USD',
+            'exchange_rate' => 3.75,
+            'items' => [['description' => 'Mano de obra', 'quantity' => 1, 'unit_price' => 100]],
+        ]);
+
+        // Se envía PEN a propósito: la ampliación debe heredar USD del siniestro.
+        $ampliacion = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'parent_estimate_id' => $parent->id,
+            'currency' => 'PEN',
+            'exchange_rate' => 1,
+            'items' => [['description' => 'Repuesto adicional', 'quantity' => 1, 'unit_price' => 50]],
+        ]);
+
+        $this->assertTrue($ampliacion->is_ampliacion);
+        $this->assertEquals('USD', $ampliacion->currency);
+        $this->assertEquals(3.75, (float) $ampliacion->exchange_rate);
+        $this->assertEquals($parent->id, $ampliacion->parent_estimate_id);
+    }
+
+    public function test_ampliacion_requires_same_vehicle_as_parent(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+
+        $parent = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'items' => [['description' => 'Mano de obra', 'quantity' => 1, 'unit_price' => 100]],
+        ]);
+
+        $otherVehicle = Vehicle::factory()->create();
+
+        $this->expectException(RuntimeException::class);
+        $this->service->create([
+            'vehicle_id' => $otherVehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'parent_estimate_id' => $parent->id,
+            'items' => [['description' => 'Otro', 'quantity' => 1, 'unit_price' => 10]],
+        ]);
+    }
+
+    public function test_group_franchise_is_aggregated_on_parent(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+
+        $parent = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'franchise_minimum_amount' => 100,
+            'franchise_percentage' => 10,
+            'items' => [['description' => 'Mano de obra', 'quantity' => 1, 'unit_price' => 100]],
+            'third_party_orders' => [
+                ['description' => 'Pintura tercero', 'amount_without_iva' => 50],
+            ],
+        ]);
+
+        $ampliacion = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'parent_estimate_id' => $parent->id,
+            'items' => [['description' => 'Repuesto adicional', 'quantity' => 2, 'unit_price' => 100]],
+            'third_party_orders' => [
+                ['description' => 'Chapa tercero', 'amount_without_iva' => 25],
+            ],
+        ]);
+
+        $parent->refresh();
+
+        // base = 100 (padre) + 50 (OC padre) + 200 (ampliación) + 25 (OC ampliación) = 375
+        $this->assertEquals(375.0, round((float) $parent->franchise_base, 2));
+        // franquicia = max(100 mínimo, 37.5 aplicado) = 100
+        $this->assertEquals(100.0, round((float) $parent->franchise_amount, 2));
+
+        // La ampliación NO lleva franquicia local (vive en el presupuesto principal).
+        $ampliacion->refresh();
+        $this->assertNull($ampliacion->franchise_amount);
+        $this->assertNull($ampliacion->franchise_base);
+    }
+
+    public function test_related_billable_includes_group(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+
+        $parent = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'items' => [['description' => 'Mano de obra', 'quantity' => 1, 'unit_price' => 100]],
+        ]);
+        $parent->update(['status' => 'approved_client']);
+
+        $ampliacion = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'parent_estimate_id' => $parent->id,
+            'items' => [['description' => 'Extra', 'quantity' => 1, 'unit_price' => 50]],
+        ]);
+        $ampliacion->update(['status' => 'approved_client']);
+
+        $related = $this->service->getRelatedBillable($parent->fresh());
+        $ids = array_column($related, 'id');
+
+        $this->assertContains($parent->id, $ids);
+        $this->assertContains($ampliacion->id, $ids);
+    }
+
     public function test_client_cannot_approve_siniestro_without_insurance_approval(): void
     {
         $estimate = $this->makeEstimate('siniestro', 'sent_client');
@@ -230,5 +367,148 @@ class EstimateFlowTest extends TestCase
 
         $response->assertRedirect();
         $this->assertEquals('sent_client', $estimate->fresh()->status);
+    }
+
+    // =====================================================
+    // Moneda: bloqueo, conversión y precios de catálogo
+    // =====================================================
+
+    public function test_update_rejects_currency_change_when_items_exist(): void
+    {
+        $estimate = $this->makeEstimate('preventivo');
+
+        $payload = $this->updatePayload($estimate);
+        $payload['currency'] = 'USD';
+        $payload['exchange_rate'] = 3.75;
+
+        $this->expectException(RuntimeException::class);
+        $this->service->update($estimate, $payload);
+    }
+
+    public function test_convert_currency_pen_to_usd_converts_all_amounts(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+
+        $estimate = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'hourly_rate' => 60,
+            'franchise_minimum_amount' => 100,
+            'franchise_percentage' => 10,
+            'items' => [
+                ['description' => 'Mano de obra', 'quantity' => 1, 'unit_price' => 100],
+            ],
+            'third_party_orders' => [
+                ['description' => 'Pintura tercero', 'amount_without_iva' => 50],
+            ],
+        ]);
+
+        $converted = $this->service->convertCurrency($estimate, 'USD', 3.75);
+
+        $this->assertEquals('USD', $converted->currency);
+        $this->assertEquals(3.75, (float) $converted->exchange_rate);
+        // 100 PEN / 3.75 = 26.6667
+        $this->assertEquals(26.6667, round((float) $converted->items()->first()->unit_price, 4));
+        // 60 PEN / 3.75 = 16.00
+        $this->assertEquals(16.0, round((float) $converted->hourly_rate, 2));
+        // 50 PEN / 3.75 = 13.3333 → la columna de OC es decimal(12,2): 13.33
+        $this->assertEquals(13.33, round((float) $converted->thirdPartyOrders()->first()->amount_without_iva, 2));
+        // 100 PEN / 3.75 = 26.6667 → redondeado a 2 en el recálculo de franquicia
+        $this->assertEquals(26.67, round((float) $converted->franchise_minimum_amount, 2));
+        // Total: subtotal 26.67 + IGV 18% = 31.47
+        $this->assertEquals(31.47, round((float) $converted->total, 2));
+    }
+
+    public function test_convert_currency_usd_to_pen_multiplies_amounts(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+
+        $estimate = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'preventivo',
+            'establishment_id' => $this->establishment->id,
+            'currency' => 'USD',
+            'exchange_rate' => 3.75,
+            'items' => [
+                ['description' => 'Mano de obra', 'quantity' => 1, 'unit_price' => 10],
+            ],
+        ]);
+
+        $converted = $this->service->convertCurrency($estimate, 'PEN', 3.75);
+
+        $this->assertEquals('PEN', $converted->currency);
+        // 10 USD * 3.75 = 37.50
+        $this->assertEquals(37.5, round((float) $converted->items()->first()->unit_price, 4));
+        // Total: 37.50 + 18% = 44.25
+        $this->assertEquals(44.25, round((float) $converted->total, 2));
+    }
+
+    public function test_convert_currency_rejects_non_draft_and_ampliacion(): void
+    {
+        $estimate = $this->makeEstimate('preventivo', 'sent_client');
+
+        try {
+            $this->service->convertCurrency($estimate, 'USD', 3.75);
+            $this->fail('Debería rechazar la conversión fuera de borrador.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('borrador', $e->getMessage());
+        }
+
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+        $parent = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'items' => [['description' => 'Mano de obra', 'quantity' => 1, 'unit_price' => 100]],
+        ]);
+        $ampliacion = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'parent_estimate_id' => $parent->id,
+            'items' => [['description' => 'Extra', 'quantity' => 1, 'unit_price' => 50]],
+        ]);
+
+        $this->expectException(RuntimeException::class);
+        $this->service->convertCurrency($ampliacion, 'USD', 3.75);
+    }
+
+    public function test_catalog_price_is_converted_to_estimate_currency(): void
+    {
+        $vehicle = Vehicle::factory()->create();
+        $client = Party::factory()->create();
+
+        $part = \App\Models\Part::create([
+            'name' => 'Parachoques delantero',
+            'sku' => 'PCH-001',
+            'sell_price' => 37.5,
+            'currency' => 'PEN',
+            'cost_price' => 20,
+            'cost_currency' => 'PEN',
+            'is_active' => true,
+        ]);
+
+        $estimate = $this->service->create([
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'service_type' => 'siniestro',
+            'establishment_id' => $this->establishment->id,
+            'currency' => 'USD',
+            'exchange_rate' => 3.75,
+            'items' => [
+                ['part_id' => $part->id, 'quantity' => 1], // sin unit_price: se deriva del catálogo
+            ],
+        ]);
+
+        // 37.5 PEN / 3.75 = 10.00 USD
+        $this->assertEquals(10.0, round((float) $estimate->items()->first()->unit_price, 4));
     }
 }

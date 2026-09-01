@@ -63,6 +63,16 @@ class InvoiceService
                 );
             }
 
+            // Moneda uniforme: todos los presupuestos de la factura deben estar
+            // en la misma moneda (las ampliaciones heredan la del siniestro).
+            $currencies = $estimates->pluck('currency')->unique()->values();
+
+            if ($currencies->count() > 1) {
+                throw new \InvalidArgumentException(
+                    'No se pueden facturar presupuestos en monedas distintas. Todos deben estar en la misma moneda (PEN o USD).'
+                );
+            }
+
             $type = $data['invoice_type'] ?? Invoice::TYPE_FREE;
             $this->guardInvoiceType($estimates, $type, (float) ($data['advance_amount'] ?? 0));
             $party = Party::query()->findOrFail($data['party_id']);
@@ -249,27 +259,31 @@ class InvoiceService
 
 
     /**
-     * Franquicia → una línea por presupuesto con el monto de franquicia
-     * (dirigida al cliente).
+     * Franquicia → una línea por GRUPO de presupuestos (siniestro + sus
+     * ampliaciones). La franquicia vive en el presupuesto principal, así que
+     * las ampliaciones se resuelven a su raíz y se emite una sola línea.
      */
     protected function addFranchiseLines(Invoice $invoice, $estimates): void
     {
         $sort = 0;
         $rate = $this->igvRate() / 100;
 
-        foreach ($estimates as $estimate) {
+        foreach ($this->resolveFranchiseCarriers($estimates) as $estimate) {
             $franchise = (float) ($estimate->franchise_amount ?? 0);
 
             if ($franchise <= 0) {
                 continue;
             }
 
+            $ampliaciones = $estimate->ampliaciones()->count();
+
             $unit = round($franchise / (1 + $rate), 2);
             $igv = round($unit * $rate, 2);
 
             $invoice->items->push(new InvoiceItem([
                 'estimate_id' => $estimate->id,
-                'description' => 'Franquicia (deducible) – ' . ($estimate->document_sn ?? 'presupuesto'),
+                'description' => 'Franquicia (deducible) – ' . ($estimate->document_sn ?? 'presupuesto')
+                    . ($ampliaciones > 0 ? ' y ' . $ampliaciones . ' ampliación' . ($ampliaciones === 1 ? '' : 'es') : ''),
                 'quantity' => 1,
                 'unit_price' => $unit,
                 'price' => $franchise,
@@ -282,6 +296,25 @@ class InvoiceService
                 'sort_order' => $sort++,
             ]));
         }
+    }
+
+    /**
+     * Devuelve los presupuestos que "portan" la franquicia del grupo: para una
+     * ampliación se resuelve a su presupuesto principal (una sola vez por grupo).
+     */
+    protected function resolveFranchiseCarriers($estimates): array
+    {
+        $carriers = [];
+
+        foreach ($estimates as $estimate) {
+            $root = $estimate->parent_estimate_id
+                ? ($estimate->parent()->withTrashed()->first() ?? $estimate)
+                : $estimate;
+
+            $carriers[$root->id] = $root;
+        }
+
+        return array_values($carriers);
     }
 
     /**
@@ -324,7 +357,7 @@ class InvoiceService
         $withAdvances = (bool) ($data['regularize_advances'] ?? false);
         $this->addEstimateDetailLines($invoice, $estimates, ['regularize_advances' => $withAdvances]);
 
-        $franchise = (float) $estimates->sum('franchise_amount');
+        $franchise = (float) collect($this->resolveFranchiseCarriers($estimates))->sum('franchise_amount');
 
         if ($franchise <= 0) {
             return;

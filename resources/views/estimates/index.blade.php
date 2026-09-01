@@ -63,7 +63,10 @@
                     width: 130,
                     formatter: function (cell) {
                         const data = cell.getData();
-                        return `<a href="/estimates/${data.id}" class="text-blue-600 hover:text-blue-800 font-medium">${data.document_sn || '-'}</a>`;
+                        const amp = data.is_ampliacion
+                            ? `<span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-100 text-amber-800" title="Ampliación de ${data.parent_sn || ''}">Ampl.</span>`
+                            : '';
+                        return `<a href="/estimates/${data.id}" class="text-blue-600 hover:text-blue-800 font-medium">${data.document_sn || '-'}</a>${amp}`;
                     }
                 },
                 { title: 'Placa', field: 'plate', width: 80, hozAlign: 'center' },
@@ -94,7 +97,8 @@
                     width: 110,
                     hozAlign: 'right',
                     formatter: function (cell) {
-                        return 'S/ ' + Number(cell.getValue() || 0).toFixed(2);
+                        const d = cell.getData();
+                        return (d.currency === 'USD' ? 'US$ ' : 'S/ ') + Number(cell.getValue() || 0).toFixed(2);
                     }
                 },
                 { title: 'Fecha', field: 'created_at', width: 100, hozAlign: 'center' },

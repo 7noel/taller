@@ -70,44 +70,84 @@ class EstimateCalculationService
         $total = round($taxableBase + $iva, 2);
 
         // Franquicia: NO descuenta del total del presupuesto. Es informativa y
-        // se calcula sobre la base imponible más las OC de terceros.
-        $franchise = $this->calculateFranchise($estimate, $taxableBase, $igvRate);
-
+        // se calcula a nivel de GRUPO (siniestro + ampliaciones + sus OC de
+        // terceros). El resultado vive en el presupuesto principal; en una
+        // ampliación se limpia la franquicia local (se recalcula el principal).
         $estimate->updateQuietly([
             'subtotal' => $subtotalTotal,
             'discount' => $totalDiscount,
             'taxable_base' => $taxableBase,
             'iva' => $iva,
             'total' => $total,
-            'franchise_minimum_amount' => $franchise['minimum_amount'],
-            'franchise_percentage' => $franchise['percentage'],
-            'franchise_minimum_includes_tax' => $franchise['minimum_includes_tax'],
-            'franchise_minimum_without_tax' => $franchise['minimum_without_tax'],
-            'franchise_base' => $franchise['base'],
-            'franchise_percentage_applied' => $franchise['percentage_applied'],
-            'franchise_amount' => $franchise['amount'],
         ]);
+
+        $this->applyFranchise($estimate);
 
         $this->syncDiscountReflections($estimate, $linesDiscountTotal, $globalDiscount);
     }
 
     /**
-     * Calcula la franquicia del presupuesto (solo informativa; no afecta totales).
+     * Aplica la franquicia según el rol del presupuesto dentro del grupo:
+     *  - Principal (raíz): calcula la franquicia del GRUPO completo.
+     *  - Ampliación: limpia sus campos franchise_* (viven en el principal) y
+     *    dispara el recálculo de la franquicia del grupo en su presupuesto padre.
+     */
+    protected function applyFranchise(Estimate $estimate): void
+    {
+        if ($estimate->is_ampliacion) {
+            $estimate->updateQuietly([
+                'franchise_minimum_amount' => null,
+                'franchise_percentage' => null,
+                'franchise_minimum_includes_tax' => false,
+                'franchise_minimum_without_tax' => null,
+                'franchise_base' => null,
+                'franchise_percentage_applied' => null,
+                'franchise_amount' => null,
+            ]);
+
+            $root = $estimate->parent;
+
+            if ($root) {
+                $this->calculateGroupFranchise($root);
+            }
+
+            return;
+        }
+
+        $this->calculateGroupFranchise($estimate);
+    }
+
+    /**
+     * Calcula la franquicia del grupo completo (presupuesto principal + sus
+     * ampliaciones + TODAS las órdenes de compra de terceros del grupo) y la
+     * persiste en el presupuesto principal.
      *
      * Reglas:
-     *  - base = taxable_base + Σ amount_without_iva de third_party_orders.
-     *  - minimum_without_tax = minimum_amount / (1 + igv) si incluye IGV; si no, = minimum_amount.
+     *  - base = Σ taxable_base del grupo + Σ amount_without_iva de OC del grupo.
+     *  - minimum_without_tax = minimum_amount / (1 + igv) si incluye IGV.
      *  - percentage_applied = base * (percentage / 100).
      *  - franquicia = max(minimum_without_tax, percentage_applied).
+     * Los parámetros (mínimo, porcentaje) son los del presupuesto principal.
      */
-    protected function calculateFranchise(Estimate $estimate, float $taxableBase, float $igvRate): array
+    public function calculateGroupFranchise(Estimate $root): void
     {
-        $minimumAmount = (float) ($estimate->franchise_minimum_amount ?? 0);
-        $percentage = (float) ($estimate->franchise_percentage ?? 0);
-        $includesTax = (bool) ($estimate->franchise_minimum_includes_tax ?? false);
+        $group = collect([$root])->merge($root->ampliaciones()->get());
 
-        $ordersTotal = round((float) $estimate->thirdPartyOrders()->sum('amount_without_iva'), 2);
-        $base = round($taxableBase + $ordersTotal, 2);
+        $igvRate = $this->getIgvRate($root);
+
+        $taxableBaseSum = 0.0;
+        $ordersTotal = 0.0;
+
+        foreach ($group as $estimate) {
+            $taxableBaseSum += (float) $estimate->taxable_base;
+            $ordersTotal += (float) $estimate->thirdPartyOrders()->sum('amount_without_iva');
+        }
+
+        $base = round($taxableBaseSum + $ordersTotal, 2);
+
+        $minimumAmount = (float) ($root->franchise_minimum_amount ?? 0);
+        $percentage = (float) ($root->franchise_percentage ?? 0);
+        $includesTax = (bool) ($root->franchise_minimum_includes_tax ?? false);
 
         $minimumWithoutTax = null;
         if ($minimumAmount > 0) {
@@ -126,15 +166,15 @@ class EstimateCalculationService
             $amount = max($minimumWithoutTax ?? 0, $percentageApplied ?? 0);
         }
 
-        return [
-            'minimum_amount' => $minimumAmount > 0 ? round($minimumAmount, 2) : null,
-            'percentage' => $percentage > 0 ? round($percentage, 2) : null,
-            'minimum_includes_tax' => $includesTax,
-            'minimum_without_tax' => $minimumWithoutTax,
-            'base' => $base,
-            'percentage_applied' => $percentageApplied,
-            'amount' => $amount,
-        ];
+        $root->updateQuietly([
+            'franchise_minimum_amount' => $minimumAmount > 0 ? round($minimumAmount, 2) : null,
+            'franchise_percentage' => $percentage > 0 ? round($percentage, 2) : null,
+            'franchise_minimum_includes_tax' => $includesTax,
+            'franchise_minimum_without_tax' => $minimumWithoutTax,
+            'franchise_base' => $base,
+            'franchise_percentage_applied' => $percentageApplied,
+            'franchise_amount' => $amount,
+        ]);
     }
 
     /**

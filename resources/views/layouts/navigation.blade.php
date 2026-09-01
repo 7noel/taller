@@ -83,6 +83,7 @@
                 ['route' => 'users.index', 'active' => 'users.*', 'label' => 'Usuarios', 'can' => 'ver usuarios'],
                 ['route' => 'establishments.index', 'active' => 'establishments.*', 'label' => 'Establecimientos', 'can' => 'ver establecimientos'],
                 ['route' => 'company-settings.edit', 'active' => 'company-settings.*', 'label' => 'Configuración', 'can' => 'ver configuración'],
+                ['route' => 'exchange-rates.index', 'active' => 'exchange-rates.*', 'label' => 'Tipos de Cambio', 'can' => 'ver configuración'],
             ],
         ],
     ];

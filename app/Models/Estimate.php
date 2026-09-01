@@ -55,6 +55,7 @@ class Estimate extends Model
         'franchise_amount',
         'status',
         'work_order_id',
+        'parent_estimate_id',
         'created_by',
         'updated_by',
         'approved_by_user_id',
@@ -165,7 +166,7 @@ class Estimate extends Model
                 'taxable_base', 'iva', 'total',
                 'franchise_minimum_amount', 'franchise_percentage', 'franchise_minimum_includes_tax',
                 'franchise_minimum_without_tax', 'franchise_base', 'franchise_percentage_applied',
-                'franchise_amount', 'status', 'work_order_id', 'insurance_approved_at', 'insurance_rejected_at',
+                'franchise_amount', 'status', 'work_order_id', 'parent_estimate_id', 'insurance_approved_at', 'insurance_rejected_at',
                 'insurance_rejection_reason',
             ])
             ->logOnlyDirty()
@@ -205,6 +206,48 @@ class Estimate extends Model
     public function workOrder()
     {
         return $this->belongsTo(WorkOrder::class);
+    }
+
+    /**
+     * Presupuesto principal (siniestro) del cual este presupuesto es ampliación.
+     */
+    public function parent()
+    {
+        return $this->belongsTo(Estimate::class, 'parent_estimate_id')->withTrashed();
+    }
+
+    /**
+     * Ampliaciones de este presupuesto (un solo nivel: el padre es la raíz).
+     */
+    public function ampliaciones()
+    {
+        return $this->hasMany(Estimate::class, 'parent_estimate_id')->orderBy('document_sn');
+    }
+
+    /**
+     * True si este presupuesto es una ampliación de otro.
+     */
+    public function getIsAmpliacionAttribute(): bool
+    {
+        return $this->parent_estimate_id !== null;
+    }
+
+    /**
+     * Etiqueta legible de la relación de ampliación (para badges y listados).
+     */
+    public function getGrupoLabelAttribute(): string
+    {
+        $root = $this->parent ?? $this;
+
+        if ($this->is_ampliacion) {
+            return 'Ampliación de ' . ($root->document_sn ?? 'presupuesto');
+        }
+
+        $count = $this->ampliaciones()->count();
+
+        return $count > 0
+            ? ($root->document_sn ?? '') . ' · ' . $count . ' ampliación' . ($count === 1 ? '' : 'es')
+            : ($root->document_sn ?? '');
     }
 
     public function vehicle()
