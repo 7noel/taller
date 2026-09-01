@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
             EstimateSeeder::class,
             WorkOrderSubstageSeeder::class,
             FormTemplateSeeder::class,
+            PaymentMethodBankSeeder::class,
             DemoDataSeeder::class,
         ]);
     }
