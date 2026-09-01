@@ -17,6 +17,7 @@ class FollowUpRequest extends FormRequest
         return [
             'party_id' => ['nullable', 'integer', 'exists:parties,id'],
             'vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
+            'estimate_id' => ['nullable', 'integer', 'exists:estimates,id'],
             'date' => ['required', 'date'],
             'type' => ['required', 'string', Rule::in(['call', 'whatsapp', 'email', 'visit'])],
             'notes' => ['nullable', 'string'],

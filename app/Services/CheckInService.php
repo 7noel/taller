@@ -16,10 +16,12 @@ use RuntimeException;
 class CheckInService
 {
     protected AppointmentService $appointmentService;
+    protected MaintenanceService $maintenanceService;
 
-    public function __construct(AppointmentService $appointmentService)
+    public function __construct(AppointmentService $appointmentService, MaintenanceService $maintenanceService)
     {
         $this->appointmentService = $appointmentService;
+        $this->maintenanceService = $maintenanceService;
     }
 
     /**
@@ -42,6 +44,9 @@ class CheckInService
             $this->syncChecklist($checkIn, $data['checklist'] ?? []);
             $this->syncDamages($checkIn, $data['damages'] ?? []);
             $this->syncContacts($checkIn, $data);
+
+            // Sincroniza fechas de revisión técnica y mantenimiento preventivo al vehículo.
+            $this->maintenanceService->syncFromCheckIn($checkIn);
 
             return $checkIn;
         });
@@ -86,6 +91,9 @@ class CheckInService
             $this->syncChecklist($checkIn, $data['checklist'] ?? []);
             $this->syncDamages($checkIn, $data['damages'] ?? []);
             $this->syncContacts($checkIn, $data);
+
+            // Sincroniza fechas de revisión técnica y mantenimiento preventivo al vehículo.
+            $this->maintenanceService->syncFromCheckIn($checkIn);
         });
 
         return $checkIn->load(['vehicle.vehicleModel.brand', 'client', 'insuranceCompany', 'checklistResults.checklistItem', 'damages', 'photos']);

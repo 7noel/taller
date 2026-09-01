@@ -21,6 +21,20 @@
                         Copiar enlace
                     </button>
                 @endif
+                @can('create', \App\Models\FollowUp::class)
+                    @if ($estimate->vehicle_id || $estimate->client_id)
+                        <form method="POST" action="{{ route('follow-ups.store') }}" class="inline">
+                            @csrf
+                            <input type="hidden" name="estimate_id" value="{{ $estimate->id }}">
+                            <input type="hidden" name="vehicle_id" value="{{ $estimate->vehicle_id }}">
+                            <input type="hidden" name="party_id" value="{{ $estimate->client_id }}">
+                            <input type="hidden" name="date" value="{{ now()->format('Y-m-d') }}">
+                            <input type="hidden" name="type" value="call">
+                            <input type="hidden" name="notes" value="Seguimiento del presupuesto {{ $estimate->document_sn }} ({{ $estimate->status_label }}).">
+                            <button type="submit" class="btn btn-secondary" title="Registrar un seguimiento de este presupuesto">Seguimiento</button>
+                        </form>
+                    @endif
+                @endcan
                 @can('update', $estimate)
                     @if (!$estimate->is_final)
                         <a href="{{ route('estimates.edit', $estimate) }}" class="btn btn-secondary">Editar</a>
@@ -262,6 +276,77 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Cobros y adelantos --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="md:col-span-2">
+                    <div class="card">
+                        <div class="p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Cobros y adelantos</h3>
+                            @if ($estimate->payments->isNotEmpty())
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Fecha</th>
+                                                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Monto</th>
+                                                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Medio</th>
+                                                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Comprobante</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            @foreach ($estimate->payments as $payment)
+                                                <tr>
+                                                    <td class="px-3 py-2 text-gray-600">{{ $payment->payment_date?->format('d/m/Y') }}</td>
+                                                    <td class="px-3 py-2 font-medium text-gray-800">S/ {{ number_format($payment->amount, 2) }}</td>
+                                                    <td class="px-3 py-2 text-gray-600">{{ $payment->paymentMethod?->name ?? '—' }}</td>
+                                                    <td class="px-3 py-2 text-gray-600">
+                                                        @if ($payment->invoice_id)
+                                                            <a href="{{ route('invoices.show', $payment->invoice_id) }}" class="text-blue-600 hover:underline">{{ $payment->invoice?->document_sn ?? 'Ver' }}</a>
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="text-sm text-gray-500">Sin cobros registrados.</p>
+                            @endif
+                            <div class="mt-3 flex justify-between border-t border-gray-100 pt-3 text-sm">
+                                <span class="text-gray-500">Total cobrado</span>
+                                <span class="font-semibold text-green-700">S/ {{ number_format($paidTotal, 2) }}</span>
+                            </div>
+                            <div class="mt-1 flex justify-between text-sm">
+                                <span class="text-gray-500">Saldo pendiente</span>
+                                <span class="font-semibold text-gray-800">S/ {{ number_format(max(0, (float) $estimate->total - $paidTotal), 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="p-5">
+                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Registrar adelanto</h3>
+                        <form method="POST" action="{{ route('estimates.advance', $estimate) }}" class="space-y-2">
+                            @csrf
+                            <input type="number" name="amount" step="0.01" min="0.01" placeholder="Monto" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            <input type="hidden" name="party_id" value="{{ $estimate->client_id ?? $estimate->insurance_company_id }}">
+                            <select name="payment_method_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                <option value="">Medio de pago</option>
+                                @foreach ($paymentMethods as $pm)
+                                    <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                                @endforeach
+                            </select>
+                            <input type="text" name="reference" placeholder="Referencia" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                            <button type="submit" class="btn btn-primary w-full" data-loading-text="Guardando...">Cobrar adelanto</button>
+                            <p class="text-xs text-gray-500">Genera el cobro y la factura/boleta de adelanto del presupuesto.</p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
 
             {{-- Órdenes de compra de terceros --}}
             @if ($estimate->thirdPartyOrders->isNotEmpty())

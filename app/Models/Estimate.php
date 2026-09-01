@@ -138,6 +138,17 @@ class Estimate extends Model
 
     public const FINAL_STATUSES = ['finalized'];
 
+    /**
+     * Estados en los que un presupuesto puede facturarse (guarda contra
+     * doble facturación de borradores/rechazados).
+     */
+    public const BILLABLE_STATUSES = [
+        'approved_insurance',
+        'approved_client',
+        'in_repair',
+        'finalized',
+    ];
+
     // Tipos de servicio: misma fuente que el inventario (CheckIn::SERVICE_TYPES).
     // Agrega nuevos tipos en CheckIn::SERVICE_TYPES y aparecerán en ambos módulos.
     public const SERVICE_TYPES = CheckIn::SERVICE_TYPES;
@@ -249,6 +260,21 @@ class Estimate extends Model
     public function thirdPartyOrders()
     {
         return $this->hasMany(ThirdPartyOrder::class)->orderBy('id');
+    }
+
+    public function invoices()
+    {
+        return $this->belongsToMany(Invoice::class, 'invoice_estimate')->withTimestamps();
+    }
+
+    public function payments()
+    {
+        return $this->morphMany(Payment::class, 'payable');
+    }
+
+    public function followUps()
+    {
+        return $this->hasMany(FollowUp::class);
     }
 
     public function approvedBy()

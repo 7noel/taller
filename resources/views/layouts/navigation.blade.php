@@ -62,6 +62,18 @@
             'items' => [
                 ['route' => 'appointments.index', 'active' => 'appointments.*', 'label' => 'Citas', 'can' => 'ver citas'],
                 ['route' => 'follow-ups.index', 'active' => 'follow-ups.*', 'label' => 'Seguimiento', 'can' => 'ver seguimientos'],
+                ['route' => 'reminders.index', 'active' => 'reminders.*', 'label' => 'Recordatorios', 'can' => 'ver seguimientos'],
+            ],
+        ],
+        'billing' => [
+            'label' => 'Facturación',
+            'icon' => 'M9 14l6-6m-5.5.5h.01M14.5 14.5h.01M4 21v-7m0-4V3h16v14H7l-3 4zm3-7h10M8 7h.01M16 10h.01M14 14h.01',
+            'items' => [
+                ['route' => 'invoices.index', 'active' => 'invoices.*', 'label' => 'Comprobantes', 'can' => 'ver facturas'],
+                ['route' => 'dispatches.index', 'active' => 'dispatches.*', 'label' => 'Guías de Remisión', 'can' => 'ver guías de remisión'],
+                ['route' => 'cash.index', 'active' => 'cash.*', 'label' => 'Caja', 'can' => 'ver caja'],
+                ['route' => 'cash.payment-methods', 'active' => 'cash.payment-methods*', 'label' => 'Métodos de Pago', 'can' => 'ver métodos de pago'],
+                ['route' => 'cash.banks', 'active' => 'cash.banks*', 'label' => 'Bancos', 'can' => 'ver bancos'],
             ],
         ],
         'admin' => [

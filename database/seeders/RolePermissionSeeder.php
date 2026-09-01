@@ -12,7 +12,7 @@ class RolePermissionSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $roles = ['Administrador', 'Asesor', 'Técnico', 'Almacenero', 'Caja'];
+        $roles = ['Administrador', 'Asesor', 'Técnico', 'Almacenero', 'Caja', 'Gestor de Citas'];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
         }
@@ -48,6 +48,11 @@ class RolePermissionSeeder extends Seeder
             'ver pedidos de repuestos', 'crear pedidos de repuestos', 'editar pedidos de repuestos', 'eliminar pedidos de repuestos',
             'ver citas', 'crear citas', 'editar citas', 'eliminar citas',
             'ver seguimientos', 'crear seguimientos', 'editar seguimientos', 'eliminar seguimientos',
+            'ver facturas', 'crear facturas', 'editar facturas', 'emitir comprobantes', 'anular facturas',
+            'ver guías de remisión', 'crear guías de remisión', 'editar guías de remisión', 'anular guías de remisión',
+            'ver caja', 'abrir caja', 'cerrar caja', 'registrar movimientos de caja',
+            'ver métodos de pago', 'crear métodos de pago', 'eliminar métodos de pago',
+            'ver bancos', 'crear bancos', 'eliminar bancos',
         ];
 
         foreach ($permissions as $perm) {
@@ -83,6 +88,11 @@ class RolePermissionSeeder extends Seeder
             'ver tablero',
             'ver citas', 'crear citas', 'editar citas',
             'ver seguimientos', 'crear seguimientos', 'editar seguimientos',
+            'ver facturas', 'crear facturas', 'editar facturas', 'emitir comprobantes',
+            'ver guías de remisión', 'crear guías de remisión', 'editar guías de remisión',
+            'ver caja', 'abrir caja', 'cerrar caja', 'registrar movimientos de caja',
+            'ver métodos de pago', 'crear métodos de pago',
+            'ver bancos', 'crear bancos',
         ]);
 
         // Almacenero gestiona repuestos/stock
@@ -102,6 +112,17 @@ class RolePermissionSeeder extends Seeder
         $tecnico = Role::findByName('Técnico');
         $tecnico->givePermissionTo([
             'ver órdenes de trabajo',
+        ]);
+
+        // Gestor de Citas: agenda, recordatorios y seguimientos + presupuestos directos
+        // (creados sin inventario vehicular, para convertir prospectos en ventas).
+        $gestor = Role::findByName('Gestor de Citas');
+        $gestor->givePermissionTo([
+            'ver parties',
+            'ver vehículos',
+            'ver presupuestos', 'crear presupuestos',
+            'ver citas', 'crear citas', 'editar citas',
+            'ver seguimientos', 'crear seguimientos', 'editar seguimientos',
         ]);
     }
 }

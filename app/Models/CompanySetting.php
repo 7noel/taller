@@ -32,6 +32,9 @@ class CompanySetting extends Model
         'whatsapp_instance_name',
         'whatsapp_enabled',
         'qc_require_assignments_completed',
+        'maintenance_interval_km',
+        'maintenance_default_days',
+        'maintenance_history_visits',
     ];
 
     protected $casts = [
@@ -39,6 +42,9 @@ class CompanySetting extends Model
         'facturador_provider' => 'string',
         'whatsapp_enabled' => 'boolean',
         'qc_require_assignments_completed' => 'boolean',
+        'maintenance_interval_km' => 'integer',
+        'maintenance_default_days' => 'integer',
+        'maintenance_history_visits' => 'integer',
     ];
 
     /**

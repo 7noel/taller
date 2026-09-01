@@ -16,6 +16,7 @@
                         <button type="button" data-tab="tab-branding" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Branding</button>
                         <button type="button" data-tab="tab-detraccion" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Detracción y Contacto</button>
                         <button type="button" data-tab="tab-integraciones" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Integraciones</button>
+                        <button type="button" data-tab="tab-maintenance" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Mantenimiento</button>
                     </nav>
                 </div>
 
@@ -187,6 +188,29 @@
                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                                        @checked(old('whatsapp_enabled', $setting->whatsapp_enabled ?? false))>
                                 <label for="whatsapp_enabled" class="text-sm font-medium text-gray-700">Envío de WhatsApp habilitado</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Pestaña 5: Mantenimiento preventivo --}}
+                    <div id="tab-maintenance" class="tab-panel hidden">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-1">Mantenimiento preventivo</h3>
+                        <p class="text-sm text-gray-500 mb-4">Reglas del cálculo de la próxima visita preventiva por kilometraje. El panel de Recordatorios y los check-ins de tipo preventivo usan esta configuración.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Intervalo (km) *</label>
+                                <input type="number" name="maintenance_interval_km" value="{{ old('maintenance_interval_km', $setting->maintenance_interval_km) }}" min="500" max="50000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p class="mt-1 text-xs text-gray-500">Cada cuántos km se recomienda el preventivo (default 5000).</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Días promedio (default) *</label>
+                                <input type="number" name="maintenance_default_days" value="{{ old('maintenance_default_days', $setting->maintenance_default_days) }}" min="15" max="365" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p class="mt-1 text-xs text-gray-500">Usado cuando el vehículo no tiene historial suficiente (default 120).</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Visitas a usar (historial) *</label>
+                                <input type="number" name="maintenance_history_visits" value="{{ old('maintenance_history_visits', $setting->maintenance_history_visits) }}" min="2" max="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p class="mt-1 text-xs text-gray-500">Últimas 2-3 visitas con kilometraje para proyectar (default 3).</p>
                             </div>
                         </div>
                     </div>

@@ -60,6 +60,29 @@ class VehicleController extends Controller
         return view('vehicles.show', compact('vehicle'));
     }
 
+    /**
+     * Historial del vehículo: ingresos (check-ins) y presupuestos enlazables por document_sn.
+     * Se usa desde el panel de recordatorios para dar el detalle de la última visita.
+     */
+    public function history(Vehicle $vehicle): View
+    {
+        Gate::authorize('view', $vehicle);
+
+        $vehicle->load(['vehicleModel.brand']);
+
+        $checkIns = $vehicle->checkIns()
+            ->with('establishment')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $estimates = $vehicle->estimates()
+            ->with(['client', 'insuranceCompany'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('vehicles.history', compact('vehicle', 'checkIns', 'estimates'));
+    }
+
     public function edit(Vehicle $vehicle): View
     {
         Gate::authorize('update', $vehicle);
@@ -112,6 +135,30 @@ class VehicleController extends Controller
         $this->vehicleService->revokeToken($vehicle);
 
         return back()->with('success', 'Enlace público del vehículo revocado.');
+    }
+
+    /**
+     * Ajusta manualmente el próximo mantenimiento preventivo (caso: el cliente no usó
+     * el vehículo, vacaciones, etc.). Marca maintenance_source = 'manual' para que el
+     * cálculo automático no lo pise hasta un nuevo preventivo.
+     */
+    public function updateMaintenanceDate(Request $request, Vehicle $vehicle)
+    {
+        Gate::authorize('update', $vehicle);
+
+        $request->validate([
+            'next_maintenance_date' => ['required', 'date'],
+        ], [
+            'next_maintenance_date.required' => 'La fecha del próximo mantenimiento es obligatoria.',
+        ]);
+
+        $vehicle->update([
+            'next_maintenance_date' => $request->input('next_maintenance_date'),
+            'maintenance_source' => 'manual',
+            'updated_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Próximo mantenimiento ajustado manualmente.');
     }
 
     public function search(Request $request): JsonResponse

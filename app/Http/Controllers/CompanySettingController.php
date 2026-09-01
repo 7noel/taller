@@ -48,6 +48,9 @@ class CompanySettingController extends Controller
             'whatsapp_api_token' => ['nullable', 'string', 'max:255'],
             'whatsapp_instance_name' => ['nullable', 'string', 'max:100'],
             'whatsapp_enabled' => ['sometimes', 'boolean'],
+            'maintenance_interval_km' => ['nullable', 'integer', 'min:500', 'max:50000'],
+            'maintenance_default_days' => ['nullable', 'integer', 'min:15', 'max:365'],
+            'maintenance_history_visits' => ['nullable', 'integer', 'min:2', 'max:5'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:2048'],
             'favicon' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,ico', 'max:1024'],
         ]);

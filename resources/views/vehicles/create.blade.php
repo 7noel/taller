@@ -82,6 +82,26 @@
                                 <label class="block text-sm font-medium text-gray-700">Días Aviso Revisión</label>
                                 <input type="number" name="review_reminder_days" value="{{ old('review_reminder_days', 15) }}" min="1" max="90" class="mt-1 block w-full rounded-md border-gray-300">
                             </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Último Mantenimiento</label>
+                                <input type="date" name="last_maintenance_date" value="{{ old('last_maintenance_date') }}" class="mt-1 block w-full rounded-md border-gray-300">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Km Último Mantenimiento</label>
+                                <input type="number" name="last_maintenance_mileage" value="{{ old('last_maintenance_mileage') }}" min="0" class="mt-1 block w-full rounded-md border-gray-300">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Próximo Mantenimiento</label>
+                                <input type="date" name="next_maintenance_date" value="{{ old('next_maintenance_date') }}" class="mt-1 block w-full rounded-md border-gray-300">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Días Aviso Mantenimiento</label>
+                                <input type="number" name="maintenance_reminder_days" value="{{ old('maintenance_reminder_days', 15) }}" min="1" max="90" class="mt-1 block w-full rounded-md border-gray-300">
+                            </div>
                         </div>
 
                         <div class="flex gap-2 items-center mt-6">

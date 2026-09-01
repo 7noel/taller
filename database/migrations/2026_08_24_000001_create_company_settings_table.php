@@ -33,6 +33,10 @@ return new class extends Migration
             $table->string('whatsapp_instance_name')->nullable();
             $table->boolean('whatsapp_enabled')->default(false);
             $table->boolean('qc_require_assignments_completed')->default(true);
+            // Configuración del mantenimiento preventivo (cálculo por kilometraje).
+            $table->integer('maintenance_interval_km')->default(5000);
+            $table->integer('maintenance_default_days')->default(120);
+            $table->integer('maintenance_history_visits')->default(3);
             $table->timestamps();
 
             $table->foreign('ubigeo_code')->references('code')->on('ubigeos')->nullOnDelete();

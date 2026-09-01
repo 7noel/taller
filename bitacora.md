@@ -1,6 +1,71 @@
 
 ## Fecha de inicio: 17 de agosto de 2026
 
+### 📌 Sesión: Recordatorios, mantenimiento preventivo y rol Gestor de Citas (citas y seguimiento)
+- **Fecha**: 01 de septiembre de 2026
+- **Tarea**: Panel de recordatorios (revisión técnica, mantenimiento preventivo y presupuestos en aprobación), cálculo del próximo preventivo por kilometraje, sincronización de fechas desde el check-in al vehículo, y rol "Gestor de Citas" para el personal de agenda.
+- **Migraciones modificadas (3, re-editadas en origen)**: `vehicles` (+`last_maintenance_date`, `last_maintenance_mileage`, `next_maintenance_date`, `maintenance_reminder_days` 15, `maintenance_source` calculated/manual), `company_settings` (+`maintenance_interval_km` 5000, `maintenance_default_days` 120, `maintenance_history_visits` 3), `follow_ups` (+`estimate_id` nullable → seguimiento de presupuestos).
+- **Servicios**: nuevo `MaintenanceService` integrado en `CheckInService::create/update`: revisión técnica se sincroniza "solo hacia adelante o si vacío"; preventivo actualiza última visita/km y recalcula `next_maintenance_date` (0-1 visita → última + 120 días; ≥2 visitas con km → proyección `(días/km)×intervalo` con límites 30-365; `maintenance_source='manual'` no se pisa).
+- **Controladores**: `ReminderController` (index + `api/reminders/search?tab=technical_review|maintenance|estimates`, protegido con `ver seguimientos`); `VehicleController::history` (ingresos y presupuestos del vehículo por `document_sn`) y `updateMaintenanceDate` (ajuste manual).
+- **Frontend**: `reminders/index` (3 pestañas Tabulator, badges de plazo, contacto + teléfono, aviso de cita existente; acciones Historial / Seguimiento modal precargado / Agendar cita con prefill en `appointments/create` / Ajustar fecha), `vehicles/history`, botón "Seguimiento" en `estimates/show` (follow-up con `estimate_id`), formulario de vehículo y pestaña "Mantenimiento" en company-settings.
+- **Rol nuevo "Gestor de Citas"** (seeder): ver parties/vehículos, ver/crear presupuestos, ver/crear/editar citas y seguimientos. Ítem "Recordatorios" en el grupo Citas de la navegación.
+- **Tests**: `tests/Feature/ReminderMaintenanceTest` (9 tests, 32 assertions): sync de revisión+preventivo, proyección con historial (Carbon 3 `diffInDays` con signo → `abs`), fecha manual no sobrescrita, revisión nunca retrocede, endpoint de recordatorios por pestaña + render, historial, seguimiento con presupuesto y rol.
+- **Verificación**: suite completa **185 tests / 558 assertions OK**; `view:cache` OK; `php -l` OK; ambas BD (dev y testing) reconstruidas con `migrate:fresh` (se editaron migraciones existentes, requiere recrear esquema).
+
+### 📌 Sesión: Facturación Electrónica — Fase 1 y 2 (datos + proveedores + reglas de negocio)
+- **Fecha**: 01 de septiembre de 2026
+- **Tarea**: Construir el módulo de facturación electrónica (módulo 9) con doble proveedor (Nubefact + Factura Perú / facturadorsmart.pe), adelantos con caja completa, franquicia, aseguradora, cierre con regularización de anticipos, NC/ND y guías de remisión.
+- **Decisiones de negocio (confirmadas por el usuario)**:
+  - Guías de remisión con **tabla propia `dispatches`** (no toca `InventoryGuide`).
+  - **Adelantos completos**: módulo de caja (cajas, métodos de pago, bancos, ingresos/salidas) + payments polimórfico.
+  - Facturación **multi-presupuesto** (pivote `invoice_estimate`).
+  - **Doble origen**: desde OT (agrupa sus presupuestos con checkbox) y desde presupuestos (selección múltiple) + libre.
+  - Series F/B por tipo de documento (FTR1/BLT1/FTC1/BLC1/FTD1/BLD1) ya contempladas en `PREFIX_MAP`.
+- **Migraciones nuevas (11)**: `payment_methods`, `banks`, `cash_registers`, `payments` (polimórfico), `cash_movements`, `invoices`, `invoice_items`, `invoice_estimate` (pivote), `invoice_discounts` (02 global / 04 por anticipos), `dispatches` + `dispatch_items`. Serie/correlativo nullable (000400). Fix pre-existente `appointment_associated` en check_ins (000500).
+- **Modelos (10 nuevos)**: `Invoice`, `InvoiceItem`, `InvoiceDiscount`, `Payment`, `PaymentMethod`, `Bank`, `CashRegister`, `CashMovement`, `Dispatch`, `DispatchItem`. Relaciones nuevas: `Estimate.invoices()/payments()`, `WorkOrder.invoices()`, `Invoice.globalDiscountAmount()`.
+- **Servicios** (`app/Services/Facturacion/`): `FacturadorProviderInterface`, `NubefactProvider` (anticipos con `anticipo_regularizacion`, NC/ND, guías), `FacturaPeruProvider` (`anticipos[]` + descuento código 04, `documento_afectado.external_id`), `FacturadorProviderFactory` (nubefact/propio; error claro si LOCAL), `InvoiceService` (`createFromEstimates` advance/franchise/insurance/regular/free multi-presupuesto, `createFree`, `createNote`, `emit`, `void`).
+- **Reglas de negocio**: 1 adelanto = 1 factura (sunat_tx 4); cierre agrupa todos los anticipos y reduce la base (total = servicio − anticipos); con anticipos NO hay descuento global (prorrateo por ítem); franquicia→cliente, aseguradora→total−franquicia; boleta si receptor sin RUC. `igv_rate` normalizado (0.18 o 18.00).
+- **Verificación**: `php artisan migrate` OK. Smoke test real: libre 224.20, adelanto 300 (sunat_tx 4), cierre 538.08−300=238.08 con línea de regularización y payload Nubefact correcto. Suite completa: **163 tests pasando** (156 + fix de 7 en CheckInServiceTest).
+- **Pendiente (Fases 3-5)**: `CashService`/`DispatchService`, controladores y rutas, vistas (facturas, guías, caja), navegación, permisos y tests con `Http::fake()` para ambos proveedores.
+
+### 📌 Sesión: Facturación Electrónica — Fases 3 a 5 (UI + controladores + tests)
+- **Fecha**: 01 de septiembre de 2026
+- **Servicios nuevos**: `CashService` (abrir/cerrar caja con arqueo, `registerAdvance` → Payment + factura de adelanto + movimiento de caja, `registerPayment` polimórfico, `registerExpense`, `estimatePaid`) y `DispatchService` (crear guía remitente/transportista + `emit` con numeración TR01).
+- **Controladores**: `InvoiceController` (index/create con **doble origen** OT→agrupa presupuestos / presupuestos múltiples / libre, store, show, emit, void, creditNote, debitNote, search JSON, parties para Tom Select), `DispatchController`, `CashController` (open/close/movements/advance/expense), `CashCatalogController` (métodos de pago y bancos).
+- **Form Request**: `InvoiceCreateRequest` (valida origen, tipo, receptor, advance_amount, ítems libres).
+- **Policies** (auto-descubiertas): `InvoicePolicy`, `DispatchPolicy`, `CashRegisterPolicy`, `PaymentMethodPolicy`, `BankPolicy`.
+- **Permisos nuevos (seeder)**: `ver/crear/editar facturas`, `emitir comprobantes`, `anular facturas`, `ver/crear/editar/anular guías de remisión`, `ver caja`, `abrir/cerrar caja`, `registrar movimientos de caja`, `ver/crear/eliminar métodos de pago`, `ver/crear/eliminar bancos`. Asesor: ver/crear/editar facturas + emitir + caja + métodos/bancos.
+- **Rutas nuevas**: resource invoices/dispatches + acciones emit/void/NC/ND, `api/invoices/search|parties`, `api/dispatches/search`, `cash/*`, `estimates/{estimate}/advance`.
+- **Navegación**: grupo "Facturación" (Comprobantes, Guías de Remisión, Caja, Métodos de Pago, Bancos).
+- **Vistas**: `invoices/index` (Tabulator + badges + acciones), `invoices/create` (selector OT/Presupuestos/Libre con Tom Select + ítems dinámicos), `invoices/show` (ítems/totales/respuesta proveedor + emit/anular/NC/ND), `dispatches/index|create|show`, `cash/index` (caja, egresos, arqueo, adelanto rápido, movimientos Tabulator), `cash/catalogs`.
+- **Corrección de cálculo**: factura a aseguradora convierte la franquicia (monto total con IGV) a base imponible para el descuento global.
+- **Fix de `appointment_associated` definitivo**: se revirtió el booleano → **atributo transitorio** (accessor + mutator que no persiste, mantiene el objeto `Appointment` como espera `AppointmentTest`).
+- **Tests**: `tests/Feature/InvoiceFlowTest` (8 tests, 35 assertions) con `Http::fake()` para Nubefact: factura libre (DNI→boleta, RUC→factura), adelanto + cierre con regularización (total = servicio − anticipos), descuento global prorrateado por ítem con anticipos, aseguradora (total − franquicia), emisión con payload verificado + respuesta persistida, NC con snapshot del documento modificado, guía TR01.
+- **Verificación**: `view:cache` OK (215 vistas), `php artisan route:list` OK, permisos sembrados en dev, **suite completa 171 tests pasando** (163 + 8 InvoiceFlow; los 3 de AppointmentTest corregidos por el atributo transitorio).
+- **Pendiente menor**: botón/formulario de "Registrar adelanto" embebido en `estimates/show` (hoy se hace desde la caja), seeder de métodos de pago/bancos por defecto, y jobs de cola para la emisión en segundo plano.
+
+### 📌 Sesión: Facturación — pendientes menores resueltos (adelanto en presupuesto + catálogos + jobs)
+- **Fecha**: 01 de septiembre de 2026
+- **Adelanto en `estimates/show`**: nueva card "Cobros y adelantos" (tabla de pagos con comprobante enlazado, total cobrado y saldo pendiente) + formulario compacto "Registrar adelanto" (monto, medio de pago, referencia) que POST a `estimates/{id}/advance`. `EstimateController::show` ahora carga `payments.invoice/paymentMethod` y pasa `$paymentMethods` + `$paidTotal`.
+- **Seeder `PaymentMethodBankSeeder`** (agregado a `DatabaseSeeder`): 7 métodos de pago (Efectivo, Tarjeta, Yape, Plin, Transferencia, Depósito, Cheque) y 8 bancos (BCP, BBVA, Interbank, Scotiabank, Bco. Nación, BanBif, MiBanco, Caja Piura). Sembrado en dev (7/8 confirmados).
+- **Jobs de cola**: `EmitInvoiceJob` y `EmitDispatchJob` (ShouldQueue, reintentos 2/backoff 15s, registra error en `sunat_description` si falla). Los controladores `InvoiceController::emit` y `DispatchController::emit` ahora **despachan el job** en lugar de emitir en línea (flash "Emisión en proceso"), con guarda de estado (solo borrador/rechazada).
+- **Verificación**: `view:cache` OK (215 vistas), lint OK, seeder OK. `InvoiceFlowTest` ampliado a **9 tests / 37 assertions** (nuevo test `test_emit_invoice_job_emits_via_queue` con `dispatchSync`). Suite completa: **172 tests verdes**.
+- **Para producción**: ejecutar `php artisan queue:work` (cola `database`) para procesar las emisiones en segundo plano.
+
+### 📌 Sesión: Facturación multi-presupuesto completa (multi-vehículo, multi-documento, detección de relacionados)
+- **Fecha**: 01 de septiembre de 2026
+- **Objetivo**: garantizar los escenarios 1 presupuesto → N facturas (ya existía) y N presupuestos → 1 factura, incluyendo siniestro + ampliaciones, flota de vehículos, facturación por OT y detección automática de presupuestos relacionados.
+- **Fase A — UX del selector**: `EstimateService::getSearchResults()` ahora devuelve `text` (arregla dropdown vacío), `vehicle_id`, `vehicle_plate`, `invoiced_total` y `billable_balance` (saldo pendiente = total − facturado no anulado). `WorkOrderController::search` devuelve `text` con placa/cliente/nº presupuestos/total.
+- **Fase B — Detección de relacionados**: `Estimate::BILLABLE_STATUSES` (approved_insurance/approved_client/in_repair/finalized) + `getRelatedBillable()` y endpoints `api/estimates/related?estimate_id=X` (mismo vehículo **o** misma OT) y `api/estimates/by-vehicle?vehicle_id=X`. En `invoices/create`: **auto-sugerencia** (al elegir el primer presupuesto se preseleccionan los relacionados, deseleccionables) + botón "Agregar presupuestos del mismo vehículo".
+- **Fase C — Guard anti doble facturación**: `InvoiceService::guardInvoiceType()` — estados facturables obligatorios; adelanto (suma de adelantos + nuevo ≤ total), franquicia (una sola), aseguradora (una sola), cierre/regular (sin otro cierre/aseguradora).
+- **Fase D — Origen "Por Vehículo"**: 4ª opción en la vista create; Tom Select de vehículo → botón "Cargar presupuestos del vehículo" → llena el multi-select con sus presupuestos facturables y cambia al origen Presupuestos.
+- **Fase E — Trazabilidad multi-vehículo**: `annotateVehiclePlates()` — si la factura agrupa presupuestos de varias placas, las lista en observaciones ("Placas: ABC-123, XYZ-789").
+- **Tests**: `InvoiceFlowTest` ampliado a **13 tests / 46 assertions**: multi-presupuesto de 2 vehículos en 1 factura (pivote 2, ítems 2, placas en observaciones, total 1416), rechazo de doble cierre, rechazo de adelanto que excede el total, y endpoint `related` con presupuestos del mismo vehículo. `makeEstimate` ahora numeración incremental.
+- **Verificación**: `view:cache` OK (215 vistas), lint OK, **suite completa 176 tests pasando (527 assertions)**.
+
+
+
+
 ### 📌 Sesión 1: Configuración inicial del proyecto
 - **Fecha**: 17 de agosto de 2026
 - **Tarea**: Configuración inicial de Laravel, base de datos, migraciones y seeders.

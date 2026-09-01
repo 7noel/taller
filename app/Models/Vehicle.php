@@ -17,6 +17,8 @@ class Vehicle extends Model
     protected $fillable = [
         'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
         'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+        'last_maintenance_date', 'last_maintenance_mileage', 'next_maintenance_date',
+        'maintenance_reminder_days', 'maintenance_source',
         'access_token', 'access_token_created_at',
         'created_by', 'updated_by',
     ];
@@ -24,6 +26,10 @@ class Vehicle extends Model
     protected $casts = [
         'technical_review_date' => 'date',
         'review_reminder_days' => 'integer',
+        'last_maintenance_date' => 'date',
+        'last_maintenance_mileage' => 'integer',
+        'next_maintenance_date' => 'date',
+        'maintenance_reminder_days' => 'integer',
         'access_token_created_at' => 'datetime',
     ];
 
@@ -33,6 +39,8 @@ class Vehicle extends Model
             ->logOnly([
                 'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
                 'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+                'last_maintenance_date', 'last_maintenance_mileage', 'next_maintenance_date',
+                'maintenance_reminder_days', 'maintenance_source',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
@@ -96,6 +104,16 @@ class Vehicle extends Model
     public function owner()
     {
         return $this->hasOne(VehicleRelationship::class)->where('role', 'owner');
+    }
+
+    public function checkIns()
+    {
+        return $this->hasMany(CheckIn::class);
+    }
+
+    public function estimates()
+    {
+        return $this->hasMany(Estimate::class);
     }
 
     /**

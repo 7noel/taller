@@ -25,7 +25,13 @@ use App\Http\Controllers\ProviderSettlementController;
 use App\Http\Controllers\ServiceVoucherController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\CashCatalogController;
+use App\Http\Controllers\CashController;
+use App\Http\Controllers\DispatchController;
+use App\Http\Controllers\InvoiceController;
+
 use App\Http\Controllers\FollowUpController;
+use App\Http\Controllers\ReminderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -65,8 +71,10 @@ Route::prefix('c')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('parties', PartyController::class);
     Route::resource('vehicles', VehicleController::class);
+    Route::get('vehicles/{vehicle}/history', [VehicleController::class, 'history'])->name('vehicles.history');
     Route::post('vehicles/{vehicle}/token/regenerate', [VehicleController::class, 'regenerateToken'])->name('vehicles.token.regenerate');
     Route::post('vehicles/{vehicle}/token/revoke', [VehicleController::class, 'revokeToken'])->name('vehicles.token.revoke');
+    Route::post('vehicles/{vehicle}/maintenance-date', [VehicleController::class, 'updateMaintenanceDate'])->name('vehicles.maintenance-date');
     Route::resource('check-ins', CheckInController::class);
     Route::get('kanban', [KanbanController::class, 'index'])->middleware('can:ver tablero')->name('kanban.index');
     Route::get('api/kanban/data', [KanbanController::class, 'data'])->middleware('can:ver tablero')->name('api.kanban.data');
@@ -171,6 +179,39 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('follow-ups/{followUp}/done', [FollowUpController::class, 'markDone'])->name('follow-ups.done');
     Route::get('api/follow-ups/search', [FollowUpController::class, 'search'])->name('api.follow-ups.search');
 
+    // Panel de recordatorios (revisión técnica, mantenimiento preventivo, presupuestos en aprobación).
+    Route::get('reminders', [ReminderController::class, 'index'])->name('reminders.index');
+    Route::get('api/reminders/search', [ReminderController::class, 'search'])->name('api.reminders.search');
+
+    // Facturación electrónica
+    Route::resource('invoices', InvoiceController::class)->only(['index', 'create', 'store', 'show']);
+    Route::post('invoices/{invoice}/emit', [InvoiceController::class, 'emit'])->name('invoices.emit');
+    Route::post('invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
+    Route::post('invoices/{invoice}/credit-note', [InvoiceController::class, 'creditNote'])->name('invoices.credit-note');
+    Route::post('invoices/{invoice}/debit-note', [InvoiceController::class, 'debitNote'])->name('invoices.debit-note');
+    Route::get('api/invoices/search', [InvoiceController::class, 'search'])->name('api.invoices.search');
+    Route::get('api/invoices/parties', [InvoiceController::class, 'parties'])->name('api.invoices.parties');
+
+    // Guías de remisión
+    Route::resource('dispatches', DispatchController::class)->only(['index', 'create', 'store', 'show']);
+    Route::post('dispatches/{dispatch}/emit', [DispatchController::class, 'emit'])->name('dispatches.emit');
+    Route::get('api/dispatches/search', [DispatchController::class, 'search'])->name('api.dispatches.search');
+
+    // Caja
+    Route::get('cash', [CashController::class, 'index'])->name('cash.index');
+    Route::post('cash/open', [CashController::class, 'open'])->name('cash.open');
+    Route::post('cash/close', [CashController::class, 'close'])->name('cash.close');
+    Route::get('api/cash/movements', [CashController::class, 'movements'])->name('api.cash.movements');
+    Route::post('estimates/{estimate}/advance', [CashController::class, 'advance'])->name('estimates.advance');
+    Route::post('cash/{register}/expense', [CashController::class, 'expense'])->name('cash.expense');
+    Route::get('cash/payment-methods', [CashCatalogController::class, 'paymentMethods'])->name('cash.payment-methods');
+    Route::post('cash/payment-methods', [CashCatalogController::class, 'storePaymentMethod'])->name('cash.payment-methods.store');
+    Route::delete('cash/payment-methods/{paymentMethod}', [CashCatalogController::class, 'destroyPaymentMethod'])->name('cash.payment-methods.destroy');
+    Route::get('cash/banks', [CashCatalogController::class, 'banks'])->name('cash.banks');
+    Route::post('cash/banks', [CashCatalogController::class, 'storeBank'])->name('cash.banks.store');
+    Route::delete('cash/banks/{bank}', [CashCatalogController::class, 'destroyBank'])->name('cash.banks.destroy');
+
+
     Route::post('estimates/{estimate}/send-to-insurance', [EstimateController::class, 'sendToInsurance'])->name('estimates.send-to-insurance');
     Route::post('estimates/{estimate}/approve-insurance', [EstimateController::class, 'approveInsurance'])->name('estimates.approve-insurance');
     Route::post('estimates/{estimate}/reject-insurance', [EstimateController::class, 'rejectInsurance'])->name('estimates.reject-insurance');
@@ -183,6 +224,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('estimates/{estimate}/return-to-draft', [EstimateController::class, 'returnToDraft'])->name('estimates.return-to-draft');
 
     Route::get('api/estimates/search', [EstimateController::class, 'search'])->name('api.estimates.search');
+    Route::get('api/estimates/related', [EstimateController::class, 'related'])->name('api.estimates.related');
+    Route::get('api/estimates/by-vehicle', [EstimateController::class, 'byVehicle'])->name('api.estimates.by-vehicle');
+
     Route::post('api/estimates/calculate', [EstimateController::class, 'calculate'])->name('api.estimates.calculate');
     Route::get('api/estimates/from-check-in/{checkIn}', [EstimateController::class, 'fromCheckIn'])->name('api.estimates.from-check-in');
 

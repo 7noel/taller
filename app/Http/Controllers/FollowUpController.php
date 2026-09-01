@@ -73,7 +73,7 @@ class FollowUpController extends Controller
         Gate::authorize('viewAny', FollowUp::class);
 
         $query = FollowUp::query()
-            ->with(['party', 'vehicle.vehicleModel.brand', 'creator']);
+            ->with(['party', 'vehicle.vehicleModel.brand', 'estimate', 'creator']);
 
         if ($request->boolean('pending')) {
             $query->where('done', false);
@@ -111,6 +111,8 @@ class FollowUpController extends Controller
                 'vehicle_label' => $f->vehicle
                     ? trim(($f->vehicle->vehicleModel?->brand?->name ?? '') . ' ' . ($f->vehicle->vehicleModel?->name ?? ''))
                     : '',
+                'estimate_sn' => $f->estimate?->document_sn,
+                'estimate_id' => $f->estimate_id,
             ];
         }));
     }

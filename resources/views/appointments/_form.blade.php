@@ -162,9 +162,9 @@
             if (!vehicleId) {
                 partySelect.clear(true);
                 partySelect.clearOptions();
-                return;
+                return Promise.resolve();
             }
-            fetch(`/api/vehicles/${vehicleId}/recipients`)
+            return fetch(`/api/vehicles/${vehicleId}/recipients`)
                 .then(r => r.json())
                 .then(contacts => {
                     partySelect.clear(true);
@@ -280,6 +280,46 @@
         // Precarga de datos readonly cuando ya hay vehículo (edición)
         if (initialVehicle) fillVehicleReadonly(initialVehicle);
         if (initialVehicle) loadVehicleContacts(initialVehicle.id);
+
+        // ===== Prefill desde el panel de recordatorios =====
+        // (?vehicle_id=&plate=&party_id=&party_name=&service_type=&reason=&scheduled_date=&contact_name=&contact_phone=)
+        const urlParams = new URLSearchParams(window.location.search);
+        const prefillPartyId = urlParams.get('party_id');
+
+        function applyPartyPrefill() {
+            if (!prefillPartyId || initialParty) return;
+            const name = urlParams.get('party_name') || 'Contacto';
+            if (!partySelect.options[prefillPartyId]) {
+                partySelect.addOption({ id: prefillPartyId, display_name: name });
+            }
+            partySelect.setValue(prefillPartyId, true);
+            ['contact_name', 'contact_phone', 'contact_email'].forEach(function (field) {
+                const v = urlParams.get(field);
+                if (v) document.getElementById(field).value = v;
+            });
+        }
+
+        const prefillVehicleId = urlParams.get('vehicle_id');
+        if (prefillVehicleId && !initialVehicle) {
+            fetch(`/api/vehicles/search?id=${encodeURIComponent(prefillVehicleId)}&limit=1`)
+                .then(r => r.json())
+                .then(list => {
+                    const v = Array.isArray(list) ? list[0] : null;
+                    if (!v) return;
+                    vehicleSelect.addOption(v);
+                    vehicleSelect.setValue(String(v.id), true);
+                    fillVehicleReadonly(v);
+                    return loadVehicleContacts(String(v.id));
+                })
+                .then(applyPartyPrefill)
+                .catch(applyPartyPrefill);
+        } else {
+            applyPartyPrefill();
+        }
+
+        if (urlParams.get('service_type')) document.getElementById('service_type').value = urlParams.get('service_type');
+        if (urlParams.get('reason')) document.getElementById('reason').value = urlParams.get('reason');
+        if (urlParams.get('scheduled_date')) document.getElementById('scheduled_date').value = urlParams.get('scheduled_date');
     } catch (error) {
         console.error('[appointment-form] Error inicializando:', error);
     }

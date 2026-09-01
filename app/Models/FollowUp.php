@@ -24,6 +24,7 @@ class FollowUp extends Model
     protected $fillable = [
         'party_id',
         'vehicle_id',
+        'estimate_id',
         'date',
         'type',
         'notes',
@@ -66,6 +67,11 @@ class FollowUp extends Model
     public function vehicle()
     {
         return $this->belongsTo(Vehicle::class)->withTrashed();
+    }
+
+    public function estimate()
+    {
+        return $this->belongsTo(Estimate::class);
     }
 
     public function creator()

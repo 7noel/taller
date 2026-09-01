@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('party_id')->nullable()->constrained('parties')->nullOnDelete();
             $table->foreignId('vehicle_id')->nullable()->constrained('vehicles')->nullOnDelete();
+            $table->foreignId('estimate_id')->nullable()->constrained('estimates')->nullOnDelete();
             $table->date('date');
             $table->string('type', 20)->default('call');
             $table->text('notes')->nullable();

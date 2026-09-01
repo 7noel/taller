@@ -20,6 +20,13 @@ return new class extends Migration
             $table->string('body_type')->nullable();
             $table->date('technical_review_date')->nullable();
             $table->integer('review_reminder_days')->default(15);
+            // Mantenimiento preventivo: última visita, próxima visita (calculada o manual)
+            // y configuración del cálculo por kilometraje (ver MaintenanceService).
+            $table->date('last_maintenance_date')->nullable();
+            $table->integer('last_maintenance_mileage')->nullable();
+            $table->date('next_maintenance_date')->nullable();
+            $table->integer('maintenance_reminder_days')->default(15);
+            $table->string('maintenance_source', 20)->default('calculated'); // calculated | manual
 
             // Token de acceso público del vehículo (portal del cliente).
             // Se genera al crear el vehículo (ver VehicleService::create).
