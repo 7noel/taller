@@ -419,7 +419,60 @@
         const value = this.getValue();
         clearRecipient();
         loadVehicleContacts(value, null, { forceInsurance: true });
+        refreshNewVehicleButton();
     });
+
+    // =====================================================
+    // Nueva / Editar placa (reutiliza check-ins._vehicle_modal)
+    // =====================================================
+    const ICON_VPLUS = '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>';
+    const ICON_VPENCIL = '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>';
+
+    function refreshNewVehicleButton() {
+        const btn = document.getElementById('btn-new-vehicle');
+        if (!btn) return;
+        btn.innerHTML = vehicleSelect.getValue()
+            ? ICON_VPENCIL + ' Editar placa'
+            : ICON_VPLUS + ' Nueva placa';
+    }
+
+    function openVehicleQuickModal() {
+        if (typeof window.openVehicleModal !== 'function') {
+            console.error('[form-scripts] window.openVehicleModal no esta definido. Revisa check-ins/_vehicle_modal.');
+            return;
+        }
+        const id = vehicleSelect.getValue();
+        if (id) {
+            // Modo edición: cargar datos completos del vehículo seleccionado
+            fetch(`/api/vehicles/search?id=${encodeURIComponent(id)}`)
+                .then(r => r.json())
+                .then(data => { if (data[0]) window.openVehicleModal(data[0]); })
+                .catch(() => {});
+        } else {
+            // Modo nueva placa: pre-rellenar la placa escrita en el buscador
+            const typed = vehicleSelect.input ? vehicleSelect.input.value.trim() : '';
+            window.openVehicleModal(typed);
+        }
+    }
+
+    document.getElementById('btn-new-vehicle')?.addEventListener('click', openVehicleQuickModal);
+
+    // Tras guardar en el modal (nueva o edición), integrar el vehículo al formulario
+    document.addEventListener('vehicle-saved', function (e) {
+        const data = e.detail;
+        if (!data || !data.id) return;
+        vehicleSelect.addOption({
+            id: data.id,
+            label: data.plate,
+            sub: [data.brand, data.model, data.year].filter(Boolean).join(' '),
+        });
+        vehicleSelect.setValue(data.id, true);
+        clearRecipient();
+        loadVehicleContacts(data.id, null, { forceInsurance: true });
+        refreshNewVehicleButton();
+    });
+
+    refreshNewVehicleButton();
 
     // =====================================================
     // Agregar / editar contacto del vehículo (ContactModal)
@@ -1357,6 +1410,7 @@
                 vehicleSelect.addOption({ id: v.id, label: v.plate, sub: '' });
                 vehicleSelect.setValue(v.id, true);
                 loadVehicleContacts(v.id);
+                refreshNewVehicleButton();
             }).catch(() => {});
     }
     function setPartyById(ts, id) {
@@ -1378,6 +1432,7 @@
                     vehicleSelect.addOption({ id: data.vehicle.id, label: data.vehicle.plate, sub: '' });
                     vehicleSelect.setValue(data.vehicle.id, true);
                     loadVehicleContacts(data.vehicle.id);
+                    refreshNewVehicleButton();
                 }
                 if (data.insurance_company) {
                     insuranceSelect.addOption({ id: data.insurance_company.id, label: data.insurance_company.business_name, sub: data.insurance_company.document_number });

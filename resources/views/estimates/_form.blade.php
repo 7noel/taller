@@ -37,7 +37,13 @@
 
         {{-- Vehículo --}}
         <div>
-            <label for="vehicle_id" class="block text-sm font-medium text-gray-700">Vehículo <span class="text-red-500">*</span></label>
+            <div class="flex items-center justify-between gap-3">
+                <label for="vehicle_id" class="block text-sm font-medium text-gray-700">Vehículo <span class="text-red-500">*</span></label>
+                <button type="button" id="btn-new-vehicle" class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Nueva placa
+                </button>
+            </div>
             <select id="vehicle_id" name="vehicle_id" class="{{ $inputCls }}"></select>
             @error('vehicle_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
@@ -376,3 +382,4 @@
 {{-- Modales --}}
 @include('estimates._item-modal')
 @include('estimates._third-party-order-modal')
+@include('check-ins._vehicle_modal')
