@@ -9,9 +9,19 @@
 
     var IS_EDIT = {{ $isEdit ? 'true' : 'false' }};
     var CHECK_IN_ID = {{ $checkIn->id ?? 'null' }};
-    var MAX_SIDE = 1600;        // lado mayor (px) tras comprimir
-    var JPEG_QUALITY = 0.85;    // calidad JPEG (0-1)
-    var KEEP_SIZE = 450 * 1024; // JPEG/WEBP menores a 450 KB se suben tal cual
+    var MAX_SIDE = 1600;         // lado mayor (px) al comprimir subidas de galería/PC
+    var JPEG_QUALITY = 0.85;     // calidad JPEG para subidas de galería/PC
+    var CAM_MAX_SIDE = 2560;     // lado mayor (px) para fotos tomadas con la cámara (Alta)
+    var CAM_JPEG_QUALITY = 0.9;  // calidad JPEG para fotos de cámara (Alta)
+    var KEEP_SIZE = 450 * 1024;  // JPEG/WEBP menores a 450 KB se suben tal cual (sin recorte)
+    var RATIOS = [
+        { key: '3:4', w: 3, h: 4 },
+        { key: '1:1', w: 1, h: 1 },
+        { key: '4:3', w: 4, h: 3 },
+        { key: '16:9', w: 16, h: 9 }
+    ];
+    var RATIO_DEFAULT = '3:4';
+    var ZOOM_STEPS = [1, 1.5, 2, 3, 4];
 
     var previewEl = document.getElementById('photo-preview');
     if (!previewEl) return;
@@ -183,10 +193,15 @@
         });
     }
 
-    function compressPhoto(file) {
+    function compressPhoto(file, opts) {
+        opts = opts || {};
+        var maxSide = opts.maxSide || MAX_SIDE;
+        var quality = opts.quality || JPEG_QUALITY;
+        var cropRatio = opts.cropRatio || null; // p. ej. '3:4' (solo fotos de cámara)
+
         return new Promise(function (resolve) {
             if (!file || !/^image\//.test(file.type)) { resolve(file); return; }
-            if ((file.type === 'image/jpeg' || file.type === 'image/webp') && file.size < KEEP_SIZE) { resolve(file); return; }
+            if (!cropRatio && (file.type === 'image/jpeg' || file.type === 'image/webp') && file.size < KEEP_SIZE) { resolve(file); return; }
 
             var bitmap = null;
             var width = 0;
@@ -194,21 +209,48 @@
             var painter = null;
 
             function encode() {
-                var scale = Math.min(1, MAX_SIDE / Math.max(width, height));
+                // 1) Canvas natural (ya orientado por createImageBitmap o <img>)
+                var natural = document.createElement('canvas');
+                natural.width = width;
+                natural.height = height;
+                var nctx = natural.getContext('2d');
+                nctx.fillStyle = '#ffffff';
+                nctx.fillRect(0, 0, width, height);
+                if (painter) painter(nctx);
+                if (bitmap && typeof bitmap.close === 'function') { bitmap.close(); bitmap = null; }
+
+                // 2) Recorte centrado a la proporción elegida (solo cámara)
+                var srcX = 0, srcY = 0, srcW = width, srcH = height;
+                if (cropRatio) {
+                    var parts = String(cropRatio).split(':');
+                    var rw = parseFloat(parts[0]) || 1;
+                    var rh = parseFloat(parts[1]) || 1;
+                    var aspect = rw / rh;
+                    if (width / height > aspect) { srcH = height; srcW = height * aspect; }
+                    else { srcW = width; srcH = width / aspect; }
+                    srcX = (width - srcW) / 2;
+                    srcY = (height - srcH) / 2;
+                }
+
+                // 3) Escala de salida (lado mayor <= maxSide)
+                var scale = Math.min(1, maxSide / Math.max(srcW, srcH));
+                var outW = Math.max(1, Math.round(srcW * scale));
+                var outH = Math.max(1, Math.round(srcH * scale));
+
                 var canvas = document.createElement('canvas');
-                canvas.width = Math.max(1, Math.round(width * scale));
-                canvas.height = Math.max(1, Math.round(height * scale));
+                canvas.width = outW;
+                canvas.height = outH;
                 var ctx = canvas.getContext('2d');
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                if (painter) painter(ctx);
-                if (bitmap && typeof bitmap.close === 'function') { bitmap.close(); bitmap = null; }
+                ctx.fillRect(0, 0, outW, outH);
+                ctx.drawImage(natural, srcX, srcY, srcW, srcH, 0, 0, outW, outH);
+
                 if (typeof canvas.toBlob !== 'function') { resolve(file); return; }
                 canvas.toBlob(function (blob) {
                     if (!blob) { resolve(file); return; }
                     var base = String(file.name || 'foto').replace(/\.[^.]+$/, '') || 'foto';
                     resolve(new File([blob], base + '.jpg', { type: 'image/jpeg' }));
-                }, 'image/jpeg', JPEG_QUALITY);
+                }, 'image/jpeg', quality);
             }
 
             function useBitmap(bmp) {
@@ -240,6 +282,7 @@
             }
         });
     }
+
     // -------------------------------------------------------------
     // Subida de una foto
     // -------------------------------------------------------------
@@ -508,7 +551,7 @@
     // -------------------------------------------------------------
     // Encolar fotos (galería o captura nativa)
     // -------------------------------------------------------------
-    async function enqueueFile(file, keepOriginal) {
+    async function enqueueFile(file, keepOriginal, opts) {
         if (!file) return null;
         var key = 'k' + (++keySeq);
         var item = {
@@ -530,7 +573,7 @@
         updateCount();
 
         try {
-            var out = keepOriginal ? file : await compressPhoto(file);
+            var out = keepOriginal ? file : await compressPhoto(file, opts);
             item.file = out;
             item.localUrl = URL.createObjectURL(out);
             setImg(item, item.localUrl);
@@ -553,10 +596,10 @@
         return item;
     }
 
-    async function enqueueFiles(fileList, keepOriginal) {
+    async function enqueueFiles(fileList, keepOriginal, opts) {
         var files = Array.prototype.slice.call(fileList || []);
         for (var i = 0; i < files.length; i++) {
-            await enqueueFile(files[i], keepOriginal);
+            await enqueueFile(files[i], keepOriginal, opts);
         }
     }
 
@@ -571,7 +614,8 @@
         captureInput.addEventListener('change', function () {
             var files = this.files;
             this.value = '';
-            enqueueFiles(files, false);
+            readRatio();
+            enqueueFiles(files, false, { cropRatio: camRatioKey, maxSide: CAM_MAX_SIDE, quality: CAM_JPEG_QUALITY });
         });
     }
     if (uploadBtn) {
@@ -581,71 +625,324 @@
     }
 
     // -------------------------------------------------------------
-    // Cámara integrada (getUserMedia) con respaldo a la cámara nativa
+    // Cámara integrada: vista previa WYSIWYG (canvas), proporción y zoom
     // -------------------------------------------------------------
     var camStream = null;
+    var camOpen = false;
+    var camRaf = 0;
+    var camVideo = cameraVideo;
+    var camCanvas = document.getElementById('photo-camera-canvas');
+    var camStage = document.getElementById('photo-camera-stage');
+    var camOriented = null;
+    var camManualOffset = 0;
+    var camRatioKey = RATIO_DEFAULT;
+    var camSoftZoom = 1;
+    var camNativeZoom = false;
+    var camVideoTrack = null;
+    var camZoomUi = 1;
     var sessionShots = 0;
 
     function canInlineCamera() {
         return window.isSecureContext && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     }
 
-    function openNativeCamera() {
-        if (captureInput) { captureInput.value = ''; captureInput.click(); }
+    function readRatio() {
+        var v = RATIO_DEFAULT;
+        try {
+            var saved = localStorage.getItem('checkin-photo-ratio');
+            if (saved) v = saved;
+        } catch (e) {}
+        camRatioKey = v;
+    }
+
+    function persistRatio() {
+        try { localStorage.setItem('checkin-photo-ratio', camRatioKey); } catch (e) {}
+    }
+
+    function camRatioObj() {
+        for (var i = 0; i < RATIOS.length; i++) {
+            if (RATIOS[i].key === camRatioKey) return RATIOS[i];
+        }
+        return RATIOS[0];
+    }
+
+    function camAspect() {
+        var r = camRatioObj();
+        return r.w / r.h;
+    }
+
+    function updateRatioUI() {
+        if (!cameraModal) return;
+        var btns = cameraModal.querySelectorAll('.cam-ratio-btn');
+        for (var i = 0; i < btns.length; i++) {
+            var b = btns[i];
+            if (b.dataset.ratio === camRatioKey) {
+                b.classList.remove('bg-white/15');
+                b.classList.add('bg-blue-600');
+            } else {
+                b.classList.remove('bg-blue-600');
+                b.classList.add('bg-white/15');
+            }
+        }
+    }
+
+    function updateZoomUI() {
+        var label = document.getElementById('camera-zoom-label');
+        if (label) label.textContent = camZoomUi + '×';
+    }
+
+    function zoomSteps() {
+        return ZOOM_STEPS;
+    }
+
+    function setCamZoom(z) {
+        var steps = zoomSteps();
+        if (z < steps[0]) z = steps[0];
+        if (z > steps[steps.length - 1]) z = steps[steps.length - 1];
+        camZoomUi = z;
+        updateZoomUI();
+        if (camNativeZoom && camVideoTrack && camVideoTrack.applyConstraints) {
+            camSoftZoom = 1;
+            camVideoTrack.applyConstraints({ advanced: [{ zoom: z }] }).catch(function () {
+                camNativeZoom = false;
+                camSoftZoom = z;
+            });
+        } else {
+            camSoftZoom = z;
+        }
+    }
+
+    function nextZoom(dir) {
+        var steps = zoomSteps();
+        var i = steps.indexOf(camZoomUi);
+        if (i === -1) i = 0;
+        var j = Math.min(steps.length - 1, Math.max(0, i + dir));
+        return steps[j];
+    }
+
+    function camZoomEffective() {
+        return camNativeZoom ? 1 : camSoftZoom;
+    }
+
+    function currentRotation() {
+        if (!camVideo || !camVideo.videoWidth) return 0;
+        var w = camVideo.videoWidth;
+        var h = camVideo.videoHeight;
+        var auto = 0;
+        var portrait = window.innerHeight > window.innerWidth;
+        if (portrait && w > h) auto = 90;
+        else if (!portrait && h > w) auto = 270;
+        return (auto + camManualOffset) % 360;
+    }    function orientedCanvas() {
+        if (!camVideo || !camVideo.videoWidth || !camVideo.videoHeight) return null;
+        var w = camVideo.videoWidth;
+        var h = camVideo.videoHeight;
+        var rot = currentRotation();
+        var needW = (rot === 90 || rot === 270) ? h : w;
+        var needH = (rot === 90 || rot === 270) ? w : h;
+        if (!camOriented) camOriented = document.createElement('canvas');
+        if (camOriented.width !== needW || camOriented.height !== needH) {
+            camOriented.width = needW;
+            camOriented.height = needH;
+        }
+        var ctx = camOriented.getContext('2d');
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, needW, needH);
+        if (rot === 0) {
+            ctx.drawImage(camVideo, 0, 0, needW, needH);
+        } else {
+            ctx.translate(needW / 2, needH / 2);
+            ctx.rotate((rot * Math.PI) / 180);
+            ctx.drawImage(camVideo, -w / 2, -h / 2);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        return camOriented;
+    }
+
+    function cameraCropRect(ow, oh) {
+        var aspect = camAspect();
+        var bw = ow;
+        var bh = ow / aspect;
+        if (bh > oh) {
+            bh = oh;
+            bw = oh * aspect;
+        }
+        var z = camZoomEffective();
+        var sw = Math.max(1, bw / z);
+        var sh = Math.max(1, bh / z);
+        return { x: (ow - sw) / 2, y: (oh - sh) / 2, w: sw, h: sh };
+    }
+
+    function startCameraLoop() {
+        cancelCameraLoop();
+        camRaf = requestAnimationFrame(cameraTick);
+    }
+
+    function cancelCameraLoop() {
+        if (camRaf) {
+            cancelAnimationFrame(camRaf);
+            camRaf = 0;
+        }
+    }
+
+    function cameraTick() {
+        if (!camOpen) { camRaf = 0; return; }
+        if (!camVideo || !camVideo.videoWidth || !camVideo.videoHeight || !camCanvas) {
+            camRaf = requestAnimationFrame(cameraTick);
+            return;
+        }
+        var ori = orientedCanvas();
+        if (!ori) { camRaf = requestAnimationFrame(cameraTick); return; }
+        var crop = cameraCropRect(ori.width, ori.height);
+        var outW = Math.max(1, Math.round(crop.w));
+        var outH = Math.max(1, Math.round(crop.h));
+        if (camCanvas.width !== outW || camCanvas.height !== outH) {
+            camCanvas.width = outW;
+            camCanvas.height = outH;
+        }
+        var ctx = camCanvas.getContext('2d');
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, outW, outH);
+        ctx.drawImage(ori, crop.x, crop.y, crop.w, crop.h, 0, 0, outW, outH);
+        camRaf = requestAnimationFrame(cameraTick);
     }
 
     function openInlineCamera() {
         return navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } },
+            video: {
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 2560 },
+                height: { ideal: 1920 }
+            },
             audio: false
         }).then(function (stream) {
             camStream = stream;
+            camOpen = true;
             sessionShots = 0;
-            if (cameraVideo) cameraVideo.srcObject = stream;
-            if (cameraModal) cameraModal.classList.remove('hidden');
+            camSoftZoom = 1;
+            camZoomUi = 1;
+            camManualOffset = 0;
+            camNativeZoom = false;
+            camOriented = null;
+            camVideoTrack = stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
+            if (camVideoTrack && camVideoTrack.getCapabilities) {
+                var caps = camVideoTrack.getCapabilities();
+                if (caps && caps.zoom && caps.zoom.max > 1) camNativeZoom = true;
+            }
+            readRatio();
+            if (camVideo) camVideo.srcObject = stream;
+            if (cameraModal) {
+                cameraModal.classList.remove('hidden');
+                updateRatioUI();
+                updateZoomUI();
+            }
             if (cameraStatusEl) cameraStatusEl.textContent = 'Toma las fotos: cada disparo se encola y se sube solo.';
-            if (cameraVideo) return cameraVideo.play().catch(function () {});
+            if (camVideo) {
+                return camVideo.play().catch(function () {}).then(function () {
+                    startCameraLoop();
+                    return null;
+                });
+            }
             return null;
         });
     }
 
     function closeInlineCamera() {
+        camOpen = false;
+        cancelCameraLoop();
+        camOriented = null;
+        camVideoTrack = null;
+        camNativeZoom = false;
         if (camStream) {
             camStream.getTracks().forEach(function (t) { t.stop(); });
             camStream = null;
         }
-        if (cameraVideo) cameraVideo.srcObject = null;
+        if (camVideo) camVideo.srcObject = null;
         if (cameraModal) cameraModal.classList.add('hidden');
     }
 
-    if (cameraCloseBtn) cameraCloseBtn.addEventListener('click', closeInlineCamera);
-    if (cameraModal) cameraModal.addEventListener('click', function (e) { if (e.target === cameraModal) closeInlineCamera(); });
-
-    function shootPhoto() {
-        var v = cameraVideo;
-        if (!v || !v.videoWidth || !v.videoHeight) return;
-        var maxW = 1920;
-        var scale = Math.min(1, maxW / v.videoWidth);
-        var canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.round(v.videoWidth * scale));
-        canvas.height = Math.max(1, Math.round(v.videoHeight * scale));
-        canvas.getContext('2d').drawImage(v, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(function (blob) {
+    function openNativeCamera() {
+        if (captureInput) {
+            captureInput.value = '';
+            readRatio();
+            captureInput.click();
+        }
+    }    function shootPhoto() {
+        var ori = camOriented;
+        if (!camOpen || !ori || !camCanvas) return;
+        var crop = cameraCropRect(ori.width, ori.height);
+        var outW = Math.max(1, Math.round(crop.w));
+        var outH = Math.max(1, Math.round(crop.h));
+        var out = document.createElement('canvas');
+        out.width = outW;
+        out.height = outH;
+        var ctx = out.getContext('2d');
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, outW, outH);
+        ctx.drawImage(ori, crop.x, crop.y, crop.w, crop.h, 0, 0, outW, outH);
+        out.toBlob(function (blob) {
             if (!blob) return;
             var file = new File([blob], 'foto-' + Date.now() + '.jpg', { type: 'image/jpeg' });
             enqueueFile(file, true);
             sessionShots++;
             if (cameraStatusEl) cameraStatusEl.textContent = 'Fotos tomadas: ' + sessionShots + ' · se suben en segundo plano.';
-        }, 'image/jpeg', JPEG_QUALITY);
+        }, 'image/jpeg', CAM_JPEG_QUALITY);
     }
-    if (cameraShutterBtn) cameraShutterBtn.addEventListener('click', shootPhoto);
+
+    function handleShutter() {
+        shootPhoto();
+    }
 
     if (captureBtn) {
         captureBtn.addEventListener('click', function () {
-            if (canInlineCamera() && cameraModal && cameraVideo) {
+            if (canInlineCamera() && cameraModal && camCanvas && camVideo) {
                 openInlineCamera().catch(function () { openNativeCamera(); });
             } else {
                 openNativeCamera();
+            }
+        });
+    }
+    if (cameraShutterBtn) cameraShutterBtn.addEventListener('click', handleShutter);
+    if (cameraCloseBtn) cameraCloseBtn.addEventListener('click', closeInlineCamera);
+    if (cameraModal) {
+        cameraModal.addEventListener('click', function (e) {
+            if (e.target === cameraModal || e.target === camStage) closeInlineCamera();
+        });
+        var ratioBtns = cameraModal.querySelectorAll('.cam-ratio-btn');
+        for (var i = 0; i < ratioBtns.length; i++) {
+            (function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    camRatioKey = btn.dataset.ratio;
+                    persistRatio();
+                    updateRatioUI();
+                });
+            })(ratioBtns[i]);
+        }
+    }
+    var zoomInBtn = document.getElementById('btn-camera-zoom-in');
+    var zoomOutBtn = document.getElementById('btn-camera-zoom-out');
+    var rotateBtn = document.getElementById('btn-camera-rotate');
+    if (zoomInBtn) zoomInBtn.addEventListener('click', function (e) { e.stopPropagation(); setCamZoom(nextZoom(1)); });
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', function (e) { e.stopPropagation(); setCamZoom(nextZoom(-1)); });
+    if (rotateBtn) rotateBtn.addEventListener('click', function (e) { e.stopPropagation(); camManualOffset = (camManualOffset + 90) % 360; });
+    if (camCanvas) {
+        camCanvas.addEventListener('dblclick', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            setCamZoom(camZoomUi === 2 ? 1 : 2);
+        });
+        var lastTap = 0;
+        camCanvas.addEventListener('touchend', function (e) {
+            var now = Date.now();
+            if (now - lastTap < 300) {
+                e.preventDefault();
+                setCamZoom(camZoomUi === 2 ? 1 : 2);
+                lastTap = 0;
+            } else {
+                lastTap = now;
             }
         });
     }

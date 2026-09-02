@@ -43,22 +43,47 @@
         @endif
     </div>
 
-    <p class="mt-3 text-xs text-gray-400">En el celular, «Tomar foto» abre la cámara trasera. Si el navegador lo permite (HTTPS), se abre la cámara integrada y puedes tomar varias fotos seguidas; cada una se sube en cuanto la tomas.</p>
+    <p class="mt-3 text-xs text-gray-400">En el celular, «Tomar foto» abre la cámara trasera. Si el navegador lo permite (HTTPS), se abre la cámara integrada con vista previa 3:4, zoom y selector de proporción. Las fotos de cámara se guardan en calidad alta (2560 px); cada una se sube en cuanto la tomas.</p>
 
     {{-- Overlay de cámara integrada (solo se usa en contexto seguro / getUserMedia) --}}
     <div id="photo-camera-modal" class="fixed inset-0 z-50 hidden bg-black">
-        <video id="photo-camera-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+        {{-- Vista previa en canvas: muestra exactamente el encuadre final --}}
+        <div id="photo-camera-stage" class="absolute inset-0 flex items-center justify-center p-4 bg-black">
+            <canvas id="photo-camera-canvas" class="block max-w-full max-h-full w-auto h-auto"></canvas>
+        </div>
+        <video id="photo-camera-video" autoplay playsinline muted class="absolute opacity-0 pointer-events-none" style="width:1px;height:1px;left:-10px;top:-10px" aria-hidden="true"></video>
+
         <div class="absolute inset-x-0 top-0 flex items-center justify-between p-4 bg-gradient-to-b from-black/70 to-transparent">
             <span class="text-white text-sm font-semibold flex items-center gap-2">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 Cámara trasera
             </span>
-            <button type="button" id="btn-camera-close" class="inline-flex items-center gap-1 rounded-lg bg-white/15 text-white px-3 py-1.5 text-sm font-semibold hover:bg-white/25" title="Cerrar cámara">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                Cerrar
-            </button>
+            <div class="flex items-center gap-2">
+                <button type="button" id="btn-camera-rotate" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 text-white hover:bg-white/25" title="Rotar 90°">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
+                <button type="button" id="btn-camera-close" class="inline-flex items-center gap-1 rounded-lg bg-white/15 text-white px-3 py-1.5 text-sm font-semibold hover:bg-white/25" title="Cerrar cámara">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    Cerrar
+                </button>
+            </div>
         </div>
-        <div class="absolute inset-x-0 bottom-0 pb-8 pt-16 bg-gradient-to-t from-black/70 to-transparent text-center">
+
+        <div class="absolute inset-x-0 bottom-0 pb-7 pt-20 bg-gradient-to-t from-black/80 to-transparent text-center">
+            <div class="flex flex-wrap justify-center gap-2 mb-4 px-4">
+                @foreach (['3:4', '1:1', '4:3', '16:9'] as $ratio)
+                    <button type="button" class="cam-ratio-btn rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-colors bg-white/15 hover:bg-white/25" data-ratio="{{ $ratio }}">{{ $ratio }}</button>
+                @endforeach
+            </div>
+            <div class="flex items-center justify-center gap-4 mb-3 text-white">
+                <button type="button" id="btn-camera-zoom-out" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 hover:bg-white/25" title="Alejar (zoom −)">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg>
+                </button>
+                <span id="camera-zoom-label" class="inline-block w-14 text-sm font-semibold">1×</span>
+                <button type="button" id="btn-camera-zoom-in" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 hover:bg-white/25" title="Acercar (zoom +)">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/></svg>
+                </button>
+            </div>
             <p id="photo-camera-status" class="text-white text-sm mb-4 px-4">Toma las fotos: cada disparo se encola y se sube solo.</p>
             <button type="button" id="btn-camera-shutter" class="mx-auto h-16 w-16 rounded-full border-4 border-white flex items-center justify-center focus:outline-none active:scale-95 transition-transform" title="Tomar foto">
                 <span class="block h-12 w-12 rounded-full bg-white"></span>
