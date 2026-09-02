@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckInChecklistItemController;
 use App\Http\Controllers\CheckInController;
@@ -74,6 +75,7 @@ Route::prefix('c')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('parties', PartyController::class);
     Route::resource('vehicles', VehicleController::class);
+    Route::resource('brands', BrandController::class)->except(['show']);
     Route::get('vehicles/{vehicle}/history', [VehicleController::class, 'history'])->name('vehicles.history');
     Route::post('vehicles/{vehicle}/token/regenerate', [VehicleController::class, 'regenerateToken'])->name('vehicles.token.regenerate');
     Route::post('vehicles/{vehicle}/token/revoke', [VehicleController::class, 'revokeToken'])->name('vehicles.token.revoke');
@@ -287,6 +289,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('api/vehicles/{vehicle}/recipients', [VehicleController::class, 'recipients'])->name('api.vehicles.recipients');
     Route::post('api/vehicles/{vehicle}/relationships', [VehicleController::class, 'attachRelationship'])->name('api.vehicles.relationships.attach');
     Route::get('api/brands', [VehicleController::class, 'brands'])->name('api.brands');
+    Route::get('api/brands/search', [BrandController::class, 'search'])->name('api.brands.search');
     Route::get('api/models', [VehicleController::class, 'models'])->name('api.models');
     Route::post('api/brands/find-or-create', [VehicleController::class, 'findOrCreateBrand'])->name('api.brands.find-or-create');
     Route::post('api/models/find-or-create', [VehicleController::class, 'findOrCreateModel'])->name('api.models.find-or-create');
