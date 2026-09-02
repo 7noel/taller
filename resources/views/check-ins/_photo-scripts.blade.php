@@ -165,6 +165,28 @@
         errorEl.classList.toggle('hidden', !msg);
     }
 
+    function fieldInputEl(name) {
+        if (!formEl) return null;
+        var els = formEl.querySelectorAll('input, select, textarea');
+        for (var i = 0; i < els.length; i++) {
+            if (els[i].name === name) return els[i];
+        }
+        return null;
+    }
+    function renderFieldError(name, msg) {
+        var el = fieldInputEl(name);
+        if (!el) return;
+        var wrap = el.closest('div');
+        var p = document.createElement('p');
+        p.className = 'text-red-600 text-sm mt-1 field-error';
+        p.textContent = msg;
+        if (wrap) wrap.appendChild(p);
+    }
+    function clearFieldErrors() {
+        if (!formEl) return;
+        formEl.querySelectorAll('p.field-error').forEach(function (p) { p.remove(); });
+    }
+
     function submitButton() {
         return formEl ? formEl.querySelector('button[type="submit"]') : null;
     }
@@ -424,13 +446,19 @@
             if (!res.ok) {
                 var jErr = null;
                 try { jErr = await res.json(); } catch (e2) { jErr = null; }
-                var errMsg = 'No se pudo guardar el inventario. Revisa los campos obligatorios y vuelve a intentar.';
+                clearFieldErrors();
+                var hasFieldErrors = false;
                 if (jErr && jErr.errors) {
                     var errKeys = Object.keys(jErr.errors);
-                    if (errKeys.length && jErr.errors[errKeys[0]] && jErr.errors[errKeys[0]].length) errMsg = jErr.errors[errKeys[0]][0];
-                } else if (jErr && jErr.message) {
-                    errMsg = jErr.message;
+                    for (var ei = 0; ei < errKeys.length; ei++) {
+                        var ek = errKeys[ei];
+                        var eMsg = (jErr.errors[ek] && jErr.errors[ek].length) ? jErr.errors[ek][0] : '';
+                        if (eMsg) { renderFieldError(ek, eMsg); hasFieldErrors = true; }
+                    }
                 }
+                var errMsg = hasFieldErrors
+                    ? 'Revisa los campos marcados en rojo y vuelve a intentar.'
+                    : ((jErr && jErr.message) || 'No se pudo guardar el inventario. Reintenta.');
                 throw new Error(errMsg);
             }
             var data = await res.json();

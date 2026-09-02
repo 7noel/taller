@@ -92,4 +92,16 @@ class CheckInRequest extends FormRequest
             'damages.*.side.required_with' => 'Indique el lado del daño.',
         ];
     }
+
+    /**
+     * Convierte campos numéricos/fecha opcionales vacíos a null para que nullable aplique.
+     */
+    protected function prepareForValidation(): void
+    {
+        foreach (['mileage', 'keys_count', 'soat_expiration', 'technical_review_expiration'] as $field) {
+            if ($this->has($field) && $this->input($field) === '' ) {
+                $this->merge([$field => null]);
+            }
+        }
+    }
 }
