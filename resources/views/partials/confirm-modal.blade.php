@@ -1,11 +1,12 @@
 {{-- =============================================================
      Modal global de confirmación de acciones destructivas
-     - Abrir: window.ConfirmModal.open(form, { message })
-     - El form debe tener data-confirm="Mensaje..." (o pasar un
-       mensaje opcional en el parámetro message).
-     - Al confirmar marca form.dataset.confirmed='1' y llama
-       form.requestSubmit() para volver a pasar por form-guard
-       (refresh CSRF + anti-doble envío).
+     - Abrir con formulario: window.ConfirmModal.open(form, { message })
+       El form debe tener data-confirm="Mensaje..." (o pasar un mensaje
+       opcional en opts.message). Al confirmar marca form.dataset.confirmed='1'
+       y llama form.requestSubmit() para volver a pasar por form-guard.
+     - Abrir con callback (acciones AJAX / fetch):
+       window.ConfirmModal.open(null, { message, confirmLabel, onConfirm })
+       Al confirmar ejecuta onConfirm() una sola vez.
      - Prohibido usar onsubmit="return confirm(...)" en el proyecto.
      ============================================================= --}}
 <div id="confirmModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50 p-4">
@@ -40,12 +41,21 @@
     const btnCancel = document.getElementById('confirmModalCancel');
 
     let pendingForm = null;
+    let pendingCallback = null;
 
-    function open(form, opts) {
+    function open(target, opts) {
         opts = opts || {};
-        pendingForm = form;
-        const msg = opts.message || form?.dataset.confirm || '¿Estás seguro de realizar esta acción?';
-        messageEl.textContent = msg;
+        pendingForm = null;
+        pendingCallback = null;
+
+        if (typeof target === 'function') {
+            pendingCallback = target;
+        } else {
+            pendingForm = target;
+        }
+
+        const fallback = pendingForm ? (pendingForm?.dataset?.confirm || '¿Estás seguro de realizar esta acción?') : '¿Estás seguro de realizar esta acción?';
+        messageEl.textContent = opts.message || fallback;
         btnOk.textContent = opts.confirmLabel || 'Eliminar';
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -56,10 +66,21 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         pendingForm = null;
+        pendingCallback = null;
     }
 
     function confirmIt() {
-        if (!pendingForm) { close(); return; }
+        if (pendingCallback) {
+            const cb = pendingCallback;
+            pendingCallback = null;
+            close();
+            cb();
+            return;
+        }
+        if (!pendingForm) {
+            close();
+            return;
+        }
         const form = pendingForm;
         pendingForm = null;
         form.dataset.confirmed = '1';

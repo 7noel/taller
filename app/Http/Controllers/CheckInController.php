@@ -60,6 +60,15 @@ class CheckInController extends Controller
             $message = "Inventario creado. Se asoció la cita de hoy" . ($time ? " ($time)" : '') . '.';
         }
 
+        session()->flash('success', $message);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id' => $checkIn->id,
+                'redirect' => route('check-ins.index'),
+            ]);
+        }
+
         return redirect()->route('check-ins.index')
             ->with('success', $message);
     }

@@ -214,6 +214,7 @@
 @include('check-ins._checklist', ['checkIn' => $checkIn, 'checklistItems' => $checklistItems, 'isEdit' => $isEdit])
 @include('check-ins._damages', ['checkIn' => $checkIn, 'isEdit' => $isEdit])
 @include('check-ins._photos', ['checkIn' => $checkIn, 'isEdit' => $isEdit])
+@include('check-ins._photo-scripts', ['checkIn' => $checkIn, 'isEdit' => $isEdit])
 
 @include('check-ins._vehicle_modal')
 @include('partials.contact-modal')
