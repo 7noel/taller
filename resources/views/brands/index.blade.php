@@ -54,7 +54,7 @@
         }
 
         const table = new Tabulator('#brand-table', {
-            ajaxURL: "{{ $searchUrl }}&limit=100",
+            ajaxURL: "{{ $searchUrl }}?limit=100",
             layout: 'fitColumns',
             responsiveLayout: 'collapse',
             placeholder: 'No hay marcas registradas',
@@ -93,7 +93,7 @@
         });
 
         document.getElementById('brand-search').addEventListener('input', function(e) {
-            table.setData("{{ $searchUrl }}&q=" + encodeURIComponent(e.target.value) + "&limit=100");
+            table.setData("{{ $searchUrl }}?q=" + encodeURIComponent(e.target.value) + "&limit=100");
         });
     </script>
     @endpush
