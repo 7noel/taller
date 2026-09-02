@@ -11,8 +11,6 @@
     var CHECK_IN_ID = {{ $checkIn->id ?? 'null' }};
     var MAX_SIDE = 1600;         // lado mayor (px) al comprimir subidas de galería/PC
     var JPEG_QUALITY = 0.85;     // calidad JPEG para subidas de galería/PC
-    var CAM_MAX_SIDE = 2560;     // lado mayor (px) para fotos tomadas con la cámara (Alta)
-    var CAM_JPEG_QUALITY = 0.9;  // calidad JPEG para fotos de cámara (Alta)
     var KEEP_SIZE = 450 * 1024;  // JPEG/WEBP menores a 450 KB se suben tal cual (sin recorte)
     var RATIOS = [
         { key: '3:4', w: 3, h: 4 },
@@ -22,6 +20,12 @@
     ];
     var RATIO_DEFAULT = '3:4';
     var ZOOM_STEPS = [1, 1.5, 2, 3, 4];
+    var QUALITY_PRESETS = {
+        estandar: { key: 'estandar', label: 'Estándar', maxSide: 1600, quality: 0.85 },
+        alta: { key: 'alta', label: 'Alta', maxSide: 2048, quality: 0.9 },
+        maxima: { key: 'maxima', label: 'Máxima', maxSide: 2560, quality: 0.92 }
+    };
+    var QUALITY_DEFAULT = 'estandar';
 
     var previewEl = document.getElementById('photo-preview');
     if (!previewEl) return;
@@ -615,7 +619,9 @@
             var files = this.files;
             this.value = '';
             readRatio();
-            enqueueFiles(files, false, { cropRatio: camRatioKey, maxSide: CAM_MAX_SIDE, quality: CAM_JPEG_QUALITY });
+            readQuality();
+            var qp = currentQuality();
+            enqueueFiles(files, false, { cropRatio: camRatioKey, maxSide: qp.maxSide, quality: qp.quality });
         });
     }
     if (uploadBtn) {
@@ -625,7 +631,7 @@
     }
 
     // -------------------------------------------------------------
-    // Cámara integrada: vista previa WYSIWYG (canvas), proporción y zoom
+    // Cámara integrada: lente principal, vista previa WYSIWYG, calidad, proporción y zoom
     // -------------------------------------------------------------
     var camStream = null;
     var camOpen = false;
@@ -641,11 +647,50 @@
     var camVideoTrack = null;
     var camZoomUi = 1;
     var sessionShots = 0;
+    var qualityKey = QUALITY_DEFAULT;
+    var backCameras = [];
+    var backCameraIndex = -1;
+    var camSwitchBtn = document.getElementById('btn-camera-switch');
 
     function canInlineCamera() {
         return window.isSecureContext && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     }
 
+    // ---------- Calidad (presets Estándar / Alta / Máxima) ----------
+    function readQuality() {
+        var v = QUALITY_DEFAULT;
+        try {
+            var saved = localStorage.getItem('checkin-photo-quality');
+            if (saved && QUALITY_PRESETS[saved]) v = saved;
+        } catch (e) {}
+        qualityKey = v;
+    }
+
+    function persistQuality() {
+        try { localStorage.setItem('checkin-photo-quality', qualityKey); } catch (e) {}
+    }
+
+    function currentQuality() {
+        return QUALITY_PRESETS[qualityKey] || QUALITY_PRESETS[QUALITY_DEFAULT];
+    }
+
+    function updateQualityUI() {
+        var bar = document.getElementById('photo-quality-bar');
+        if (!bar) return;
+        var btns = bar.querySelectorAll('.quality-btn');
+        for (var i = 0; i < btns.length; i++) {
+            var b = btns[i];
+            if (b.dataset.quality === qualityKey) {
+                b.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                b.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+            } else {
+                b.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+                b.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+            }
+        }
+    }
+
+    // ---------- Proporción (3:4 por defecto) ----------
     function readRatio() {
         var v = RATIO_DEFAULT;
         try {
@@ -686,6 +731,7 @@
         }
     }
 
+    // ---------- Zoom ----------
     function updateZoomUI() {
         var label = document.getElementById('camera-zoom-label');
         if (label) label.textContent = camZoomUi + '×';
@@ -809,47 +855,141 @@
         camRaf = requestAnimationFrame(cameraTick);
     }
 
-    function openInlineCamera() {
-        return navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: { ideal: 'environment' },
-                width: { ideal: 2560 },
-                height: { ideal: 1920 }
-            },
-            audio: false
-        }).then(function (stream) {
-            camStream = stream;
-            camOpen = true;
-            sessionShots = 0;
-            camSoftZoom = 1;
-            camZoomUi = 1;
-            camManualOffset = 0;
-            camNativeZoom = false;
-            camOriented = null;
-            camVideoTrack = stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
-            if (camVideoTrack && camVideoTrack.getCapabilities) {
-                var caps = camVideoTrack.getCapabilities();
-                if (caps && caps.zoom && caps.zoom.max > 1) camNativeZoom = true;
+    // ---------- Detección del lente principal ----------
+    function getUserMediaWrapper(c) {
+        return navigator.mediaDevices.getUserMedia(c);
+    }
+
+    function detectBackCameras() {
+        return navigator.mediaDevices.enumerateDevices().then(function (devices) {
+            var cams = [];
+            for (var i = 0; i < devices.length; i++) {
+                if (devices[i].kind !== 'videoinput') continue;
+                cams.push(devices[i]);
             }
-            readRatio();
-            if (camVideo) camVideo.srcObject = stream;
-            if (cameraModal) {
-                cameraModal.classList.remove('hidden');
-                updateRatioUI();
-                updateZoomUI();
+            var backs = [];
+            for (var j = 0; j < cams.length; j++) {
+                var l = String(cams[j].label || '').toLowerCase();
+                var isFront = l.indexOf('front') > -1 || l.indexOf('delantera') > -1;
+                var isBack = l.indexOf('back') > -1 || l.indexOf('rear') > -1 || l.indexOf('trasera') > -1 || l.indexOf('facing back') > -1;
+                if (isBack && !isFront) backs.push(cams[j]);
             }
-            if (cameraStatusEl) cameraStatusEl.textContent = 'Toma las fotos: cada disparo se encola y se sube solo.';
-            if (camVideo) {
-                return camVideo.play().catch(function () {}).then(function () {
-                    startCameraLoop();
-                    return null;
+            if (!backs.length) backs = cams;
+            return backs;
+        }).then(function (backs) {
+            var probed = [];
+            function next(i) {
+                if (i >= backs.length) return probed;
+                return getUserMediaWrapper({
+                    video: { deviceId: { exact: backs[i].deviceId }, width: { ideal: 640 }, height: { ideal: 480 } },
+                    audio: false
+                }).then(function (s) {
+                    var track = s.getVideoTracks()[0];
+                    var caps = track.getCapabilities ? track.getCapabilities() : {};
+                    probed.push({
+                        deviceId: backs[i].deviceId,
+                        label: backs[i].label || '',
+                        widthMax: (caps && caps.width && caps.width.max) || 0,
+                        focalMax: (caps && caps.focalLength && caps.focalLength.max) || 0
+                    });
+                    track.stop();
+                    return next(i + 1);
+                }).catch(function () {
+                    return next(i + 1);
                 });
             }
-            return null;
+            return next(0);
         });
     }
 
-    function closeInlineCamera() {
+    function bestMainIndex(list) {
+        if (!list.length) return -1;
+        var hasFocal = false;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].focalMax > 0) hasFocal = true;
+        }
+        list.sort(function (a, b) {
+            if (hasFocal) return b.focalMax - a.focalMax;
+            return b.widthMax - a.widthMax;
+        });
+        return 0;
+    }
+
+    function updateCameraLensUI() {
+        if (camSwitchBtn) camSwitchBtn.classList.toggle('hidden', !(backCameras && backCameras.length > 1));
+    }
+
+    // ---------- Apertura de stream ----------
+    function openStreamForDevice(devId) {
+        var vc = { facingMode: { ideal: 'environment' }, width: { ideal: 2560 }, height: { ideal: 1920 } };
+        if (devId) vc.deviceId = { exact: devId };
+        return getUserMediaWrapper({ video: vc, audio: false }).then(startStreamAndLoop);
+    }
+
+    function startStreamAndLoop(stream) {
+        camStream = stream;
+        camOpen = true;
+        sessionShots = 0;
+        camSoftZoom = 1;
+        camZoomUi = 1;
+        camManualOffset = 0;
+        camNativeZoom = false;
+        camOriented = null;
+        camVideoTrack = stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
+        if (camVideoTrack && camVideoTrack.getCapabilities) {
+            var caps = camVideoTrack.getCapabilities();
+            if (caps && caps.zoom && caps.zoom.max > 1) camNativeZoom = true;
+        }
+        readRatio();
+        readQuality();
+        updateQualityUI();
+        if (camVideo) camVideo.srcObject = stream;
+        if (cameraModal) {
+            cameraModal.classList.remove('hidden');
+            updateRatioUI();
+            updateZoomUI();
+            updateCameraLensUI();
+        }
+        if (cameraStatusEl) {
+            cameraStatusEl.textContent = (backCameras && backCameras.length > 1)
+                ? 'Lente principal en uso. Si no se ve nítido, toca el icono de cámaras para cambiar de lente.'
+                : 'Toma las fotos: cada disparo se encola y se sube solo.';
+        }
+        if (camVideo) {
+            return camVideo.play().catch(function () {}).then(function () {
+                startCameraLoop();
+                return null;
+            });
+        }
+        return null;
+    }
+
+    function openInlineCamera() {
+        // 1) Permiso + etiquetas de dispositivos
+        return getUserMediaWrapper({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 } }, audio: false })
+            .then(function (probe) {
+                probe.getTracks().forEach(function (t) { t.stop(); });
+                return detectBackCameras();
+            })
+            .then(function (list) {
+                backCameras = [];
+                if (list && list.length) {
+                    bestMainIndex(list);
+                    backCameras = list;
+                    backCameraIndex = 0;
+                } else {
+                    backCameraIndex = -1;
+                }
+                return openStreamForDevice(backCameras.length ? backCameras[0].deviceId : null);
+            })
+            .catch(function () {
+                backCameras = [];
+                backCameraIndex = -1;
+                return openStreamForDevice(null);
+            });
+    }
+
+    function stopCameraStream() {
         camOpen = false;
         cancelCameraLoop();
         camOriented = null;
@@ -860,21 +1000,37 @@
             camStream = null;
         }
         if (camVideo) camVideo.srcObject = null;
+    }
+
+    function closeInlineCamera() {
+        stopCameraStream();
         if (cameraModal) cameraModal.classList.add('hidden');
+    }
+
+    function switchCameraLens() {
+        if (!backCameras || backCameras.length < 2 || !camStream) return;
+        backCameraIndex = (backCameraIndex + 1) % backCameras.length;
+        stopCameraStream();
+        openStreamForDevice(backCameras[backCameraIndex].deviceId).catch(function () {
+            if (cameraStatusEl) cameraStatusEl.textContent = 'No se pudo cambiar de lente.';
+        });
     }
 
     function openNativeCamera() {
         if (captureInput) {
             captureInput.value = '';
             readRatio();
+            readQuality();
             captureInput.click();
         }
     }    function shootPhoto() {
         var ori = camOriented;
         if (!camOpen || !ori || !camCanvas) return;
+        var qp = currentQuality();
         var crop = cameraCropRect(ori.width, ori.height);
-        var outW = Math.max(1, Math.round(crop.w));
-        var outH = Math.max(1, Math.round(crop.h));
+        var scale = Math.min(1, qp.maxSide / Math.max(crop.w, crop.h));
+        var outW = Math.max(1, Math.round(crop.w * scale));
+        var outH = Math.max(1, Math.round(crop.h * scale));
         var out = document.createElement('canvas');
         out.width = outW;
         out.height = outH;
@@ -887,8 +1043,8 @@
             var file = new File([blob], 'foto-' + Date.now() + '.jpg', { type: 'image/jpeg' });
             enqueueFile(file, true);
             sessionShots++;
-            if (cameraStatusEl) cameraStatusEl.textContent = 'Fotos tomadas: ' + sessionShots + ' · se suben en segundo plano.';
-        }, 'image/jpeg', CAM_JPEG_QUALITY);
+            if (cameraStatusEl) cameraStatusEl.textContent = 'Fotos tomadas: ' + sessionShots + ' · calidad ' + qp.label + ' · se suben en segundo plano.';
+        }, 'image/jpeg', qp.quality);
     }
 
     function handleShutter() {
@@ -928,6 +1084,7 @@
     if (zoomInBtn) zoomInBtn.addEventListener('click', function (e) { e.stopPropagation(); setCamZoom(nextZoom(1)); });
     if (zoomOutBtn) zoomOutBtn.addEventListener('click', function (e) { e.stopPropagation(); setCamZoom(nextZoom(-1)); });
     if (rotateBtn) rotateBtn.addEventListener('click', function (e) { e.stopPropagation(); camManualOffset = (camManualOffset + 90) % 360; });
+    if (camSwitchBtn) camSwitchBtn.addEventListener('click', function (e) { e.stopPropagation(); switchCameraLens(); });
     if (camCanvas) {
         camCanvas.addEventListener('dblclick', function (e) {
             e.preventDefault();
@@ -944,6 +1101,18 @@
             } else {
                 lastTap = now;
             }
+        });
+    }
+
+    // Selector de calidad (chips junto a los botones de la sección)
+    var qualityBar = document.getElementById('photo-quality-bar');
+    if (qualityBar) {
+        qualityBar.addEventListener('click', function (e) {
+            var b = e.target.closest('.quality-btn');
+            if (!b) return;
+            qualityKey = b.dataset.quality;
+            persistQuality();
+            updateQualityUI();
         });
     }
 
@@ -973,6 +1142,8 @@
             }
         }, true);
     }
+    readQuality();
+    updateQualityUI();
     updateCount();
 })();
 </script>
