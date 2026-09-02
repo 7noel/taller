@@ -23,8 +23,14 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Marca *</label>
-                                <select id="brand_id" name="brand_id" class="mt-1 block w-full rounded-md border-gray-300">
+                                <div class="flex items-center justify-between gap-2">
+                                    <label for="brand_id" class="block text-sm font-medium text-gray-700">Marca <span class="text-red-500">*</span></label>
+                                    <button type="button" data-bmm-open="brand" class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        Nueva marca
+                                    </button>
+                                </div>
+                                <select id="brand_id" name="brand_id" data-bmm-brand class="mt-1 block w-full rounded-md border-gray-300">
                                     <option value="">Seleccionar marca...</option>
                                     @foreach ($brands as $brand)
                                         <option value="{{ $brand->id }}">{{ $brand->name }}</option>
@@ -33,8 +39,14 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Modelo *</label>
-                                <select id="model_id" name="model_id" class="mt-1 block w-full rounded-md border-gray-300" disabled>
+                                <div class="flex items-center justify-between gap-2">
+                                    <label for="model_id" class="block text-sm font-medium text-gray-700">Modelo <span class="text-red-500">*</span></label>
+                                    <button type="button" id="btn-new-model" data-bmm-open="model" disabled class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline disabled:opacity-40 disabled:pointer-events-none">
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        Nuevo modelo
+                                    </button>
+                                </div>
+                                <select id="model_id" name="model_id" data-bmm-model class="mt-1 block w-full rounded-md border-gray-300" disabled>
                                     <option value="">Seleccione primero la marca...</option>
                                 </select>
                                 @error('model_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -128,24 +140,72 @@
     {{-- Modal de contacto compartido (requerido por el componente de relaciones) --}}
     @include('partials.contact-modal')
 
+    {{-- Modal "Nueva marca / Nuevo modelo" --}}
+    @include('partials.brand-model-modal')
+
     @push('scripts')
     <script>
     // Cargar modelos según marca
     const brandSelect = document.getElementById('brand_id');
     const modelSelect = document.getElementById('model_id');
+    const btnNewModel = document.getElementById('btn-new-model');
     const modelsByBrand = @json($modelsByBrandData);
 
-    brandSelect.addEventListener('change', function() {
+    function populateModels(brandId, selectedModelId) {
         modelSelect.innerHTML = '<option value="">Seleccionar modelo...</option>';
-        modelSelect.disabled = !this.value;
-        const models = modelsByBrand[this.value] || [];
+        modelSelect.disabled = !brandId;
+        if (!brandId) return;
+        const models = modelsByBrand[brandId] || [];
         models.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m.id;
             opt.textContent = m.name;
+            if (selectedModelId && String(m.id) === String(selectedModelId)) opt.selected = true;
             modelSelect.appendChild(opt);
         });
+        modelSelect.disabled = false;
+    }
+
+    function syncNewModelButton() {
+        btnNewModel.disabled = !brandSelect.value;
+    }
+
+    function hasOption(select, value) {
+        return [...select.options].some(o => String(o.value) === String(value));
+    }
+
+    // Integra marca/modelo creados en los modales "Nueva marca / Nuevo modelo"
+    document.addEventListener('brand-model-created', function (e) {
+        const detail = e.detail || {};
+
+        if (detail.brand) {
+            if (!hasOption(brandSelect, detail.brand.id)) {
+                const opt = document.createElement('option');
+                opt.value = detail.brand.id;
+                opt.textContent = detail.brand.name;
+                brandSelect.add(opt);
+            }
+            if (!modelsByBrand[detail.brand.id]) modelsByBrand[detail.brand.id] = [];
+            brandSelect.value = detail.brand.id;
+        }
+
+        if (detail.model && brandSelect.value) {
+            const list = modelsByBrand[brandSelect.value] || (modelsByBrand[brandSelect.value] = []);
+            if (!list.some(m => String(m.id) === String(detail.model.id))) {
+                list.push(detail.model);
+            }
+            populateModels(brandSelect.value, detail.model.id);
+        }
+
+        syncNewModelButton();
     });
+
+    brandSelect.addEventListener('change', function () {
+        populateModels(this.value);
+        syncNewModelButton();
+    });
+
+    syncNewModelButton();
     </script>
     @endpush
 </x-app-layout>

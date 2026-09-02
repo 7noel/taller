@@ -18,12 +18,24 @@
                 <input type="text" id="vm-plate" maxlength="7" placeholder="ABC123" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 uppercase">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700">Marca *</label>
-                <select id="vm-brand" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                <div class="flex items-center justify-between gap-2">
+                    <label for="vm-brand" class="block text-sm font-medium text-gray-700">Marca <span class="text-red-500">*</span></label>
+                    <button type="button" data-bmm-open="brand" class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Nueva marca
+                    </button>
+                </div>
+                <select id="vm-brand" data-bmm-brand class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700">Modelo *</label>
-                <select id="vm-model" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" disabled></select>
+                <div class="flex items-center justify-between gap-2">
+                    <label for="vm-model" class="block text-sm font-medium text-gray-700">Modelo <span class="text-red-500">*</span></label>
+                    <button type="button" id="vm-new-model" data-bmm-open="model" disabled class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline disabled:opacity-40 disabled:pointer-events-none">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Nuevo modelo
+                    </button>
+                </div>
+                <select id="vm-model" data-bmm-model class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" disabled></select>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Color</label>
@@ -80,6 +92,9 @@
     ],
 ])
 
+{{-- Modal "Nueva marca / Nuevo modelo" (creación rápida de marca/modelo) --}}
+@include('partials.brand-model-modal')
+
 @push('scripts')
 <script>
 (function () {
@@ -92,11 +107,17 @@
 
     const brandSelect = document.getElementById('vm-brand');
     const modelSelect = document.getElementById('vm-model');
+    const vmNewModelBtn = document.getElementById('vm-new-model');
 
     // Guardas: si falta algún elemento del modal, loguear en vez de fallar en silencio
     if (!modal || !brandSelect || !modelSelect) {
         console.error('[vehicle-modal] Faltan elementos del modal. vehicleModal:', !!modal, '| vm-brand:', !!brandSelect, '| vm-model:', !!modelSelect);
         return;
+    }
+
+    // "Nuevo modelo" solo se habilita cuando hay una marca seleccionada.
+    function syncVmNewModelButton() {
+        if (vmNewModelBtn) vmNewModelBtn.disabled = !brandSelect.value;
     }
 
     async function loadVmBrands() {
@@ -111,12 +132,14 @@
                 brandSelect.add(opt);
             });
             if (selected) loadVmModels(selected);
+            syncVmNewModelButton();
         } catch (e) { /* noop */ }
     }
 
     function loadVmModels(brandId, selectedModelId) {
         modelSelect.innerHTML = '<option value="">Seleccionar modelo...</option>';
         modelSelect.disabled = !brandId;
+        syncVmNewModelButton();
         if (!brandId) return;
         fetch(`/api/models?brand_id=${encodeURIComponent(brandId)}`)
             .then(r => r.json())
@@ -133,6 +156,26 @@
 
     brandSelect.addEventListener('change', function () {
         loadVmModels(this.value);
+    });
+
+    // Integra marca/modelo creados con el modal "Nueva marca / Nuevo modelo"
+    document.addEventListener('brand-model-created', function (e) {
+        const detail = e.detail || {};
+
+        if (detail.brand) {
+            const exists = [...brandSelect.options].some(o => String(o.value) === String(detail.brand.id));
+            if (!exists) {
+                brandSelect.add(new Option(detail.brand.name, detail.brand.id));
+            }
+            brandSelect.value = detail.brand.id;
+        }
+
+        if (detail.model && brandSelect.value) {
+            // Recarga modelos desde el servidor (ya incluye el nuevo) y lo selecciona.
+            loadVmModels(brandSelect.value, detail.model.id);
+        }
+
+        syncVmNewModelButton();
     });
 
     loadVmBrands();

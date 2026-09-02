@@ -377,9 +377,12 @@ class VehicleController extends Controller
 
         $request->validate(['name' => ['required', 'string', 'max:100']]);
 
+        $name = mb_strtoupper(trim((string) $request->string('name')));
+        $existed = Brand::where('name', $name)->exists();
+
         $brand = $brandService->findOrCreateBrand($request->string('name'));
 
-        return response()->json(['id' => $brand->id, 'name' => $brand->name]);
+        return response()->json(['id' => $brand->id, 'name' => $brand->name, 'existed' => $existed]);
     }
 
     public function findOrCreateModel(Request $request, VehicleModelService $modelService): JsonResponse
@@ -391,8 +394,13 @@ class VehicleController extends Controller
             'name' => ['required', 'string', 'max:100'],
         ]);
 
+        $name = mb_strtoupper(trim((string) $request->string('name')));
+        $existed = VehicleModel::where('brand_id', $request->integer('brand_id'))
+            ->where('name', $name)
+            ->exists();
+
         $model = $modelService->findOrCreateModel($request->integer('brand_id'), $request->string('name'));
 
-        return response()->json(['id' => $model->id, 'name' => $model->name]);
+        return response()->json(['id' => $model->id, 'name' => $model->name, 'existed' => $existed]);
     }
 }
