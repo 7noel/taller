@@ -14,6 +14,7 @@
     var KEEP_SIZE = 450 * 1024;  // JPEG/WEBP menores a 450 KB se suben tal cual (sin recorte)
     var RATIOS = [
         { key: '3:4', w: 3, h: 4 },
+        { key: '9:16', w: 9, h: 16 },
         { key: '1:1', w: 1, h: 1 },
         { key: '4:3', w: 4, h: 3 },
         { key: '16:9', w: 16, h: 9 }
@@ -618,10 +619,11 @@
         captureInput.addEventListener('change', function () {
             var files = this.files;
             this.value = '';
-            readRatio();
+            if (CAMERA_MODE !== 'native') readRatio();
             readQuality();
             var qp = currentQuality();
-            enqueueFiles(files, false, { cropRatio: camRatioKey, maxSide: qp.maxSide, quality: qp.quality });
+            var cropNative = (CAMERA_MODE === 'native') ? null : camRatioKey;
+            enqueueFiles(files, false, { cropRatio: cropNative, maxSide: qp.maxSide, quality: qp.quality });
         });
     }
     if (uploadBtn) {
@@ -631,7 +633,8 @@
     }
 
     // -------------------------------------------------------------
-    // Cámara integrada: lente principal, vista previa WYSIWYG, calidad, proporción y zoom
+    // Cámara integrada: lente principal, formatos por orientación (como la
+    // app del celular), vista a pantalla completa con ventana de recorte
     // -------------------------------------------------------------
     var camStream = null;
     var camOpen = false;
@@ -651,12 +654,21 @@
     var backCameras = [];
     var backCameraIndex = -1;
     var camSwitchBtn = document.getElementById('btn-camera-switch');
+    var camRatioBar = document.getElementById('camera-ratio-bar');
+    var camFormatHint = document.getElementById('camera-format-hint');
+    var camControlsHidden = false;
+    var lastTapT = 0;
+    var tapTimer = null;
+    var pinchStart = null;
+
+    var sectionEl = document.getElementById('photo-section');
+    var CAMERA_MODE = (sectionEl && sectionEl.dataset.cameraMode) ? sectionEl.dataset.cameraMode : 'integrated';
 
     function canInlineCamera() {
         return window.isSecureContext && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     }
 
-    // ---------- Calidad (presets Estándar / Alta / Máxima) ----------
+    // ---------- Calidad (Estándar / Alta / Máxima) ----------
     function readQuality() {
         var v = QUALITY_DEFAULT;
         try {
@@ -690,7 +702,7 @@
         }
     }
 
-    // ---------- Proporción (3:4 por defecto) ----------
+    // ---------- Formatos según orientación ----------
     function readRatio() {
         var v = RATIO_DEFAULT;
         try {
@@ -716,35 +728,64 @@
         return r.w / r.h;
     }
 
-    function updateRatioUI() {
-        if (!cameraModal) return;
-        var btns = cameraModal.querySelectorAll('.cam-ratio-btn');
-        for (var i = 0; i < btns.length; i++) {
-            var b = btns[i];
-            if (b.dataset.ratio === camRatioKey) {
-                b.classList.remove('bg-white/15');
-                b.classList.add('bg-blue-600');
-            } else {
-                b.classList.remove('bg-blue-600');
-                b.classList.add('bg-white/15');
-            }
-        }
+    function isPortrait() {
+        return window.innerHeight > window.innerWidth;
     }
 
-    // ---------- Zoom ----------
+    function mappedRatio(key, toPortrait) {
+        if (toPortrait) {
+            if (key === '4:3') return '3:4';
+            if (key === '16:9') return '9:16';
+            return key;
+        }
+        if (key === '3:4') return '4:3';
+        if (key === '9:16') return '16:9';
+        return key;
+    }
+
+    function ratioOptionsKeys() {
+        return isPortrait() ? ['3:4', '9:16', '1:1'] : ['4:3', '16:9', '1:1'];
+    }
+
+    function syncRatioOrientation() {
+        var keys = ratioOptionsKeys();
+        if (keys.indexOf(camRatioKey) === -1) {
+            camRatioKey = mappedRatio(camRatioKey, isPortrait());
+            if (keys.indexOf(camRatioKey) === -1) camRatioKey = keys[0];
+            persistRatio();
+        }
+        renderRatioOptions();
+    }
+
+    function renderRatioOptions() {
+        if (!camRatioBar) return;
+        var keys = ratioOptionsKeys();
+        camRatioBar.innerHTML = '';
+        for (var i = 0; i < keys.length; i++) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'cam-ratio-btn rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ';
+            b.className += (keys[i] === camRatioKey) ? 'bg-blue-600 text-white' : 'bg-white/15 text-white hover:bg-white/25';
+            b.dataset.ratio = keys[i];
+            b.textContent = keys[i];
+            camRatioBar.appendChild(b);
+        }
+        updateFormatHint();
+    }
+
+    function updateFormatHint() {
+        if (camFormatHint) camFormatHint.textContent = camRatioKey + ' · ' + currentQuality().label;
+    }
+
+    // ---------- Zoom (continuo + pellizco) ----------
+    function clampZoom(z) { return Math.max(1, Math.min(4, z)); }
+    function fmtZoom(z) { return (Math.round(z * 10) / 10) + '×'; }
     function updateZoomUI() {
         var label = document.getElementById('camera-zoom-label');
-        if (label) label.textContent = camZoomUi + '×';
+        if (label) label.textContent = fmtZoom(camZoomUi);
     }
-
-    function zoomSteps() {
-        return ZOOM_STEPS;
-    }
-
     function setCamZoom(z) {
-        var steps = zoomSteps();
-        if (z < steps[0]) z = steps[0];
-        if (z > steps[steps.length - 1]) z = steps[steps.length - 1];
+        z = clampZoom(z);
         camZoomUi = z;
         updateZoomUI();
         if (camNativeZoom && camVideoTrack && camVideoTrack.applyConstraints) {
@@ -757,27 +798,27 @@
             camSoftZoom = z;
         }
     }
-
-    function nextZoom(dir) {
-        var steps = zoomSteps();
-        var i = steps.indexOf(camZoomUi);
-        if (i === -1) i = 0;
-        var j = Math.min(steps.length - 1, Math.max(0, i + dir));
-        return steps[j];
+    function camZoomEffective() { return camNativeZoom ? 1 : camSoftZoom; }
+    function stepZoom(dir) {
+        var z = camZoomUi;
+        if (dir > 0) {
+            z = (z >= 3) ? 4 : Math.min(4, Math.round(z * 1.5 * 10) / 10);
+            if (z === camZoomUi && z < 4) z = 4;
+        } else {
+            z = (z <= 1.5) ? 1 : Math.max(1, Math.round((z / 1.5) * 10) / 10);
+            if (z === camZoomUi && z > 1) z = 1;
+        }
+        setCamZoom(z);
     }
 
-    function camZoomEffective() {
-        return camNativeZoom ? 1 : camSoftZoom;
-    }
-
+    // ---------- Rotación automática ----------
     function currentRotation() {
         if (!camVideo || !camVideo.videoWidth) return 0;
         var w = camVideo.videoWidth;
         var h = camVideo.videoHeight;
         var auto = 0;
-        var portrait = window.innerHeight > window.innerWidth;
-        if (portrait && w > h) auto = 90;
-        else if (!portrait && h > w) auto = 270;
+        if (isPortrait() && w > h) auto = 90;
+        else if (!isPortrait() && h > w) auto = 270;
         return (auto + camManualOffset) % 360;
     }    function orientedCanvas() {
         if (!camVideo || !camVideo.videoWidth || !camVideo.videoHeight) return null;
@@ -820,6 +861,81 @@
         return { x: (ow - sw) / 2, y: (oh - sh) / 2, w: sw, h: sh };
     }
 
+    function prepCanvasBox() {
+        if (!camCanvas || !camStage) return null;
+        var r = camStage.getBoundingClientRect();
+        var w = Math.max(50, Math.round(r.width));
+        var h = Math.max(50, Math.round(r.height));
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        var pw = Math.round(w * dpr);
+        var ph = Math.round(h * dpr);
+        if (camCanvas.width !== pw || camCanvas.height !== ph) {
+            camCanvas.width = pw;
+            camCanvas.height = ph;
+        }
+        return { w: w, h: h, dpr: dpr };
+    }
+
+    function cameraTick() {
+        if (!camOpen) { camRaf = 0; return; }
+        if (!camVideo || !camVideo.videoWidth || !camVideo.videoHeight || !camCanvas) {
+            camRaf = requestAnimationFrame(cameraTick);
+            return;
+        }
+        var ori = orientedCanvas();
+        var box = prepCanvasBox();
+        if (!ori || !box) { camRaf = requestAnimationFrame(cameraTick); return; }
+        var ctx = camCanvas.getContext('2d');
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, camCanvas.width, camCanvas.height);
+        ctx.setTransform(box.dpr, 0, 0, box.dpr, 0, 0);
+
+        // Video orientado cubriendo toda la pantalla
+        var s = Math.max(box.w / ori.width, box.h / ori.height);
+        var dw = ori.width * s;
+        var dh = ori.height * s;
+        var dx = (box.w - dw) / 2;
+        var dy = (box.h - dh) / 2;
+        ctx.drawImage(ori, dx, dy, dw, dh);
+
+        // Ventana de recorte (formato activo) mapeada a la pantalla
+        var crop = cameraCropRect(ori.width, ori.height);
+        var cx = dx + (crop.x / ori.width) * dw;
+        var cy = dy + (crop.y / ori.height) * dh;
+        var cw = (crop.w / ori.width) * dw;
+        var ch = (crop.h / ori.height) * dh;
+
+        // Exterior oscurecido
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillRect(0, 0, box.w, Math.max(0, cy));
+        ctx.fillRect(0, cy + ch, box.w, Math.max(0, box.h - (cy + ch)));
+        ctx.fillRect(0, cy, Math.max(0, cx), ch);
+        ctx.fillRect(cx + cw, cy, Math.max(0, box.w - (cx + cw)), ch);
+
+        // Borde blanco de la ventana
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(cx, cy, cw, ch);
+
+        // Cuadrícula de tercios dentro de la ventana
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 1;
+        for (var g = 1; g < 3; g++) {
+            var gx = cx + (cw * g) / 3;
+            ctx.beginPath();
+            ctx.moveTo(gx, cy);
+            ctx.lineTo(gx, cy + ch);
+            ctx.stroke();
+            var gy = cy + (ch * g) / 3;
+            ctx.beginPath();
+            ctx.moveTo(cx, gy);
+            ctx.lineTo(cx + cw, gy);
+            ctx.stroke();
+        }
+        camRaf = requestAnimationFrame(cameraTick);
+    }
+
     function startCameraLoop() {
         cancelCameraLoop();
         camRaf = requestAnimationFrame(cameraTick);
@@ -830,32 +946,7 @@
             cancelAnimationFrame(camRaf);
             camRaf = 0;
         }
-    }
-
-    function cameraTick() {
-        if (!camOpen) { camRaf = 0; return; }
-        if (!camVideo || !camVideo.videoWidth || !camVideo.videoHeight || !camCanvas) {
-            camRaf = requestAnimationFrame(cameraTick);
-            return;
-        }
-        var ori = orientedCanvas();
-        if (!ori) { camRaf = requestAnimationFrame(cameraTick); return; }
-        var crop = cameraCropRect(ori.width, ori.height);
-        var outW = Math.max(1, Math.round(crop.w));
-        var outH = Math.max(1, Math.round(crop.h));
-        if (camCanvas.width !== outW || camCanvas.height !== outH) {
-            camCanvas.width = outW;
-            camCanvas.height = outH;
-        }
-        var ctx = camCanvas.getContext('2d');
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, outW, outH);
-        ctx.drawImage(ori, crop.x, crop.y, crop.w, crop.h, 0, 0, outW, outH);
-        camRaf = requestAnimationFrame(cameraTick);
-    }
-
-    // ---------- Detección del lente principal ----------
+    }    // ---------- Detección del lente principal ----------
     function getUserMediaWrapper(c) {
         return navigator.mediaDevices.getUserMedia(c);
     }
@@ -919,7 +1010,7 @@
         if (camSwitchBtn) camSwitchBtn.classList.toggle('hidden', !(backCameras && backCameras.length > 1));
     }
 
-    // ---------- Apertura de stream ----------
+    // ---------- Apertura / cierre de stream ----------
     function openStreamForDevice(devId) {
         var vc = { facingMode: { ideal: 'environment' }, width: { ideal: 2560 }, height: { ideal: 1920 } };
         if (devId) vc.deviceId = { exact: devId };
@@ -935,6 +1026,7 @@
         camManualOffset = 0;
         camNativeZoom = false;
         camOriented = null;
+        setControlsVisible(true);
         camVideoTrack = stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
         if (camVideoTrack && camVideoTrack.getCapabilities) {
             var caps = camVideoTrack.getCapabilities();
@@ -946,7 +1038,7 @@
         if (camVideo) camVideo.srcObject = stream;
         if (cameraModal) {
             cameraModal.classList.remove('hidden');
-            updateRatioUI();
+            syncRatioOrientation();
             updateZoomUI();
             updateCameraLensUI();
         }
@@ -965,7 +1057,6 @@
     }
 
     function openInlineCamera() {
-        // 1) Permiso + etiquetas de dispositivos
         return getUserMediaWrapper({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 } }, audio: false })
             .then(function (probe) {
                 probe.getTracks().forEach(function (t) { t.stop(); });
@@ -1002,8 +1093,21 @@
         if (camVideo) camVideo.srcObject = null;
     }
 
+    function setControlsVisible(visible) {
+        var top = document.getElementById('camera-top-bar');
+        var bottom = document.getElementById('camera-controls-bar');
+        var els = [top, bottom];
+        camControlsHidden = !visible;
+        for (var i = 0; i < els.length; i++) {
+            if (!els[i]) continue;
+            els[i].classList.toggle('opacity-0', !visible);
+            els[i].classList.toggle('pointer-events-none', !visible);
+        }
+    }
+
     function closeInlineCamera() {
         stopCameraStream();
+        setControlsVisible(true);
         if (cameraModal) cameraModal.classList.add('hidden');
     }
 
@@ -1053,6 +1157,7 @@
 
     if (captureBtn) {
         captureBtn.addEventListener('click', function () {
+            if (CAMERA_MODE === 'native') { openNativeCamera(); return; }
             if (canInlineCamera() && cameraModal && camCanvas && camVideo) {
                 openInlineCamera().catch(function () { openNativeCamera(); });
             } else {
@@ -1066,45 +1171,21 @@
         cameraModal.addEventListener('click', function (e) {
             if (e.target === cameraModal || e.target === camStage) closeInlineCamera();
         });
-        var ratioBtns = cameraModal.querySelectorAll('.cam-ratio-btn');
-        for (var i = 0; i < ratioBtns.length; i++) {
-            (function (btn) {
-                btn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    camRatioKey = btn.dataset.ratio;
-                    persistRatio();
-                    updateRatioUI();
-                });
-            })(ratioBtns[i]);
-        }
     }
-    var zoomInBtn = document.getElementById('btn-camera-zoom-in');
-    var zoomOutBtn = document.getElementById('btn-camera-zoom-out');
-    var rotateBtn = document.getElementById('btn-camera-rotate');
-    if (zoomInBtn) zoomInBtn.addEventListener('click', function (e) { e.stopPropagation(); setCamZoom(nextZoom(1)); });
-    if (zoomOutBtn) zoomOutBtn.addEventListener('click', function (e) { e.stopPropagation(); setCamZoom(nextZoom(-1)); });
-    if (rotateBtn) rotateBtn.addEventListener('click', function (e) { e.stopPropagation(); camManualOffset = (camManualOffset + 90) % 360; });
-    if (camSwitchBtn) camSwitchBtn.addEventListener('click', function (e) { e.stopPropagation(); switchCameraLens(); });
-    if (camCanvas) {
-        camCanvas.addEventListener('dblclick', function (e) {
-            e.preventDefault();
+
+    // Chips de formato (se generan según orientación)
+    if (camRatioBar) {
+        camRatioBar.addEventListener('click', function (e) {
+            var b = e.target.closest('.cam-ratio-btn');
+            if (!b) return;
             e.stopPropagation();
-            setCamZoom(camZoomUi === 2 ? 1 : 2);
-        });
-        var lastTap = 0;
-        camCanvas.addEventListener('touchend', function (e) {
-            var now = Date.now();
-            if (now - lastTap < 300) {
-                e.preventDefault();
-                setCamZoom(camZoomUi === 2 ? 1 : 2);
-                lastTap = 0;
-            } else {
-                lastTap = now;
-            }
+            camRatioKey = b.dataset.ratio;
+            persistRatio();
+            renderRatioOptions();
         });
     }
 
-    // Selector de calidad (chips junto a los botones de la sección)
+    // Selector de calidad
     var qualityBar = document.getElementById('photo-quality-bar');
     if (qualityBar) {
         qualityBar.addEventListener('click', function (e) {
@@ -1113,8 +1194,91 @@
             qualityKey = b.dataset.quality;
             persistQuality();
             updateQualityUI();
+            updateFormatHint();
         });
     }
+
+    var zoomInBtn = document.getElementById('btn-camera-zoom-in');
+    var zoomOutBtn = document.getElementById('btn-camera-zoom-out');
+    var rotateBtn = document.getElementById('btn-camera-rotate');
+    if (zoomInBtn) zoomInBtn.addEventListener('click', function (e) { e.stopPropagation(); stepZoom(1); });
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', function (e) { e.stopPropagation(); stepZoom(-1); });
+    if (rotateBtn) rotateBtn.addEventListener('click', function (e) { e.stopPropagation(); camManualOffset = (camManualOffset + 90) % 360; });
+    if (camSwitchBtn) camSwitchBtn.addEventListener('click', function (e) { e.stopPropagation(); switchCameraLens(); });
+
+    // Toque: doble toque = zoom 2× · toque simple = ocultar/mostrar controles
+    if (camCanvas) {
+        camCanvas.addEventListener('dblclick', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            setCamZoom(camZoomUi === 2 ? 1 : 2);
+        });
+
+        var tapDown = null;
+        function cancelPendingTap() {
+            if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
+        }
+        camCanvas.addEventListener('touchstart', function (e) {
+            if (e.touches.length === 2) { cancelPendingTap(); tapDown = null; return; }
+            var t = e.changedTouches[0];
+            tapDown = { x: t.clientX, y: t.clientY, t: Date.now() };
+        }, { passive: true });
+        camCanvas.addEventListener('touchmove', function (e) {
+            if (!tapDown) return;
+            if (e.touches.length > 1) { tapDown = null; return; }
+            var t = e.changedTouches[0];
+            if (Math.abs(t.clientX - tapDown.x) > 12 || Math.abs(t.clientY - tapDown.y) > 12) tapDown = null;
+        }, { passive: true });
+        camCanvas.addEventListener('touchend', function (e) {
+            if (!tapDown) return;
+            var now = Date.now();
+            if (now - tapDown.t > 350) { tapDown = null; return; }
+            tapDown = null;
+            if (now - lastTapT < 300) {
+                lastTapT = 0;
+                cancelPendingTap();
+                setCamZoom(camZoomUi === 2 ? 1 : 2);
+                return;
+            }
+            lastTapT = now;
+            cancelPendingTap();
+            tapTimer = setTimeout(function () {
+                tapTimer = null;
+                setControlsVisible(camControlsHidden);
+            }, 300);
+        }, { passive: true });
+    }
+
+    // Pellizco para zoom
+    function pinchDistance(touches) {
+        var dx = touches[0].clientX - touches[1].clientX;
+        var dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+    if (camCanvas) {
+        camCanvas.addEventListener('touchstart', function (e) {
+            if (e.touches.length === 2) {
+                cancelPendingTap();
+                lastTapT = 0;
+                pinchStart = { d: pinchDistance(e.touches), z: camZoomUi };
+            }
+        }, { passive: true });
+        camCanvas.addEventListener('touchmove', function (e) {
+            if (e.touches.length === 2 && pinchStart) {
+                e.preventDefault();
+                var ratio = pinchDistance(e.touches) / pinchStart.d;
+                setCamZoom(clampZoom(pinchStart.z * ratio));
+            }
+        }, { passive: false });
+        camCanvas.addEventListener('touchend', function () { pinchStart = null; }, { passive: true });
+    }
+
+    // Al girar el teléfono se actualizan los formatos disponibles
+    function onCamViewResize() {
+        if (camOpen) syncRatioOrientation();
+    }
+    window.addEventListener('resize', onCamViewResize);
+    window.addEventListener('orientationchange', onCamViewResize);
 
     // -------------------------------------------------------------
     // Creación: intercepta el submit SOLO si hay fotos en cola

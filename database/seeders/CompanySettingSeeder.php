@@ -34,6 +34,7 @@ class CompanySettingSeeder extends Seeder
                 // Guard de control de calidad: true = obligatorio completar asignaciones
                 // antes de aprobar el QC; false = solo advertir.
                 'qc_require_assignments_completed' => true,
+                'camera_capture_mode' => 'integrated',
             ]
         );
     }

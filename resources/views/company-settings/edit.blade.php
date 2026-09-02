@@ -18,6 +18,7 @@
                         <button type="button" data-tab="tab-integraciones" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Integraciones</button>
                         <button type="button" data-tab="tab-maintenance" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Mantenimiento</button>
                         <button type="button" data-tab="tab-reminders" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Recordatorios</button>
+                        <button type="button" data-tab="tab-photos" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap">Inventario / Fotos</button>
                     </nav>
                 </div>
 
@@ -315,6 +316,21 @@
                                     <input type="number" name="reminder_estimate_every_days" value="{{ old('reminder_estimate_every_days', $setting->reminder_estimate_every_days ?? 3) }}" min="1" max="60" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Pestaña 7: Inventario / Fotos (captura de fotos) --}}
+                    <div id="tab-photos" class="tab-panel hidden">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-1">Inventario y fotos</h3>
+                        <p class="text-sm text-gray-500 mb-4">Define cómo se toman las fotos en los inventarios vehiculares (check-in) desde el celular.</p>
+
+                        <div class="max-w-xl">
+                            <label class="block text-sm font-medium text-gray-700">Modo de captura de fotos</label>
+                            <select name="camera_capture_mode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="integrated" {{ old('camera_capture_mode', $setting->camera_capture_mode ?? 'integrated') === 'integrated' ? 'selected' : '' }}>Integrada (recomendada)</option>
+                                <option value="native" {{ old('camera_capture_mode', $setting->camera_capture_mode ?? 'integrated') === 'native' ? 'selected' : '' }}>Nativa — una foto a la vez</option>
+                            </select>
+                            <p class="mt-2 text-xs text-gray-500">Integrada: cámara en la página con lente principal, formatos 3:4 / 9:16 / 1:1 (vertical) y 4:3 / 16:9 / 1:1 (horizontal), zoom, cuadrícula y calidad configurable. Requiere HTTPS. Nativa: abre la app de cámara del celular, toma una foto a la vez y regresa; máxima compatibilidad entre equipos.</p>
                         </div>
                     </div>
 

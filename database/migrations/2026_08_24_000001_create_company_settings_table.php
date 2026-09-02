@@ -49,6 +49,7 @@ return new class extends Migration
             $table->string('reminder_part_milestones', 100)->default('25,20,17,15,10,5');
             $table->boolean('reminder_estimate_enabled')->default(true);
             $table->integer('reminder_estimate_every_days')->default(3);
+            $table->enum('camera_capture_mode', ['integrated', 'native'])->default('integrated');
             $table->timestamps();
 
             $table->foreign('ubigeo_code')->references('code')->on('ubigeos')->nullOnDelete();

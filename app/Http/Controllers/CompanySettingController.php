@@ -70,6 +70,7 @@ class CompanySettingController extends Controller
             'reminder_part_milestones' => ['nullable', 'string', 'max:100', 'regex:/^[0-9,\s]+$/'],
             'reminder_estimate_enabled' => ['required', 'boolean'],
             'reminder_estimate_every_days' => ['nullable', 'integer', 'min:1', 'max:60'],
+            'camera_capture_mode' => ['nullable', 'in:integrated,native'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:2048'],
             'favicon' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,ico', 'max:1024'],
         ]);

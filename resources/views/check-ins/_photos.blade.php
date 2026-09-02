@@ -1,10 +1,13 @@
 {{-- ============ SECCIÓN 6: FOTOS ============ --}}
 @php
-    $photoHelper = $isEdit
-        ? 'Toma o elige una foto y se sube automáticamente apenas la capturas. Puedes seguir tomando mientras se suben las anteriores.'
-        : 'Toma o elige las fotos del vehículo. Se comprimen solas y se guardarán al crear el inventario.';
+    $cameraMode = optional(\App\Models\CompanySetting::get())->camera_capture_mode ?? 'integrated';
+    $photoHelper = $cameraMode === 'native'
+        ? 'Toma una foto con la cámara del celular (una a la vez; se sube sola) o elige de la galería. Se comprime con la calidad elegida.'
+        : ($isEdit
+            ? 'Toma o elige una foto y se sube automáticamente apenas la capturas. Puedes seguir tomando mientras se suben las anteriores.'
+            : 'Toma o elige las fotos del vehículo. Se comprimen solas y se guardarán al crear el inventario.');
 @endphp
-<div class="pb-6 mb-6">
+<div id="photo-section" class="pb-6 mb-6" data-camera-mode="{{ $cameraMode }}">
     <h3 class="text-lg font-semibold text-gray-800 mb-1">Fotos del vehículo</h3>
     <p class="text-sm text-gray-500 mb-4">{{ $photoHelper }}</p>
 
@@ -50,17 +53,18 @@
         @endif
     </div>
 
-    <p class="mt-3 text-xs text-gray-400">En el celular, «Tomar foto» abre la cámara trasera. Si el navegador lo permite (HTTPS) se usa la cámara integrada con el lente principal, vista previa 3:4, zoom y selector de proporción. La calidad elegida aplica a las fotos de cámara; cada una se sube en cuanto la tomas.</p>
+    @if ($cameraMode !== 'native')
+    <p class="mt-3 text-xs text-gray-400">La cámara integrada usa el lente principal, se adapta a la orientación del celular (3:4 · 9:16 · 1:1 en vertical y 4:3 · 16:9 · 1:1 en horizontal) y se sube cada foto al tomarla.</p>
+    @endif
 
-    {{-- Overlay de cámara integrada (solo se usa en contexto seguro / getUserMedia) --}}
+    {{-- Overlay de cámara integrada (solo modo integrated y contexto seguro / getUserMedia) --}}
     <div id="photo-camera-modal" class="fixed inset-0 z-50 hidden bg-black">
-        {{-- Vista previa en canvas: muestra exactamente el encuadre final --}}
-        <div id="photo-camera-stage" class="absolute inset-0 flex items-center justify-center p-4 bg-black">
-            <canvas id="photo-camera-canvas" class="block max-w-full max-h-full w-auto h-auto"></canvas>
+        <div id="photo-camera-stage" class="absolute inset-0 bg-black overflow-hidden">
+            <canvas id="photo-camera-canvas" class="absolute inset-0 w-full h-full"></canvas>
         </div>
         <video id="photo-camera-video" autoplay playsinline muted class="absolute opacity-0 pointer-events-none" style="width:1px;height:1px;left:-10px;top:-10px" aria-hidden="true"></video>
 
-        <div class="absolute inset-x-0 top-0 flex items-center justify-between p-4 bg-gradient-to-b from-black/70 to-transparent">
+        <div id="camera-top-bar" class="absolute inset-x-0 top-0 flex items-center justify-between p-4 bg-gradient-to-b from-black/70 to-transparent transition-opacity duration-200">
             <span class="text-white text-sm font-semibold flex items-center gap-2">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 Cámara trasera
@@ -79,12 +83,9 @@
             </div>
         </div>
 
-        <div class="absolute inset-x-0 bottom-0 pb-7 pt-20 bg-gradient-to-t from-black/80 to-transparent text-center">
-            <div class="flex flex-wrap justify-center gap-2 mb-4 px-4">
-                @foreach (['3:4', '1:1', '4:3', '16:9'] as $ratio)
-                    <button type="button" class="cam-ratio-btn rounded-full px-3 py-1.5 text-xs font-semibold text-white transition-colors bg-white/15 hover:bg-white/25" data-ratio="{{ $ratio }}">{{ $ratio }}</button>
-                @endforeach
-            </div>
+        <div id="camera-controls-bar" class="absolute inset-x-0 bottom-0 pb-7 pt-16 bg-gradient-to-t from-black/80 to-transparent text-center transition-opacity duration-200">
+            <div id="camera-ratio-bar" class="flex flex-wrap justify-center gap-2 mb-3 px-4"></div>
+            <p id="camera-format-hint" class="text-white/80 text-xs mb-1 px-4"></p>
             <div class="flex items-center justify-center gap-4 mb-3 text-white">
                 <button type="button" id="btn-camera-zoom-out" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/15 hover:bg-white/25" title="Alejar (zoom −)">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg>

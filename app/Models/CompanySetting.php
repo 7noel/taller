@@ -45,6 +45,7 @@ class CompanySetting extends Model
         'reminder_part_milestones',
         'reminder_estimate_enabled',
         'reminder_estimate_every_days',
+        'camera_capture_mode',
     ];
 
     protected $casts = [
