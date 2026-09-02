@@ -17,10 +17,11 @@
                      botones submit programáticos no envían su name/value. --}}
                 <input type="hidden" name="send_method" id="whatsapp-send-method" value="">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Destinatario</label>
-                    <select name="phone" id="whatsapp-phone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label for="whatsapp-phone" class="block text-sm font-medium text-gray-700">Destinatario <span class="text-red-500">*</span></label>
+                    <select name="phone" id="whatsapp-phone" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Seleccionar destinatario...</option>
                     </select>
+                    <p id="whatsapp-phone-error" class="hidden mt-1 text-sm text-red-600"></p>
                     <p class="mt-1 text-xs text-gray-500">
                         "Abrir WhatsApp" abre WhatsApp Web con el mensaje listo para enviar; "Enviar por API" usa Evolution API del establecimiento.
                     </p>

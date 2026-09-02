@@ -56,9 +56,11 @@
     const actionUrl = @json($actionUrl ?? '');
     const recipientsUrl = @json($recipientsUrl ?? '');
     const initialMessage = @json($initialMessage ?? '');
+    const defaultRecipientPhone = @json($defaultRecipientPhone ?? '');
     const phoneSelect = document.getElementById('whatsapp-phone');
     const nameHidden = document.getElementById('whatsapp-recipient-name');
     const messageField = document.getElementById('whatsapp-message');
+    const phoneError = document.getElementById('whatsapp-phone-error');
 
     function openModal() {
         modal.classList.remove('hidden');
@@ -96,6 +98,7 @@
                 opt.textContent = (r.contact_name || 'Sin nombre') + ' (' + (r.role_label || r.role || '') + ')' + phone;
                 phoneSelect.appendChild(opt);
             });
+            preselectRecipient();
         })
         .catch(function () {});
     }
@@ -104,7 +107,51 @@
         const opt = phoneSelect.selectedOptions[0];
         nameHidden.value = opt ? (opt.dataset.name || '') : '';
     }
-    phoneSelect.addEventListener('change', syncName);
+
+    // Preselecciona el destinatario por defecto de la vista (si se indicó) o, en
+    // su defecto, el primer contacto con teléfono (el API ya los ordena por rol:
+    // aprobador → propietario → resto). Evita envíos con destinatario vacío.
+    function preselectRecipient() {
+        if (!phoneSelect.value && defaultRecipientPhone) {
+            for (let i = 0; i < phoneSelect.options.length; i++) {
+                if (phoneSelect.options[i].value === defaultRecipientPhone) {
+                    phoneSelect.value = defaultRecipientPhone;
+                    break;
+                }
+            }
+        }
+        if (!phoneSelect.value) {
+            for (let i = 0; i < phoneSelect.options.length; i++) {
+                if (phoneSelect.options[i].value) {
+                    phoneSelect.value = phoneSelect.options[i].value;
+                    break;
+                }
+            }
+        }
+        syncName();
+        clearPhoneError();
+    }
+
+    function showPhoneError(message) {
+        if (!phoneError) return;
+        phoneError.textContent = message;
+        phoneError.classList.remove('hidden');
+        phoneSelect.classList.add('border-red-500');
+        phoneSelect.setCustomValidity(message);
+    }
+
+    function clearPhoneError() {
+        if (!phoneError) return;
+        phoneError.textContent = '';
+        phoneError.classList.add('hidden');
+        phoneSelect.classList.remove('border-red-500');
+        phoneSelect.setCustomValidity('');
+    }
+
+    phoneSelect.addEventListener('change', function () {
+        syncName();
+        clearPhoneError();
+    });
 
     document.querySelectorAll('[data-whatsapp-open]').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -112,6 +159,7 @@
             form.target = '_self';
             const override = btn.getAttribute('data-whatsapp-message');
             if (messageField) messageField.value = (override !== null && override !== '') ? override : initialMessage;
+            clearPhoneError();
             syncName();
             openModal();
             loadRecipients();
@@ -124,6 +172,11 @@
     document.querySelectorAll('[data-whatsapp-wa]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
+            if (!phoneSelect.value) {
+                showPhoneError('Selecciona un destinatario con teléfono antes de continuar.');
+                phoneSelect.focus();
+                return;
+            }
             const sendMethod = document.getElementById('whatsapp-send-method');
             if (sendMethod) sendMethod.value = 'wa_me';
             form.target = '_blank';
@@ -134,7 +187,13 @@
     // "Enviar por API" setea el método y deja que el form-guard procese el submit
     // (refresh CSRF + anti-doble envío) en la misma pestaña.
     document.querySelectorAll('[data-whatsapp-api]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
+            if (!phoneSelect.value) {
+                e.preventDefault();
+                showPhoneError('Selecciona un destinatario con teléfono antes de enviar.');
+                phoneSelect.focus();
+                return;
+            }
             const sendMethod = document.getElementById('whatsapp-send-method');
             if (sendMethod) sendMethod.value = 'api';
             form.target = '_self';

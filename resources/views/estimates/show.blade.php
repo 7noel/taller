@@ -519,6 +519,7 @@
         'actionUrl' => $actionUrl ?? '',
         'recipientsUrl' => $recipientsUrl ?? '',
         'initialMessage' => $initialMessage ?? '',
+        'defaultRecipientPhone' => $recipient['contact_phone'] ?? '',
     ])
     @endpush
 </x-app-layout>

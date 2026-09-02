@@ -707,5 +707,6 @@
         'actionUrl' => $actionUrl ?? '',
         'recipientsUrl' => $recipientsUrl ?? '',
         'initialMessage' => $readyMessage ?? '',
+        'defaultRecipientPhone' => $recipient['contact_phone'] ?? '',
     ])
 </x-app-layout>

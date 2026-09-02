@@ -112,6 +112,15 @@
             @if (session('error'))
                 <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{{ session('error') }}</div>
             @endif
+            @if ($errors->any())
+                <div class="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                    <ul class="list-disc list-inside space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <div class="mb-4">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium {{ $statusColors[$checkIn->status] ?? 'bg-gray-100 text-gray-800' }}">
@@ -408,6 +417,7 @@
         'actionUrl' => $actionUrl ?? '',
         'recipientsUrl' => $recipientsUrl ?? '',
         'initialMessage' => $initialMessage ?? '',
+        'defaultRecipientPhone' => $recipient['contact_phone'] ?? '',
     ])
     <script>
     // ===== Mockup de daños pintado en el detalle =====
