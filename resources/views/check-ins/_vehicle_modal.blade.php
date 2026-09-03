@@ -68,6 +68,8 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700">Próxima Revisión Técnica</label>
                 <input type="date" id="vm-review" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div>
                 <label class="block text-sm font-medium text-gray-700">Vence SOAT</label>
                 <input type="date" id="vm-soat" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
