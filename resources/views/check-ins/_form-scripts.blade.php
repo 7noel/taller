@@ -184,6 +184,12 @@
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
+            const soatEl0 = document.getElementById('vehicle_soat_expiration');
+            if (soatEl0) soatEl0.value = '';
+            const soatInp0 = document.querySelector('input[name="soat_expiration"]');
+            if (soatInp0) soatInp0.value = '';
+            const reviewInp0 = document.querySelector('input[name="technical_review_expiration"]');
+            if (reviewInp0) reviewInp0.value = '';
             const reviewEl2 = document.getElementById('vehicle_technical_review_date');
             if (reviewEl2) reviewEl2.value = '';
             const ownerInput = document.getElementById('owner_id');
@@ -211,6 +217,10 @@
 
             document.getElementById('vehicle_body_type').value = v.body_type || '--';
             const reviewEl = document.getElementById('vehicle_technical_review_date');
+            const soatEl = document.getElementById('vehicle_soat_expiration');
+            if (soatEl) soatEl.value = v.soat_expiration || '';
+            setInputValue('soat_expiration', v.soat_expiration || '');
+            setInputValue('technical_review_expiration', v.technical_review_date || '');
             if (reviewEl) reviewEl.value = v.technical_review_date || '';
 
             // Cargar/recargar aseguradoras al seleccionar el vehículo

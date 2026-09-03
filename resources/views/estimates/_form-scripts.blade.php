@@ -1457,22 +1457,56 @@
 
     // =====================================================
     // Servicio: mostrar/ocultar Nº Siniestro e incidente según el tipo
-    // =============================================================
+    // =====================================================
+    // Servicio: Nº Siniestro (solo siniestro) y seccion de
+    // responsabilidad del taller (siniestro/garantia). Los campos
+    // de incidente se muestran solo cuando el taller asume el gasto.
+    // =====================================================
+    function liabilityFor(serviceType) {
+        if (serviceType === 'garantia') return 'workshop';
+        if (serviceType === 'siniestro') return 'insurance';
+        return 'client';
+    }
+
+    function syncWorkshopUi() {
+        const stSel = document.getElementById('service_type');
+        const serviceType = stSel ? stSel.value : '';
+        const wrap = document.getElementById('incident-wrap');
+        const chk = document.getElementById('workshop-liability');
+        const details = document.getElementById('incident-details');
+        const liability = document.getElementById('liability');
+        if (!wrap || !chk || !liability) return;
+
+        const isInternal = serviceType === 'siniestro' || serviceType === 'garantia';
+        wrap.classList.toggle('hidden', !isInternal);
+
+        if (serviceType === 'garantia') {
+            chk.checked = true;
+            chk.disabled = true;
+        } else {
+            chk.disabled = false;
+        }
+        liability.value = chk.checked ? 'workshop' : liabilityFor(serviceType);
+        if (details) details.classList.toggle('hidden', !chk.checked);
+    }
+
     function setClaimNumberVisibility(serviceType) {
         const claimWrap = document.getElementById('claim-number-wrap');
         if (claimWrap) claimWrap.classList.toggle('hidden', serviceType !== 'siniestro');
-        const incidentWrap = document.getElementById('incident-wrap');
-        if (incidentWrap) incidentWrap.classList.toggle('hidden', serviceType !== 'siniestro');
+        syncWorkshopUi();
+    }
+    const workshopLiabilityChk = document.getElementById('workshop-liability');
+    if (workshopLiabilityChk) {
+        workshopLiabilityChk.addEventListener('change', syncWorkshopUi);
     }
     const serviceTypeSelect = document.getElementById('service_type');
     if (serviceTypeSelect) {
         serviceTypeSelect.addEventListener('change', function () {
             setClaimNumberVisibility(this.value);
         });
-        // Estado inicial (creación o edición)
+        // Estado inicial (creacion o edicion)
         setClaimNumberVisibility(initialServiceType || serviceTypeSelect.value);
     }
-
     if (initialCheckInId) {
         preloadFromCheckIn(initialCheckInId);
     } else {

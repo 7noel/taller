@@ -638,14 +638,18 @@
 
     if (galleryInput) {
         galleryInput.addEventListener('change', function () {
-            var files = this.files;
+            // Copiar antes de limpiar el input: en Chrome la FileList es "viva" y
+            // al hacer this.value = '' se vacía también (las fotos no llegaban a cargar).
+            var files = Array.prototype.slice.call(this.files || []);
             this.value = '';
             enqueueFiles(files, false);
         });
     }
     if (captureInput) {
         captureInput.addEventListener('change', function () {
-            var files = this.files;
+            // Copiar antes de limpiar el input: en Chrome la FileList es "viva" y
+            // al hacer this.value = '' se vacía también (las fotos no llegaban a cargar).
+            var files = Array.prototype.slice.call(this.files || []);
             this.value = '';
             if (CAMERA_MODE !== 'native') readRatio();
             readQuality();

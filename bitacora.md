@@ -1,4 +1,11 @@
 
+### Sesion: Fechas SOAT en vehiculo, fotos desde explorador y clasificacion de presupuestos con responsabilidad del taller
+- **Fecha**: 02 de septiembre de 2026
+- **Tarea**: Resolver 3 puntos de check-ins/presupuestos.
+- **Vehiculo + SOAT**: columna `vehicles.soat_expiration` agregada en la migracion original `create_vehicles_table` (re-editada en origen, sin migracion aditiva; aplicada en BD con ALTER en dev). `MaintenanceService::syncFromCheckIn` sincroniza SOAT como la revision tecnica (valor mas reciente o si vacio). Modal "Nueva/Editar placa" y formularios de vehiculo incluyen "Vence SOAT"; `/api/vehicles/search` y quick-store/update validan y devuelven `soat_expiration`. Al seleccionar/crear un vehiculo en inventario se autocompletan `soat_expiration` y `technical_review_expiration`.
+- **Fotos desde explorador**: en Chrome la FileList es "viva"; al limpiar el input antes de copiarla, las fotos elegidas no cargaban. Fix: copiar `Array.prototype.slice.call(this.files)` antes de `this.value=''` en galeria y captura nativa.
+- **Presupuestos**: la seccion "Responsable del gasto / incidente" ya no se muestra para todo siniestro. Se distingue con un checkbox "Caso con responsabilidad del taller" (solo siniestro/garantia): al marcarlo `liability='workshop'` y aparecen tipo de incidente, responsable y fecha; en siniestros normales `liability='insurance'` queda oculto.
+- **Verificacion**: `php -l` OK, `view:cache` OK, migracion aplicada.
 ### 📌 Sesión: Consolidación de migraciones #2 (nuevas ALTERs fusionadas)
 - **Fecha**: 31 de agosto de 2026
 - **Tarea**: Consolidar las 3 nuevas migraciones ALTER creadas para soporte de moneda, responsabilidad del taller y presupuestos hijo, fusionándolas en los `Schema::create` correspondientes.

@@ -80,6 +80,8 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Próxima Revisión Técnica</label>
                                 <input type="date" name="technical_review_date" value="{{ old('technical_review_date', $vehicle->technical_review_date?->format('Y-m-d')) }}" class="mt-1 block w-full rounded-md border-gray-300">
+                                <label class="block text-sm font-medium text-gray-700">Vence SOAT</label>
+                                <input type="date" name="soat_expiration" value="{{ old('soat_expiration', $vehicle->soat_expiration?->format('Y-m-d')) }}" class="mt-1 block w-full rounded-md border-gray-300">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Días Aviso Revisión</label>

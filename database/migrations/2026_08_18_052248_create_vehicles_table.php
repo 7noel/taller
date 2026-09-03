@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('engine_number')->nullable();
             $table->integer('year')->nullable();
             $table->string('body_type')->nullable();
+            // Vencimiento del SOAT: se carga y actualiza desde los check-ins (ingresos) y vehículos.
+            $table->date('soat_expiration')->nullable();
             $table->date('technical_review_date')->nullable();
             $table->integer('review_reminder_days')->default(15);
             // Mantenimiento preventivo: última visita, próxima visita (calculada o manual)

@@ -16,7 +16,7 @@ class Vehicle extends Model
 
     protected $fillable = [
         'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
-        'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+        'year', 'body_type', 'soat_expiration', 'technical_review_date', 'review_reminder_days',
         'last_maintenance_date', 'last_maintenance_mileage', 'next_maintenance_date',
         'maintenance_reminder_days', 'maintenance_source',
         'access_token', 'access_token_created_at',
@@ -24,6 +24,7 @@ class Vehicle extends Model
     ];
 
     protected $casts = [
+        'soat_expiration' => 'date',
         'technical_review_date' => 'date',
         'review_reminder_days' => 'integer',
         'last_maintenance_date' => 'date',
@@ -38,7 +39,7 @@ class Vehicle extends Model
         return LogOptions::defaults()
             ->logOnly([
                 'plate', 'brand_id', 'model_id', 'color', 'vin', 'engine_number',
-                'year', 'body_type', 'technical_review_date', 'review_reminder_days',
+                'year', 'body_type', 'soat_expiration', 'technical_review_date', 'review_reminder_days',
                 'last_maintenance_date', 'last_maintenance_mileage', 'next_maintenance_date',
                 'maintenance_reminder_days', 'maintenance_source',
             ])

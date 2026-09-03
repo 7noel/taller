@@ -29,6 +29,15 @@ class MaintenanceService
 
         $vehicleData = [];
 
+        // SOAT: el valor más reciente gana (nunca retroceder por un ingreso viejo).
+        if ($checkIn->soat_expiration) {
+            $currentSoat = $vehicle->soat_expiration;
+
+            if (! $currentSoat || $checkIn->soat_expiration->gt($currentSoat)) {
+                $vehicleData['soat_expiration'] = $checkIn->soat_expiration->toDateString();
+            }
+        }
+
         // Revisión técnica: el valor más reciente gana (nunca retroceder por un ingreso viejo).
         if ($checkIn->technical_review_expiration) {
             $current = $vehicle->technical_review_date;

@@ -22,6 +22,7 @@ class VehicleRequest extends FormRequest
             'engine_number' => ['nullable', 'string', 'max:50'],
             'year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
             'body_type' => ['nullable', 'string', 'max:50'],
+            'soat_expiration' => ['nullable', 'date'],
             'technical_review_date' => ['nullable', 'date'],
             'review_reminder_days' => ['nullable', 'integer', 'min:1', 'max:90'],
             'last_maintenance_date' => ['nullable', 'date'],

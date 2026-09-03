@@ -68,6 +68,8 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700">Próxima Revisión Técnica</label>
                 <input type="date" id="vm-review" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <label class="block text-sm font-medium text-gray-700">Vence SOAT</label>
+                <input type="date" id="vm-soat" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
         </div>
 
@@ -195,6 +197,7 @@
             document.getElementById('vm-engine').value = vehicleOrPlate.engine_number || '';
             document.getElementById('vm-body-type').value = vehicleOrPlate.body_type || '';
             document.getElementById('vm-review').value = vehicleOrPlate.technical_review_date || '';
+            document.getElementById('vm-soat').value = vehicleOrPlate.soat_expiration || '';
 
             brandSelect.dataset.selected = vehicleOrPlate.brand_id || '';
             brandSelect.innerHTML = '<option value="">Seleccionar marca...</option>';
@@ -222,6 +225,7 @@
         document.getElementById('vm-engine').value = '';
         document.getElementById('vm-body-type').value = '';
         document.getElementById('vm-review').value = '';
+        document.getElementById('vm-soat').value = '';
         delete brandSelect.dataset.selected;
     }
 
@@ -262,6 +266,7 @@
             engine_number: document.getElementById('vm-engine').value.trim().toUpperCase() || null,
             body_type: document.getElementById('vm-body-type').value || null,
             technical_review_date: document.getElementById('vm-review').value || null,
+            soat_expiration: document.getElementById('vm-soat').value || null,
         };
 
         try {

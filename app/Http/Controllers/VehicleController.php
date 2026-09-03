@@ -196,6 +196,7 @@ class VehicleController extends Controller
                 'vin' => $vehicle->vin,
                 'engine_number' => $vehicle->engine_number,
                 'body_type' => $vehicle->body_type,
+                'soat_expiration' => $vehicle->soat_expiration?->format('Y-m-d'),
                 'technical_review_date' => $vehicle->technical_review_date?->format('Y-m-d'),
                 'owner_name' => $vehicle->relationships->first()?->party?->display_name,
             ]));
@@ -294,6 +295,7 @@ class VehicleController extends Controller
             'engine_number' => ['nullable', 'string', 'max:30'],
             'year' => ['nullable', 'integer', 'min:1900', 'max:2100'],
             'body_type' => ['nullable', 'string', 'max:50'],
+            'soat_expiration' => ['nullable', 'date'],
             'technical_review_date' => ['nullable', 'date'],
         ], [
             'plate.required' => 'La placa es obligatoria.',
@@ -314,6 +316,7 @@ class VehicleController extends Controller
             'vin' => $vehicle->vin,
             'engine_number' => $vehicle->engine_number,
             'body_type' => $vehicle->body_type,
+            'soat_expiration' => $vehicle->soat_expiration?->format('Y-m-d'),
             'technical_review_date' => $vehicle->technical_review_date?->format('Y-m-d'),
         ], 201);
     }
@@ -331,6 +334,7 @@ class VehicleController extends Controller
             'engine_number' => ['nullable', 'string', 'max:30'],
             'year' => ['nullable', 'integer', 'min:1900', 'max:2100'],
             'body_type' => ['nullable', 'string', 'max:50'],
+            'soat_expiration' => ['nullable', 'date'],
             'technical_review_date' => ['nullable', 'date'],
         ], [
             'plate.required' => 'La placa es obligatoria.',
@@ -353,6 +357,7 @@ class VehicleController extends Controller
             'vin' => $vehicle->fresh()->vin,
             'engine_number' => $vehicle->fresh()->engine_number,
             'body_type' => $vehicle->fresh()->body_type,
+            'soat_expiration' => $vehicle->fresh()->soat_expiration?->format('Y-m-d'),
             'technical_review_date' => $vehicle->fresh()->technical_review_date?->format('Y-m-d'),
         ]);
     }

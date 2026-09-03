@@ -126,43 +126,54 @@
             </div>
         </div>
 
-        {{-- Responsabilidad del gasto / incidente (visible solo en siniestro) --}}
-        <div id="incident-wrap" class="sm:col-span-2 xl:col-span-3 {{ old('service_type', $estimate->service_type ?? '') === 'siniestro' ? '' : 'hidden' }}">
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <div>
-                    <label for="liability" class="block text-sm font-medium text-gray-700">Responsable del gasto</label>
-                    <select id="liability" name="liability" class="{{ $inputCls }}">
-                        @foreach (\App\Models\Estimate::LIABILITY_LABELS as $value => $label)
-                            <option value="{{ $value }}" @selected(old('liability', $estimate->liability ?? 'client') === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
+        {{-- Responsabilidad del taller (solo en siniestro/garantia; los campos de incidente aparecen cuando el taller asume el gasto) --}}
+        @php
+            $incidentServiceType = old('service_type', $estimate->service_type ?? '');
+            $incidentLiability = old('liability', $estimate->liability ?? null);
+            $incidentVisible = in_array($incidentServiceType, ['siniestro', 'garantia'], true);
+            $incidentIsWorkshop = ($incidentLiability === 'workshop') || ($incidentServiceType === 'garantia');
+        @endphp
+        <div id="incident-wrap" class="sm:col-span-2 xl:col-span-3 {{ $incidentVisible ? '' : 'hidden' }}">
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div class="flex items-start gap-3">
+                    <input type="checkbox" id="workshop-liability" name="workshop_liability" value="1"
+                        class="mt-0.5 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                        {{ $incidentIsWorkshop ? 'checked' : '' }}
+                        {{ $incidentServiceType === 'garantia' ? 'disabled' : '' }}>
+                    <div>
+                        <label for="workshop-liability" class="block text-sm font-medium text-gray-700">Caso con responsabilidad del taller</label>
+                        <p class="mt-0.5 text-xs text-gray-500">El taller asume el gasto: garant&iacute;a de un trabajo previo, da&ntilde;o interno o siniestro por maniobra del taller (prueba de ruta, ingreso/salida). En un siniestro normal el responsable es el seguro.</p>
+                    </div>
                 </div>
-                <div>
-                    <label for="incident_type" class="block text-sm font-medium text-gray-700">Tipo de incidente</label>
-                    <select id="incident_type" name="incident_type" class="{{ $inputCls }}">
-                        <option value="">—</option>
-                        @foreach (\App\Models\Estimate::INCIDENT_TYPES as $value => $label)
-                            <option value="{{ $value }}" @selected(old('incident_type', $estimate->incident_type ?? '') === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    <p class="mt-1 text-xs text-gray-500">Cuando el siniestro lo causó el taller (prueba de ruta, maniobra).</p>
-                </div>
-                <div>
-                    <label for="liability_user_id" class="block text-sm font-medium text-gray-700">Responsable (chofer/técnico)</label>
-                    <select id="liability_user_id" name="liability_user_id" class="{{ $inputCls }}">
-                        <option value="">—</option>
-                        @foreach ($technicians as $tech)
-                            <option value="{{ $tech->id }}" @selected((int) old('liability_user_id', $estimate->liability_user_id ?? 0) === (int) $tech->id)>{{ $tech->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label for="incident_reported_at" class="block text-sm font-medium text-gray-700">Fecha del incidente</label>
-                    <input type="date" id="incident_reported_at" name="incident_reported_at" value="{{ old('incident_reported_at', $estimate ? ($estimate->incident_reported_at ? $estimate->incident_reported_at->format('Y-m-d') : '') : '') }}" class="{{ $inputCls }}">
+
+                <input type="hidden" id="liability" name="liability" value="{{ old('liability', $estimate->liability ?? ($incidentServiceType === 'siniestro' ? 'insurance' : 'client')) }}">
+
+                <div id="incident-details" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mt-4 {{ $incidentIsWorkshop ? '' : 'hidden' }}">
+                    <div>
+                        <label for="incident_type" class="block text-sm font-medium text-gray-700">Tipo de incidente</label>
+                        <select id="incident_type" name="incident_type" class="{{ $inputCls }}">
+                            <option value="">&mdash;</option>
+                            @foreach (\App\Models\Estimate::INCIDENT_TYPES as $value => $label)
+                                <option value="{{ $value }}" @selected(old('incident_type', $estimate->incident_type ?? '') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="liability_user_id" class="block text-sm font-medium text-gray-700">Responsable (chofer/t&eacute;cnico)</label>
+                        <select id="liability_user_id" name="liability_user_id" class="{{ $inputCls }}">
+                            <option value="">&mdash;</option>
+                            @foreach ($technicians as $tech)
+                                <option value="{{ $tech->id }}" @selected((int) old('liability_user_id', $estimate->liability_user_id ?? 0) === (int) $tech->id)>{{ $tech->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="incident_reported_at" class="block text-sm font-medium text-gray-700">Fecha del incidente</label>
+                        <input type="date" id="incident_reported_at" name="incident_reported_at" value="{{ old('incident_reported_at', $estimate ? ($estimate->incident_reported_at ? $estimate->incident_reported_at->format('Y-m-d') : '') : '') }}" class="{{ $inputCls }}">
+                    </div>
                 </div>
             </div>
         </div>
-
         {{-- Moneda y Tipo de cambio--}}
         <div class="sm:col-span-2 xl:col-span-1">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
