@@ -8,6 +8,13 @@
     $parentForForm = $parentEstimate ?? ($isEdit ? ($estimate->parent ?? null) : null);
     $isAmpliacionForm = $parentForForm !== null;
 
+    // Las secciones de órdenes de compra de terceros y franquicia solo aplican a siniestros.
+    $isSiniestroService = in_array(
+        old('service_type', $estimate->service_type ?? ($parentForForm->service_type ?? '')),
+        ['siniestro'],
+        true
+    );
+
     // La moneda se bloquea cuando ya hay ítems/OC cargados (o es ampliación).
     $hasDetail = $isEdit && ($estimate->items->isNotEmpty() || $estimate->thirdPartyOrders->isNotEmpty());
     $currencyLocked = $isAmpliacionForm || ($isEdit && $hasDetail);
@@ -300,7 +307,7 @@
                 <div class="flex justify-between"><span class="text-gray-500">Valor Bruto</span><span id="total-subtotal" class="font-medium">0.00</span></div>
                 <div class="flex justify-between"><span class="text-gray-500">Descuentos por ítem</span><span id="total-lines-discount" class="font-medium text-red-600">- 0.00</span></div>
                 <div class="flex justify-between"><span class="text-gray-500">Descuento global</span><span id="total-global-discount" class="font-medium text-red-600">- 0.00</span></div>
-                <div class="flex justify-between"><span class="text-gray-500">Órdenes de compra (para franquicia)</span><span id="total-orders" class="font-medium text-gray-600">+ 0.00</span></div>
+                <div id="total-orders-row" class="flex justify-between {{ $isSiniestroService ? '' : 'hidden' }}"><span class="text-gray-500">Órdenes de compra (para franquicia)</span><span id="total-orders" class="font-medium text-gray-600">+ 0.00</span></div>
                 <div class="flex justify-between border-t border-gray-100 pt-2"><span class="font-medium text-gray-700">Valor Venta (Base Imponible)</span><span id="total-taxable" class="font-medium">0.00</span></div>
                 <div class="flex justify-between"><span class="text-gray-500">IGV (<span id="igv-rate-label">0</span>%)</span><span id="total-iva" class="font-medium">0.00</span></div>
                 <div class="flex justify-between border-t border-gray-200 pt-2 text-base"><span class="font-semibold">Total a Pagar</span><span id="total-total" class="font-semibold text-gray-900">0.00</span></div>
@@ -309,6 +316,8 @@
     </div>
 </div>
 
+{{-- Solo aplica a siniestros: órdenes de compra de terceros y franquicia --}}
+<div id="siniestro-only-sections" class="{{ $isSiniestroService ? '' : 'hidden' }}">
 {{-- Órdenes de compra de terceros --}}
 <div class="mt-6">
     <div class="flex items-center justify-between mb-3">
@@ -389,8 +398,4 @@
         </div>
     </div>
 </div>
-
-{{-- Modales --}}
-@include('estimates._item-modal')
-@include('estimates._third-party-order-modal')
-@include('check-ins._vehicle_modal')
+</div>

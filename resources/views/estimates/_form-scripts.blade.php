@@ -1490,10 +1490,19 @@
         if (details) details.classList.toggle('hidden', !chk.checked);
     }
 
+    // OC de terceros y franquicia: solo aplican a presupuestos de tipo siniestro.
+    function syncSiniestroSections(serviceType) {
+        const wrap = document.getElementById('siniestro-only-sections');
+        if (wrap) wrap.classList.toggle('hidden', serviceType !== 'siniestro');
+        const ordersRow = document.getElementById('total-orders-row');
+        if (ordersRow) ordersRow.classList.toggle('hidden', serviceType !== 'siniestro');
+    }
+
     function setClaimNumberVisibility(serviceType) {
         const claimWrap = document.getElementById('claim-number-wrap');
         if (claimWrap) claimWrap.classList.toggle('hidden', serviceType !== 'siniestro');
         syncWorkshopUi();
+        syncSiniestroSections(serviceType);
     }
     const workshopLiabilityChk = document.getElementById('workshop-liability');
     if (workshopLiabilityChk) {

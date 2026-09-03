@@ -24,13 +24,18 @@
                 @include('estimates._form', ['estimate' => null, 'checkIn' => $checkIn ?? null, 'parentEstimate' => $parentEstimate ?? null, 'warrantyOf' => $warrantyOf ?? null, 'advisors' => $advisors, 'technicians' => $technicians, 'establishment' => $establishment])
 
                 <div class="mt-6 flex gap-2">
-                    <button type="submit" class="btn btn-primary">{{ !empty($warrantyOf) ? 'Guardar Garantía' : 'Guardar Presupuesto' }}</button>
-                    <a href="{{ route('estimates.index') }}" class="btn btn-secondary">Cancelar</a>
+                    <div class="flex flex-wrap justify-end gap-2">
+                        <button type="submit" class="btn btn-primary">{{ !empty($warrantyOf) ? 'Guardar Garantía' : 'Guardar Presupuesto' }}</button>
+                        <a href="{{ route('estimates.index') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
     @include('partials.contact-modal')
+    @include('estimates._item-modal')
+    @include('estimates._third-party-order-modal')
+    @include('check-ins._vehicle_modal')
     @include('estimates._form-scripts', ['estimate' => null, 'checkIn' => $checkIn ?? null, 'parentEstimate' => $parentEstimate ?? null, 'warrantyOf' => $warrantyOf ?? null, 'technicians' => $technicians, 'establishment' => $establishment])
 </x-app-layout>

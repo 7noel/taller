@@ -19,8 +19,10 @@
                 @include('estimates._form', ['estimate' => $estimate, 'checkIn' => null, 'parentEstimate' => null, 'advisors' => $advisors, 'technicians' => $technicians, 'establishment' => $establishment])
 
                 <div class="mt-6 flex gap-2">
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                    <a href="{{ route('estimates.show', $estimate) }}" class="btn btn-secondary">Cancelar</a>
+                    <div class="flex flex-wrap justify-end gap-2">
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <a href="{{ route('estimates.show', $estimate) }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
                 </div>
             </form>
         </div>
@@ -28,5 +30,8 @@
 
     @include('partials.contact-modal')
     @include('estimates._currency-modal')
+    @include('estimates._item-modal')
+    @include('estimates._third-party-order-modal')
+    @include('check-ins._vehicle_modal')
     @include('estimates._form-scripts', ['estimate' => $estimate, 'checkIn' => null, 'parentEstimate' => null, 'technicians' => $technicians, 'establishment' => $establishment])
 </x-app-layout>
